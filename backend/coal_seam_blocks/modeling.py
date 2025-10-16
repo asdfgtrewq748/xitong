@@ -89,43 +89,66 @@ def build_block_models(merged_df: pd.DataFrame,
 
     for seam_name in selected_seams:
         seam_df = valid_data[valid_data[seam_column] == str(seam_name)]
-        if seam_df.empty or len(seam_df) < 4:
-            skipped.append(f"{seam_name} (有效点 {len(seam_df)})")
+        if seam_df.empty:
+            skipped.append(f"{seam_name} (无数据点)")
+            continue
+        
+        # 降低最小点数要求: 1个点也可以建模(使用最近邻插值)
+        num_points = len(seam_df)
+        if num_points < 1:
+            skipped.append(f"{seam_name} (有效点 0)")
             continue
 
         x_points = seam_df[x_col].astype(float).values
         y_points = seam_df[y_col].astype(float).values
         thickness_points = pd.to_numeric(seam_df[thickness_col], errors='coerce').values
-        if np.isnan(thickness_points).all():
-            skipped.append(f"{seam_name} (厚度数据无效)")
+        
+        # 过滤掉NaN值
+        valid_mask = ~np.isnan(thickness_points)
+        if not np.any(valid_mask):
+            skipped.append(f"{seam_name} (厚度数据全部无效)")
+            continue
+        
+        x_points = x_points[valid_mask]
+        y_points = y_points[valid_mask]
+        thickness_points = thickness_points[valid_mask]
+        num_valid = len(thickness_points)
+        
+        if num_valid < 1:
+            skipped.append(f"{seam_name} (有效点 0)")
             continue
 
-        interpolated = method_callable(x_points, y_points, thickness_points, xi_flat, yi_flat)
-        if interpolated is None:
-            skipped.append(f"{seam_name} (插值无结果)")
+        try:
+            interpolated = method_callable(x_points, y_points, thickness_points, xi_flat, yi_flat)
+            if interpolated is None:
+                skipped.append(f"{seam_name} (插值无结果, {num_valid}个点)")
+                continue
+
+            thickness_grid = interpolated.reshape(XI.shape)
+            thickness_grid = np.asarray(thickness_grid, dtype=float)
+            if not np.isfinite(thickness_grid).any():
+                skipped.append(f"{seam_name} (插值结果全为无效值, {num_valid}个点)")
+                continue
+
+            thickness_grid = np.nan_to_num(thickness_grid, nan=0.0, posinf=0.0, neginf=0.0)
+            thickness_grid = np.clip(thickness_grid, 0.0, None)
+
+            bottom_surface = current_base_surface.copy()
+            top_surface = bottom_surface + thickness_grid
+            block_models.append(BlockModel(
+                name=str(seam_name),
+                points=num_valid,
+                top_surface=top_surface,
+                bottom_surface=bottom_surface
+            ))
+
+            current_base_surface = top_surface
+            if gap_value:
+                current_base_surface = current_base_surface + float(gap_value)
+        
+        except Exception as e:
+            skipped.append(f"{seam_name} (插值失败: {str(e)[:30]}, {num_valid}个点)")
             continue
-
-        thickness_grid = interpolated.reshape(XI.shape)
-        thickness_grid = np.asarray(thickness_grid, dtype=float)
-        if not np.isfinite(thickness_grid).any():
-            skipped.append(f"{seam_name} (插值结果全为无效值)")
-            continue
-
-        thickness_grid = np.nan_to_num(thickness_grid, nan=0.0, posinf=0.0, neginf=0.0)
-        thickness_grid = np.clip(thickness_grid, 0.0, None)
-
-        bottom_surface = current_base_surface.copy()
-        top_surface = bottom_surface + thickness_grid
-        block_models.append(BlockModel(
-            name=str(seam_name),
-            points=len(seam_df),
-            top_surface=top_surface,
-            bottom_surface=bottom_surface
-        ))
-
-        current_base_surface = top_surface
-        if gap_value:
-            current_base_surface = current_base_surface + float(gap_value)
 
     if not block_models:
         raise RuntimeError("选定的岩层数据不足以生成模型")

@@ -1,2 +1,4 @@
-前端 npm run serve
-后端 python -m uvicorn server:app --reload --host 0.0.0.0 --port 8000
+前端 cd D:\MiningSystem\frontend
+npm run serve
+后端 cd D:\MiningSystem\backend
+python -m uvicorn server:app --reload --host 0.0.0.0 --port 8000

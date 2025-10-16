@@ -1,10 +1,10 @@
 # backend/api.py
+import io
 import os
 import sys
-import webview
 import pandas as pd
 import numpy as np
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any, Tuple, Optional
 import threading
 import json
 from scipy.interpolate import griddata, Rbf
@@ -187,11 +187,180 @@ def calculate_key_strata_details(df_strata_above_coal, coal_seam_properties_df):
     return key_strata_output_list
 
 
-def process_single_borehole_file(input_csv_path):
-    pass
+def _read_csv_from_bytes(file_bytes: bytes) -> pd.DataFrame:
+    """Read CSV content from raw bytes with robust encoding fallbacks."""
+    encodings = ["utf-8-sig", "utf-8", "gbk"]
+    last_error: Optional[Exception] = None
+    for encoding in encodings:
+        try:
+            return pd.read_csv(io.BytesIO(file_bytes), encoding=encoding)
+        except Exception as exc:  # pragma: no cover - relies on external files
+            last_error = exc
+            continue
+    raise ValueError(f"无法解析CSV文件: {last_error}")
 
-def fill_missing_properties(df, rock_db, stat_preference: str = "median"):
-    pass
+
+def process_single_borehole_file(file_bytes: bytes, filename: str) -> Tuple[List[Dict[str, Any]], str, str]:
+    """Process a single borehole CSV file and extract coal seam metrics."""
+
+    processed_records: List[Dict[str, Any]] = []
+    borehole_name = os.path.splitext(os.path.basename(filename or ""))[0] or "未知钻孔"
+
+    try:
+        df = _read_csv_from_bytes(file_bytes)
+    except Exception as exc:
+        return [], f"文件 '{filename}' 读取失败: {exc}", "error"
+
+    df.dropna(how="all", inplace=True)
+    if df.empty:
+        return [], f"文件 '{filename}' 为空。", "warning"
+
+    std_cols_map = {
+        "名称": "岩层名称",
+        "岩层名称": "岩层名称",
+        "岩层": "岩层名称",
+        "岩性": "岩层名称",
+        "厚度/m": "厚度/m",
+        "厚度": "厚度/m",
+        "弹性模量/GPa": "弹性模量/GPa",
+        "弹性模量/Gpa": "弹性模量/GPa",
+        "弹性模量": "弹性模量/GPa",
+        "容重/kN·m-3": "容重/kN·m-3",
+        "容重/kN*m-3": "容重/kN·m-3",
+        "容重": "容重/kN·m-3",
+        "抗拉强度/MPa": "抗拉强度/MPa",
+        "抗拉强度": "抗拉强度/MPa",
+    }
+    df.rename(columns=lambda c: std_cols_map.get(str(c).strip(), str(c).strip()), inplace=True)
+
+    if "岩层名称" not in df.columns or "厚度/m" not in df.columns:
+        return [], f"文件 '{filename}' 缺少'岩层名称'或'厚度/m'列。", "error"
+
+    coal_indices = df[df["岩层名称"].astype(str).str.contains("煤", na=False)].index.tolist()
+    if not coal_indices:
+        return [], f"在文件 '{filename}' 中未找到煤层。", "warning"
+
+    for coal_idx in coal_indices:
+        coal_row = df.iloc[coal_idx]
+        coal_name = str(coal_row.get("岩层名称", "")).strip() or "未知煤层"
+        coal_thickness = pd.to_numeric(coal_row.get("厚度/m"), errors="coerce")
+        coal_thickness_val = float(coal_thickness) if pd.notna(coal_thickness) else None
+
+        direct_roof_name = "N/A"
+        direct_roof_thickness = None
+        if coal_idx > 0:
+            roof_row = df.iloc[coal_idx - 1]
+            direct_roof_name = str(roof_row.get("岩层名称", "")).strip() or "N/A"
+            roof_thickness = pd.to_numeric(roof_row.get("厚度/m"), errors="coerce")
+            direct_roof_thickness = float(roof_thickness) if pd.notna(roof_thickness) else None
+
+        record: Dict[str, Any] = {
+            "钻孔名": borehole_name,
+            "煤层": coal_name,
+            "煤层厚度": round(coal_thickness_val, 2) if coal_thickness_val is not None else "N/A",
+            "直接顶岩性": direct_roof_name,
+            "直接顶厚度": round(direct_roof_thickness, 2) if direct_roof_thickness is not None else "N/A",
+        }
+
+        df_above = df.iloc[:coal_idx].copy()
+        coal_props_df = df.iloc[[coal_idx]].copy()
+
+        key_info = []
+        required_cols = ["岩层名称", "厚度/m", "弹性模量/GPa", "容重/kN·m-3", "抗拉强度/MPa"]
+        if not df_above.empty and all(col in df_above.columns for col in required_cols):
+            try:
+                key_info = calculate_key_strata_details(df_above, coal_props_df)
+            except Exception:
+                key_info = []
+
+        for index, info in enumerate(key_info[:4], start=1):
+            record[f"关键层{index}厚度"] = info.get("厚度", "N/A")
+            record[f"关键层{index}岩性"] = info.get("岩性", "N/A")
+            record[f"关键层{index}距煤层的距离"] = info.get("距煤层距离", "N/A")
+
+        for fallback_index in range(len(key_info) + 1, 5):
+            record.setdefault(f"关键层{fallback_index}厚度", "N/A")
+            record.setdefault(f"关键层{fallback_index}岩性", "N/A")
+            record.setdefault(f"关键层{fallback_index}距煤层的距离", "N/A")
+
+        processed_records.append(record)
+
+    return processed_records, f"文件 '{filename}' 处理完成。", "info"
+
+
+def fill_missing_properties(df: pd.DataFrame, rock_db: pd.DataFrame, stat_preference: str = "median") -> Tuple[pd.DataFrame, int, List[str]]:
+    """Fill missing mechanical properties using statistics from rock database."""
+
+    if rock_db is None or rock_db.empty or df is None or df.empty:
+        return df, 0, []
+
+    stat_preference = (stat_preference or "median").lower()
+    if stat_preference not in {"mean", "median"}:
+        stat_preference = "median"
+
+    lithology_col = None
+    if "岩层名称" in df.columns:
+        lithology_col = "岩层名称"
+    elif "岩性" in df.columns:
+        lithology_col = "岩性"
+    if lithology_col is None or "岩性" not in rock_db.columns:
+        return df, 0, []
+
+    stats_group = rock_db.copy()
+    stats_group["岩性"] = stats_group["岩性"].astype(str).str.strip()
+    stats_group = stats_group[stats_group["岩性"].astype(bool)]
+
+    aggregation: Dict[str, str] = {}
+    numeric_columns = []
+    for column in stats_group.columns:
+        if column == "岩性":
+            continue
+        if pd.api.types.is_numeric_dtype(stats_group[column]):
+            numeric_columns.append(column)
+            aggregation[column] = stat_preference
+
+    if not numeric_columns:
+        return df, 0, []
+
+    stats_map = stats_group.groupby("岩性").agg(aggregation)
+
+    filled_df = df.copy()
+    filled_count = 0
+    filled_cols: set[str] = set()
+
+    for idx, row in filled_df.iterrows():
+        lithology = str(row.get(lithology_col, "")).strip()
+        match_row = None
+        if lithology:
+            exact = stats_map.loc[stats_map.index == lithology]
+            if not exact.empty:
+                match_row = exact.iloc[0]
+            elif "煤" in lithology:
+                coal_candidates = stats_map.loc[stats_map.index.str.contains("煤")]
+                if not coal_candidates.empty:
+                    match_row = coal_candidates.iloc[0]
+
+        if match_row is None:
+            continue
+
+        for column in numeric_columns:
+            if column not in filled_df.columns:
+                continue
+            current = filled_df.at[idx, column]
+            needs_fill = pd.isna(current)
+            if not needs_fill:
+                try:
+                    needs_fill = float(current) == 0.0
+                except Exception:
+                    needs_fill = False
+            if needs_fill:
+                value = match_row.get(column)
+                if pd.notna(value):
+                    filled_df.at[idx, column] = value
+                    filled_count += 1
+                    filled_cols.add(column)
+
+    return filled_df, filled_count, sorted(filled_cols)
 
 # ==============================================================================
 #  API 类

@@ -57,8 +57,12 @@ def aggregate_boreholes(borehole_files: List[str], coordinate_file: str, merge_c
     for file_path in borehole_files:
         df = load_borehole_csv(file_path)
         df = unify_columns(df)
-        borehole_name = os.path.splitext(os.path.basename(file_path))[0]
-        df.insert(0, "钻孔名", borehole_name)
+        
+        # 如果数据中没有钻孔名列，则从文件名提取
+        if "钻孔名" not in df.columns:
+            borehole_name = os.path.splitext(os.path.basename(file_path))[0]
+            df.insert(0, "钻孔名", borehole_name)
+        
         merged_frames.append(df)
 
     strata_df = pd.concat(merged_frames, ignore_index=True)

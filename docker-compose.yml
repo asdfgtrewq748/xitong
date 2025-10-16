@@ -1,30 +1,84 @@
-version: "3.9"
-
 services:
+  # PostgreSQL 数据库 (可选,如果需要替换SQLite)
+  # postgres:
+  #   image: postgres:15-alpine
+  #   container_name: mining_postgres
+  #   restart: always
+  #   environment:
+  #     POSTGRES_DB: mining_system
+  #     POSTGRES_USER: mining_user
+  #     POSTGRES_PASSWORD: mining_password
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   ports:
+  #     - "5432:5432"
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U mining_user"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+
+  # 后端服务
   backend:
     build:
       context: .
       dockerfile: backend/Dockerfile
+    container_name: mining_backend
+    restart: always
     ports:
       - "8000:8000"
     volumes:
-      - ./data/input:/app/data/input
+      - ./data:/app/data
+      - backend_logs:/app/logs
     environment:
       - PYTHONPATH=/app
-    command: uvicorn server:app --host 0.0.0.0 --port 8000 --reload
+      - PYTHONUNBUFFERED=1
+      - DATABASE_PATH=/app/data/database.db
+      # 如果使用PostgreSQL,取消注释以下配置
+      # - DATABASE_URL=postgresql://mining_user:mining_password@postgres:5432/mining_system
+    # depends_on:
+    #   postgres:
+    #     condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
+  # 前端服务 (生产构建)
   frontend:
     build:
       context: .
-      dockerfile: frontend/Dockerfile
+      dockerfile: frontend/Dockerfile.prod
+      args:
+        - VUE_APP_API_BASE_URL=/api
+    container_name: mining_frontend
+    restart: always
     ports:
-      - "8080:8080"
+      - "80:80"
+      - "443:443"
     volumes:
-      - ./frontend:/app
-      - /app/node_modules
-    environment:
-      - VUE_APP_API_PROXY=http://backend:8000
-      - VUE_APP_API_BASE_URL=/api
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - frontend_logs:/var/log/nginx
     depends_on:
       - backend
-    command: npm run serve -- --host 0.0.0.0 --port 8080
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  # postgres_data:
+  #   driver: local
+  backend_logs:
+    driver: local
+  frontend_logs:
+    driver: local
+
+networks:
+  default:
+    name: mining_network
+    driver: bridge

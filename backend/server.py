@@ -4,6 +4,7 @@ import io
 import json
 import re
 import tempfile
+import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 from urllib.parse import quote
@@ -21,7 +22,7 @@ from sqlalchemy import String, cast, func, or_, select, text
 from sqlalchemy.orm import Session
 
 from coal_seam_blocks.aggregator import aggregate_boreholes, unify_columns
-from api import calculate_key_strata_details
+from api import calculate_key_strata_details, process_single_borehole_file
 from coal_seam_blocks.modeling import build_block_models
 from db import get_engine, get_records_table, get_session, reset_table_cache
 
@@ -365,33 +366,69 @@ async def load_modeling_columns(
     if not borehole_files:
         raise HTTPException(status_code=400, detail="请至少上传一个钻孔文件")
 
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        tmp_path = Path(tmp_dir)
-        borehole_paths: List[str] = []
-        for file in borehole_files:
-            data = await file.read()
-            target = tmp_path / file.filename
-            target.write_bytes(data)
-            borehole_paths.append(str(target))
+    try:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_path = Path(tmp_dir)
+            borehole_paths: List[str] = []
+            
+            # 保存钻孔文件
+            for idx, file in enumerate(borehole_files):
+                try:
+                    data = await file.read()
+                    if not data:
+                        raise ValueError(f"文件 {file.filename} 为空")
+                    
+                    # 使用索引避免文件名冲突
+                    filename = file.filename or f"borehole_{idx}.csv"
+                    target = tmp_path / filename
+                    target.write_bytes(data)
+                    borehole_paths.append(str(target))
+                    print(f"[DEBUG] 保存钻孔文件: {filename}, 大小: {len(data)} bytes")
+                except Exception as e:
+                    print(f"[ERROR] 保存钻孔文件失败: {file.filename}, 错误: {e}")
+                    raise HTTPException(status_code=400, detail=f"保存钻孔文件失败: {file.filename} - {str(e)}")
 
-        coords_path = tmp_path / coords_file.filename
-        coords_path.write_bytes(await coords_file.read())
+            # 保存坐标文件
+            try:
+                coords_data = await coords_file.read()
+                if not coords_data:
+                    raise ValueError("坐标文件为空")
+                coords_path = tmp_path / (coords_file.filename or "coordinates.csv")
+                coords_path.write_bytes(coords_data)
+                print(f"[DEBUG] 保存坐标文件: {coords_file.filename}, 大小: {len(coords_data)} bytes")
+            except Exception as e:
+                print(f"[ERROR] 保存坐标文件失败: {e}")
+                raise HTTPException(status_code=400, detail=f"保存坐标文件失败: {str(e)}")
 
-        merged_df, coords_df = aggregate_boreholes(borehole_paths, str(coords_path))
+            # 聚合数据
+            try:
+                print(f"[DEBUG] 开始聚合数据，钻孔文件数: {len(borehole_paths)}")
+                merged_df, coords_df = aggregate_boreholes(borehole_paths, str(coords_path))
+                print(f"[DEBUG] 数据聚合成功，记录数: {len(merged_df)}")
+            except Exception as e:
+                print(f"[ERROR] 数据聚合失败: {e}")
+                raise HTTPException(status_code=400, detail=f"数据聚合失败: {str(e)}")
 
-    modeling_state.merged_df = merged_df
-    modeling_state.coords_df = coords_df
-    modeling_state.borehole_file_count = len(borehole_files)
-    columns_info = _get_numeric_and_text_columns(merged_df)
-    modeling_state.numeric_columns = columns_info["numeric"]
-    modeling_state.text_columns = columns_info["text"]
+        modeling_state.merged_df = merged_df
+        modeling_state.coords_df = coords_df
+        modeling_state.borehole_file_count = len(borehole_files)
+        columns_info = _get_numeric_and_text_columns(merged_df)
+        modeling_state.numeric_columns = columns_info["numeric"]
+        modeling_state.text_columns = columns_info["text"]
 
-    return {
-        "status": "success",
-        "numeric_columns": modeling_state.numeric_columns,
-        "text_columns": modeling_state.text_columns,
-        "record_count": int(len(merged_df)),
-    }
+        return {
+            "status": "success",
+            "numeric_columns": modeling_state.numeric_columns,
+            "text_columns": modeling_state.text_columns,
+            "record_count": int(len(merged_df)),
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[ERROR] load_modeling_columns 发生未预期错误: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"服务器错误: {str(e)}")
 
 
 @app.get("/api/modeling/seams")
@@ -486,14 +523,87 @@ async def generate_block_model(payload: BlockModelRequest):
             raise HTTPException(status_code=404, detail=f"数据集中缺少列: {col}")
 
     def interpolation_wrapper(x, y, z, xi_flat, yi_flat):
+        """智能插值包装函数,根据数据点数量和分布选择合适的方法"""
+        num_points = len(x)
         method_key = payload.method.lower()
-        if method_key in {"linear", "cubic", "nearest"}:
-            return griddata((x, y), z, (xi_flat, yi_flat), method=method_key)
+        
+        # 对于少量数据点,强制使用最近邻插值
+        if num_points <= 3:
+            return griddata((x, y), z, (xi_flat, yi_flat), method='nearest')
+        
+        # 检查点是否共线或接近共线
+        if num_points >= 3:
+            try:
+                # 计算点的分布范围
+                x_range = np.max(x) - np.min(x)
+                y_range = np.max(y) - np.min(y)
+                
+                # 如果点在一条线上(某个方向的范围非常小)
+                if x_range < 1e-6 or y_range < 1e-6:
+                    return griddata((x, y), z, (xi_flat, yi_flat), method='nearest')
+                
+                # 检查是否所有点都接近一条直线
+                if num_points >= 3:
+                    xy_points = np.column_stack([x, y])
+                    centroid = xy_points.mean(axis=0)
+                    centered = xy_points - centroid
+                    _, _, vh = np.linalg.svd(centered)
+                    if np.linalg.svd(centered, compute_uv=False)[1] < 1e-6:
+                        return griddata((x, y), z, (xi_flat, yi_flat), method='nearest')
+            except Exception:
+                pass
+        
+        # 执行插值
         try:
-            rbf = Rbf(x, y, z, function=method_key)
-            return rbf(xi_flat, yi_flat)
-        except Exception:
-            return griddata((x, y), z, (xi_flat, yi_flat), method="linear")
+            # 基础 griddata 方法
+            if method_key in {"linear", "cubic", "nearest"}:
+                # 三次样条需要更多点
+                if method_key == "cubic" and num_points < 16:
+                    return griddata((x, y), z, (xi_flat, yi_flat), method='linear')
+                return griddata((x, y), z, (xi_flat, yi_flat), method=method_key)
+            
+            # RBF 方法映射
+            rbf_map = {
+                "multiquadric": "multiquadric",
+                "inverse": "inverse",
+                "gaussian": "gaussian",
+                "linear_rbf": "linear",
+                "cubic_rbf": "cubic",
+                "quintic_rbf": "quintic",
+                "thin_plate": "thin_plate"
+            }
+            
+            if method_key in rbf_map:
+                rbf = Rbf(x, y, z, function=rbf_map[method_key])
+                return rbf(xi_flat, yi_flat)
+            
+            # 修正谢泼德方法 (Modified Shepard)
+            if method_key == "modified_shepard":
+                result = []
+                for xv, yv in zip(xi_flat, yi_flat):
+                    distances = np.sqrt((x - xv) ** 2 + (y - yv) ** 2)
+                    distances = np.where(distances == 0, 1e-12, distances)
+                    weights = 1.0 / (distances ** 2)
+                    weights = weights / np.sum(weights)
+                    result.append(np.sum(weights * z))
+                return np.array(result)
+            
+            # 普通克里金 (Ordinary Kriging) - 使用高斯RBF近似
+            if method_key == "ordinary_kriging":
+                rbf = Rbf(x, y, z, function='gaussian')
+                return rbf(xi_flat, yi_flat)
+            
+            # 如果方法未识别,降级为线性
+            print(f"[WARNING] 未识别的插值方法: {method_key}, 降级为线性插值")
+            return griddata((x, y), z, (xi_flat, yi_flat), method='linear')
+            
+        except Exception as e:
+            print(f"[ERROR] 插值方法 {method_key} 失败: {e}, 降级为线性插值")
+            try:
+                return griddata((x, y), z, (xi_flat, yi_flat), method='linear')
+            except Exception:
+                # 最后的保底:最近邻
+                return griddata((x, y), z, (xi_flat, yi_flat), method='nearest')
 
     try:
         block_models, skipped, (XI, YI) = build_block_models(
@@ -508,20 +618,56 @@ async def generate_block_model(payload: BlockModelRequest):
             base_level=float(payload.base_level or 0.0),
             gap_value=float(payload.gap or 0.0),
         )
+        print(f"[DEBUG] 块体建模完成: 成功 {len(block_models)} 个, 跳过 {len(skipped)} 个")
+        print(f"[DEBUG] 网格尺寸: XI.shape={XI.shape}, YI.shape={YI.shape}")
+        if skipped:
+            print(f"[DEBUG] 跳过的岩层: {skipped}")
     except Exception as exc:
+        print(f"[ERROR] 块体建模失败: {exc}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=400, detail=str(exc))
 
     models_payload = []
+    print(f"[DEBUG] 准备转换 {len(block_models)} 个模型数据...")
+    print(f"[DEBUG] 网格维度: {XI.shape[0]} x {XI.shape[1]} = {XI.shape[0] * XI.shape[1]} 个点")
+    
     for model in block_models:
+        # 方案1: 使用二维数组格式 (parametric surface)
+        # echarts-gl 的 surface 可以接受 data: { type: 'xyz', value: [x_arr, y_arr, z_arr] }
+        # 或者 data: [[x,y,z], ...] 格式
+        
+        # 提取网格的 x, y 坐标(只需要一次)
+        x_grid = XI[0, :].tolist()  # X 坐标数组 (第一行)
+        y_grid = YI[:, 0].tolist()  # Y 坐标数组 (第一列)
+        
+        # Z 值以二维数组形式提供
+        z_top = model.top_surface.tolist()
+        z_bottom = model.bottom_surface.tolist()
+        
+        print(f"[DEBUG] 岩层 '{model.name}': x维度={len(x_grid)}, y维度={len(y_grid)}, z维度={len(z_top)}x{len(z_top[0]) if z_top else 0}")
+        
         models_payload.append(
             {
                 "name": model.name,
                 "points": int(model.points),
-                "top_surface": model.top_surface.tolist(),
-                "bottom_surface": model.bottom_surface.tolist(),
-                "avg_thickness": model.avg_thickness,
+                # 使用 parametric 格式: 分别提供 x, y, z 数组
+                "grid_x": x_grid,
+                "grid_y": y_grid,
+                "top_surface_z": z_top,
+                "bottom_surface_z": z_bottom,
+                "avg_thickness": float(model.avg_thickness),
+                "max_thickness": float(model.max_thickness),
+                "avg_height": float(model.avg_height),
             }
         )
+        
+        # 打印第一个模型的数据样本用于调试
+        if len(models_payload) == 1:
+            print(f"[DEBUG] 第一个模型数据样本:")
+            print(f"  - x_grid前3个值: {x_grid[:3]}")
+            print(f"  - y_grid前3个值: {y_grid[:3]}")
+            print(f"  - z_top[0]前3个值: {z_top[0][:3] if z_top and z_top[0] else 'N/A'}")
 
     return {
         "status": "success",
@@ -988,44 +1134,71 @@ async def analyze_borehole_files(files: List[UploadFile] = File(...)):
         "total_files": len(files),
         "successful_files": 0,
         "failed_files": 0,
+        "warning_files": 0,
         "total_coal_records": 0,
         "error_details": [],
+        "warning_details": [],
+        "file_details": [],
+        "processing_time": 0.0,
     }
 
-    frames: List[pd.DataFrame] = []
+    combined_records: List[Dict[str, Any]] = []
+    start_time = time.perf_counter()
 
     for upload in files:
         filename = upload.filename or "未命名.csv"
+        detail = {"file_name": filename, "status": "pending", "message": "", "coal_records": 0}
         try:
-            data = await upload.read()
-            if not data:
+            file_bytes = await upload.read()
+            if not file_bytes:
                 raise ValueError("文件内容为空")
-            df = _read_csv_bytes(data)
-            df = unify_columns(df)
-            df = df.copy()
-            df.columns = [str(col).strip() for col in df.columns]
-            df = _ensure_seam_column(df)
-            borehole_name = Path(filename).stem
-            df.insert(0, "钻孔名", borehole_name)
-            if "煤层" in df.columns:
-                summary["total_coal_records"] += int(df["煤层"].apply(lambda v: str(v).strip() != "").sum())
-            frames.append(df)
-            summary["successful_files"] += 1
+
+            records, message, level = process_single_borehole_file(file_bytes, filename)
+            detail.update({
+                "status": level,
+                "message": message,
+                "coal_records": len(records),
+            })
+
+            if level == "error":
+                summary["failed_files"] += 1
+                summary["error_details"].append(f"{filename}: {message}")
+            elif level == "warning":
+                summary["warning_files"] += 1
+                summary["warning_details"].append(f"{filename}: {message}")
+                if records:
+                    combined_records.extend(records)
+                    summary["total_coal_records"] += len(records)
+            else:
+                summary["successful_files"] += 1
+                if records:
+                    combined_records.extend(records)
+                    summary["total_coal_records"] += len(records)
         except Exception as exc:  # pragma: no cover - best effort for malformed files
+            detail.update({
+                "status": "error",
+                "message": str(exc),
+                "coal_records": 0,
+            })
             summary["failed_files"] += 1
             summary["error_details"].append(f"{filename}: {exc}")
-            continue
+        finally:
+            summary["file_details"].append(detail)
 
-    combined_records: List[Dict[str, Optional[str]]] = []
+    summary["processing_time"] = round(time.perf_counter() - start_time, 3)
+
     columns: List[str] = []
-    if frames:
-        combined_df = pd.concat(frames, ignore_index=True, sort=False)
-        combined_df = combined_df.fillna("")
-        combined_df.columns = [str(col) for col in combined_df.columns]
-        columns = combined_df.columns.tolist()
-        combined_records = json.loads(combined_df.to_json(orient="records", force_ascii=False))
+    if combined_records:
+        seen: List[str] = []
+        for record in combined_records:
+            for key in record.keys():
+                if key not in seen:
+                    seen.append(key)
+        columns = seen
 
     message = "分析完成" if summary["successful_files"] else "未成功处理任何文件"
+    if summary["total_coal_records"] == 0:
+        message = "未提取到有效煤层记录"
 
     return {
         "status": "success",
@@ -1057,6 +1230,15 @@ async def upload_keystratum_files(files: List[UploadFile] = File(...)):
             df = _read_csv_bytes(content)
             df = unify_columns(df)
             df = _normalize_key_columns(df)
+            
+            # 如果CSV中已经有钻孔名列，删除它(因为会从文件名重新生成)
+            if "钻孔名" in df.columns:
+                df = df.drop(columns=["钻孔名"])
+            
+            # 同样删除数据来源列(会从文件名重新生成)
+            if "数据来源" in df.columns:
+                df = df.drop(columns=["数据来源"])
+            
             if "岩层名称" not in df.columns:
                 raise ValueError("缺少列: 岩层名称")
             if "厚度/m" not in df.columns:
@@ -1169,16 +1351,33 @@ async def process_keystratum(request: KeyStratumRequest):
 
     key_stratum_state.last_result = None
 
+    print(f"[DEBUG] 开始处理关键层, 目标煤层: {coal_name}")
+    print(f"[DEBUG] 文件数量: {len(key_stratum_state.files)}")
+    for filename in key_stratum_state.files.keys():
+        print(f"[DEBUG] 文件: {filename}")
+        df = key_stratum_state.files[filename]
+        print(f"[DEBUG]   行数: {len(df)}, 列: {df.columns.tolist()}")
+        if "岩层名称" in df.columns:
+            unique_names = df["岩层名称"].unique().tolist()
+            print(f"[DEBUG]   岩层名称: {unique_names[:10]}")  # 只打印前10个
+        else:
+            print(f"[DEBUG]   缺少'岩层名称'列!")
+
     processed: List[pd.DataFrame] = []
     errors: List[str] = []
     processed_count = 0
 
     for filename, df in key_stratum_state.files.items():
+        print(f"[DEBUG] 处理文件: {filename}, 行数: {len(df)}")
         try:
             working_df = df.copy()
             if "岩层名称" not in working_df.columns:
                 raise ValueError("缺少列: 岩层名称")
+            
+            # 查找煤层
             mask = working_df["岩层名称"].astype(str).str.strip() == coal_name
+            print(f"[DEBUG]   查找煤层 '{coal_name}', 匹配行数: {mask.sum()}")
+            
             if not mask.any():
                 errors.append(f"{filename}: 未找到目标岩层 {coal_name}")
                 continue
@@ -1242,6 +1441,7 @@ async def process_keystratum(request: KeyStratumRequest):
 
     if not processed:
         key_stratum_state.last_result = None
+        print(f"[DEBUG] 处理失败! 错误信息: {errors}")
         return {
             "status": "error",
             "message": "未成功处理任何文件",
@@ -1254,6 +1454,7 @@ async def process_keystratum(request: KeyStratumRequest):
 
     key_stratum_state.last_result = combined_df
 
+    print(f"[DEBUG] 处理成功! 处理了 {processed_count} 个文件")
     return {
         "status": "success",
         "message": "关键层计算完成",
@@ -1287,3 +1488,113 @@ async def export_keystratum_results(format: str = Query("xlsx", regex="^(xlsx|cs
         "Content-Disposition": f"attachment; filename*=UTF-8''{quoted_name}"
     }
     return StreamingResponse(buffer, media_type=media_type, headers=headers)
+
+
+# ==================== 原始数据导入接口(仅用于全局数据管理) ====================
+@app.post("/api/raw/import")
+async def import_raw_stratum_data(files: List[UploadFile] = File(...)):
+    """
+    导入原始岩层数据(不做任何业务处理,直接读取CSV)
+    用于Dashboard全局数据管理
+    过滤掉关键层计算相关的字段,只保留原始岩层属性
+    """
+    if not files:
+        raise HTTPException(status_code=400, detail="请上传至少一个CSV文件")
+
+    # 定义需要排除的列名模式(关键层计算相关字段)
+    # 注意: "关键层标记"列不排除,会被改名为"岩层"
+    exclude_patterns = [
+        r'^关键层\d+',           # 关键层1, 关键层2, 关键层1岩性等
+        r'距煤层距离',
+        r'距.*煤.*顶',           # 距煤层顶板, 距顶煤等
+        r'关键层.*厚度',
+        r'关键层.*岩性',
+        r'关键层.*距',
+    ]
+    
+    import re
+    def should_exclude_column(col_name):
+        """判断列名是否应该被排除"""
+        for pattern in exclude_patterns:
+            if re.search(pattern, str(col_name)):
+                return True
+        return False
+
+    total = len(files)
+    valid = 0
+    errors: List[str] = []
+    all_records = []
+    columns_set = set()
+    excluded_columns = set()
+
+    for upload in files:
+        filename = upload.filename or "未命名.csv"
+        try:
+            content = await upload.read()
+            if not content:
+                raise ValueError("文件内容为空")
+            
+            # 简单读取CSV,不做任何业务处理
+            df = _read_csv_bytes(content)
+            
+            # 过滤掉计算字段
+            original_columns = df.columns.tolist()
+            filtered_columns = [col for col in original_columns if not should_exclude_column(col)]
+            excluded = [col for col in original_columns if should_exclude_column(col)]
+            excluded_columns.update(excluded)
+            
+            # 只保留原始字段
+            df = df[filtered_columns]
+            
+            # 只做基本的列名统一(厚度/m等)
+            df = unify_columns(df)
+            
+            # 标准化关键列名(名称→岩层名称, 厚度→厚度/m等)
+            df = _normalize_key_columns(df)
+            
+            # 提取钻孔名(从文件名中,去掉扩展名)
+            import os
+            borehole_name = os.path.splitext(filename)[0]
+            
+            # 添加钻孔名列(放在最前面)
+            df.insert(0, '钻孔名', borehole_name)
+            
+            # 将"煤层"列改名为"岩层"(如果存在)
+            if '煤层' in df.columns:
+                df = df.rename(columns={'煤层': '岩层'})
+            
+            # 添加数据来源列
+            df['数据来源'] = filename
+            
+            # 收集所有列名
+            columns_set.update(df.columns.tolist())
+            
+            # 转为记录
+            records = json.loads(df.to_json(orient="records", force_ascii=False))
+            all_records.extend(records)
+            
+            valid += 1
+        except Exception as exc:
+            errors.append(f"{filename}: {str(exc)}")
+            continue
+
+    if not all_records:
+        raise HTTPException(status_code=400, detail="未能成功解析任何文件")
+
+    columns = sorted(list(columns_set))
+    
+    result = {
+        "status": "success",
+        "file_count": total,
+        "valid_count": valid,
+        "errors": errors,
+        "records": all_records,
+        "columns": columns,
+        "record_count": len(all_records),
+    }
+    
+    # 添加排除字段信息(用于调试)
+    if excluded_columns:
+        result["excluded_columns"] = sorted(list(excluded_columns))
+    
+    return result

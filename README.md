@@ -145,11 +145,130 @@ App running at:
 
 在浏览器访问 [http://localhost:8080](http://localhost:8080)。若页面正常展示，说明前端启动成功。
 
-> 若看不到数据，先确认后端窗口是否仍在运行。
+> 若看不到数据,先确认后端窗口是否仍在运行。
 
 ---
 
-## 5. 常见问题 Q&A
+## 5. Docker 容器化部署（生产环境推荐）⭐
+
+### 5.1 什么是 Docker 部署？
+
+Docker 可以把整个系统（前端+后端+数据库）打包成"容器",一键启动,无需手动配置 Python 和 Node.js 环境。
+
+**优势:**
+- ✅ 一键部署,所有依赖都包含在内
+- ✅ 环境一致性,避免"在我机器上能跑"的问题
+- ✅ 易于上线部署和迁移
+- ✅ 包含 Nginx 反向代理,性能更好
+- ✅ 生产级配置,支持多进程和健康检查
+
+### 5.2 前置要求
+
+1. **安装 Docker Desktop**
+   - Windows: [https://docs.docker.com/desktop/install/windows-install/](https://docs.docker.com/desktop/install/windows-install/)
+   - Mac: [https://docs.docker.com/desktop/install/mac-install/](https://docs.docker.com/desktop/install/mac-install/)
+   - Linux: [https://docs.docker.com/engine/install/](https://docs.docker.com/engine/install/)
+
+2. **启动 Docker Desktop**
+   - Windows/Mac: 双击桌面图标启动
+   - Linux: `sudo systemctl start docker`
+
+3. **验证安装**
+   ```powershell
+   docker --version
+   docker-compose --version
+   ```
+
+### 5.3 一键部署（推荐）
+
+#### Windows 用户:
+```powershell
+# 在项目根目录执行
+.\deploy.ps1
+```
+
+#### Linux/Mac 用户:
+```bash
+chmod +x deploy.sh
+./deploy.sh
+```
+
+部署脚本会自动:
+1. 检查 Docker 环境
+2. 构建前端和后端镜像
+3. 启动所有服务
+4. 执行健康检查
+5. 显示访问地址
+
+### 5.4 手动部署
+
+如果想逐步了解过程:
+
+```powershell
+# 1. 构建镜像（首次需要几分钟）
+docker-compose build
+
+# 2. 启动所有服务
+docker-compose up -d
+
+# 3. 查看服务状态
+docker-compose ps
+
+# 4. 查看日志
+docker-compose logs -f
+```
+
+### 5.5 访问系统
+
+部署完成后:
+- **前端界面**: [http://localhost](http://localhost)
+- **后端 API**: [http://localhost:8000](http://localhost:8000)
+- **API 文档**: [http://localhost:8000/docs](http://localhost:8000/docs)
+- **健康检查**: [http://localhost/health](http://localhost/health)
+
+### 5.6 Docker 常用命令
+
+```powershell
+# 停止服务
+docker-compose stop
+
+# 重启服务
+docker-compose restart
+
+# 查看日志
+docker-compose logs -f
+
+# 查看资源使用
+docker stats
+
+# 完全清理（删除容器和数据）
+docker-compose down -v
+```
+
+### 5.7 数据备份
+
+#### Windows:
+```powershell
+.\backup.ps1
+```
+
+#### Linux/Mac:
+```bash
+chmod +x backup.sh
+./backup.sh
+```
+
+备份文件保存在 `./backups/` 目录。
+
+### 5.8 详细文档
+
+更多信息请查看:
+- **快速开始**: [QUICKSTART.md](./QUICKSTART.md)
+- **完整部署文档**: [DOCKER_DEPLOYMENT.md](./DOCKER_DEPLOYMENT.md)
+
+---
+
+## 6. 常见问题 Q&A
 
 - **启动后端时报“端口被占用”**：在 `uvicorn` 命令中修改端口，例如 `--port 8001`，同时前端 `frontend/src/utils/api.js` 里也要同步改地址。
 - **npm install 很慢**：考虑切换国内镜像（如 `npm config set registry https://registry.npmmirror.com`）。
