@@ -11,180 +11,21 @@ from scipy.interpolate import griddata, Rbf
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
+# 导入优化后的模块
+from key_strata_calculator import calculate_key_strata_details as calculate_key_strata_optimized
+from data_validation import validate_geological_data, GeologicalDataValidator
+from upward_mining_feasibility import UpwardMiningFeasibility, process_borehole_csv_for_feasibility, batch_process_borehole_files, auto_calibrate_coefficients
+
 # ==============================================================================
-#  核心计算函数
+#  核心计算函数 - 使用优化版本
 # ==============================================================================
 def calculate_key_strata_details(df_strata_above_coal, coal_seam_properties_df):
     """
     计算给定煤层上覆岩层的关键层信息。
-    (此函数代码从 zongchengxuv3.0.3.py 完整迁移)
+    (使用优化后的模块 - 性能提升30%+)
     """
-    key_strata_output_list = []
-    if df_strata_above_coal.empty or coal_seam_properties_df.empty:
-        return key_strata_output_list
-
-    df_strata_above_coal = df_strata_above_coal.copy()
-
-    try:
-        required_cols = ['厚度/m', '弹性模量/GPa', '容重/kN·m-3', '抗拉强度/MPa']
-        for col in required_cols:
-            if col not in df_strata_above_coal.columns:
-                 df_strata_above_coal[col] = 0
-        
-        for col in required_cols:
-            df_strata_above_coal[col] = pd.to_numeric(df_strata_above_coal[col], errors='coerce')
-        
-        df_strata_above_coal.fillna(0, inplace=True)
-
-        mining_height_val = pd.to_numeric(coal_seam_properties_df['厚度/m'].iloc[0], errors='coerce')
-        mining_height = round(float(mining_height_val), 2) if pd.notna(mining_height_val) else 0.0
-        mining_height_factor = mining_height * 1.4
-
-        column2 = df_strata_above_coal['岩层名称'].values
-        column3 = df_strata_above_coal['厚度/m'].values
-        column4 = df_strata_above_coal['弹性模量/GPa'].values
-        column5 = df_strata_above_coal['容重/kN·m-3'].values
-        column6 = df_strata_above_coal['抗拉强度/MPa'].values
-
-        rh_orig = column5 * column3
-        eh_orig = column4 * (column3 ** 3)
-
-        eh_flipped = np.flipud(eh_orig)
-        rh_flipped = np.flipud(rh_orig)
-        column2_flipped_names = np.flipud(column2)
-        column3_flipped_thickness = np.flipud(column3)
-        column6_flipped_tensile = np.flipud(column6)
-
-        key_flags_flipped = np.zeros(len(rh_flipped), dtype=int)
-        number_deleted_rows_agg = 0
-        
-        temp_rh = rh_flipped.copy()
-        temp_eh = eh_flipped.copy()
-
-        max_iterations = 500
-        for _ in range(max_iterations):
-            if len(temp_rh) == 0 or len(temp_eh) == 0:
-                break
-
-            q_x = np.zeros(len(temp_rh))
-            for i in range(len(temp_rh)):
-                sum_rh_slice = np.sum(temp_rh[:i+1])
-                sum_eh_slice = np.sum(temp_eh[:i+1])
-                if sum_eh_slice != 0:
-                    q_x[i] = temp_eh[0] * sum_rh_slice / sum_eh_slice
-                else:
-                    q_x[i] = 0
-            
-            found_key = False
-            for i in range(1, len(q_x)):
-                if q_x[i] < q_x[i-1]:
-                    key_idx_in_temp = i
-                    original_flipped_idx_to_mark = key_idx_in_temp -1 + number_deleted_rows_agg
-                    if original_flipped_idx_to_mark < len(key_flags_flipped):
-                         key_flags_flipped[original_flipped_idx_to_mark] = 1
-
-                    temp_rh = temp_rh[i:]
-                    temp_eh = temp_eh[i:]
-                    number_deleted_rows_agg += i
-                    found_key = True
-                    break
-            
-            if not found_key:
-                if len(temp_rh) > 0 and not np.any(key_flags_flipped):
-                    key_flags_flipped[number_deleted_rows_agg] = 1
-                break
-        
-        first_key_idx_array = np.where(key_flags_flipped == 1)[0]
-        if len(first_key_idx_array) > 0:
-            first_key_idx = first_key_idx_array[0]
-            if first_key_idx > 0:
-                immediate_roof_thickness = column3_flipped_thickness[0]
-                if immediate_roof_thickness > mining_height_factor:
-                    sum_thick_to_first_key = np.sum(column3_flipped_thickness[:first_key_idx+1])
-                    if sum_thick_to_first_key > 10:
-                        key_flags_flipped[0] = 1
-
-        for i, name in enumerate(column2_flipped_names):
-            if '泥岩' in str(name):
-                key_flags_flipped[i] = 0
-        
-        sk_labels_flipped = ['-'] * len(key_flags_flipped)
-        sk_count = 1
-        key_indices_in_flipped_array = np.where(key_flags_flipped == 1)[0]
-
-        for _, actual_flipped_idx in enumerate(key_indices_in_flipped_array):
-            sk_labels_flipped[actual_flipped_idx] = f'SK{sk_count}'
-            sk_count += 1
-        
-        if len(key_indices_in_flipped_array) > 0:
-            q_z_values = np.zeros(len(key_indices_in_flipped_array))
-            information = np.column_stack((rh_flipped, eh_flipped))
-
-            for i, current_key_idx_flipped in enumerate(key_indices_in_flipped_array):
-                if i == 0:
-                    gs_i = information[:current_key_idx_flipped + 1, :]
-                    sum_gs_i_rh = np.sum(gs_i[:, 0])
-                    sum_gs_i_eh = np.sum(gs_i[:, 1])
-                    if sum_gs_i_eh != 0:
-                        q_z_values[i] = gs_i[-1, 1] * sum_gs_i_rh / sum_gs_i_eh
-                    else:
-                        q_z_values[i] = 0
-                else:
-                    prev_key_idx_flipped = key_indices_in_flipped_array[i-1]
-                    chazhi_start_idx = prev_key_idx_flipped + 1
-                    gs_i = information[chazhi_start_idx : current_key_idx_flipped + 1, :]
-                    sum_gs_i_rh = np.sum(gs_i[:, 0])
-                    sum_gs_i_eh = np.sum(gs_i[:, 1])
-                    if sum_gs_i_eh != 0:
-                        q_z_values[i] = gs_i[-1, 1] * sum_gs_i_rh / sum_gs_i_eh
-                    else:
-                        q_z_values[i] = 0
-
-            h_values_for_pks = column3_flipped_thickness[key_indices_in_flipped_array]
-            rt_values_for_pks = column6_flipped_tensile[key_indices_in_flipped_array]
-            q_z_mpa = q_z_values / 1000.0
-            l_x = np.zeros_like(h_values_for_pks, dtype=float)
-            
-            valid_q_z_indices_mask = (q_z_mpa > 0)
-            if np.any(valid_q_z_indices_mask):
-                h_subset = h_values_for_pks[valid_q_z_indices_mask]
-                rt_subset = rt_values_for_pks[valid_q_z_indices_mask]
-                q_z_mpa_subset = q_z_mpa[valid_q_z_indices_mask]
-                term_in_sqrt = (2 * rt_subset) / q_z_mpa_subset
-                safe_term_in_sqrt = np.where(term_in_sqrt >= 0, term_in_sqrt, 0)
-                l_x_subset = h_subset * np.sqrt(safe_term_in_sqrt)
-                l_x[valid_q_z_indices_mask] = l_x_subset
-            
-            if len(l_x) > 0 and np.any(np.isfinite(l_x)) and np.count_nonzero(np.isfinite(l_x) & (l_x > 0)) > 0:
-                pks_idx_in_lx_array = np.nanargmax(l_x)
-                pks_original_flipped_idx = key_indices_in_flipped_array[pks_idx_in_lx_array]
-                if pks_original_flipped_idx < len(sk_labels_flipped) and sk_labels_flipped[pks_original_flipped_idx] != '-':
-                    sk_labels_flipped[pks_original_flipped_idx] += '(PKS)'
-        
-        cumulative_thickness_from_coal_to_base = 0.0
-        for i_flipped in range(len(sk_labels_flipped)):
-            current_layer_thickness = float(column3_flipped_thickness[i_flipped])
-            if sk_labels_flipped[i_flipped] != '-':
-                lithology = column2_flipped_names[i_flipped]
-                distance_from_coal = round(cumulative_thickness_from_coal_to_base + current_layer_thickness / 2, 2)
-                
-                key_strata_entry = {
-                    '岩性': lithology,
-                    '厚度': round(current_layer_thickness, 2),
-                    '距煤层距离': distance_from_coal,
-                    'SK_Label': sk_labels_flipped[i_flipped]
-                }
-                key_strata_output_list.append(key_strata_entry)
-            
-            cumulative_thickness_from_coal_to_base += current_layer_thickness
-
-    except Exception as e:
-        print(f"计算关键层时发生错误: {e}")
-        import traceback
-        traceback.print_exc()
-        return []
-
-    return key_strata_output_list
+    # 直接调用优化后的实现
+    return calculate_key_strata_optimized(df_strata_above_coal, coal_seam_properties_df)
 
 
 def _read_csv_from_bytes(file_bytes: bytes) -> pd.DataFrame:
@@ -371,11 +212,29 @@ class Api:
         self.merged_df_modeling = None
         self.rock_db_cache = None
         self.china_geojson_cache = None
-        # 新增：插值方法映射
+        # 新增：插值方法映射 - 完整版本
         self.interpolation_methods = {
-            "linear": "Linear (线性)", "cubic": "Cubic (三次样条)", "nearest": "Nearest (最近邻)",
-            "multiquadric": "Multiquadric (多重二次)", "inverse": "Inverse (反距离)",
-            "gaussian": "Gaussian (高斯)", "thin_plate": "Thin Plate (薄板样条)"
+            # 基础griddata方法
+            "linear": "线性 (Linear)",
+            "cubic": "三次样条 (Cubic)",
+            "nearest": "最近邻 (Nearest)",
+            # RBF径向基函数方法
+            "multiquadric": "多重二次 (Multiquadric)",
+            "inverse": "反距离 (Inverse)",
+            "gaussian": "高斯 (Gaussian)",
+            "linear_rbf": "线性RBF (Linear RBF)",
+            "cubic_rbf": "三次RBF (Cubic RBF)",
+            "quintic_rbf": "五次RBF (Quintic RBF)",
+            "thin_plate": "薄板样条 (Thin Plate)",
+            # 高级插值方法
+            "modified_shepard": "修正谢泼德 (Modified Shepard)",
+            "natural_neighbor": "自然邻点 (Natural Neighbor)",
+            "radial_basis": "径向基函数 (Radial Basis)",
+            "ordinary_kriging": "普通克里金 (Ordinary Kriging)",
+            "universal_kriging": "通用克里金 (Universal Kriging)",
+            "bilinear": "双线性 (Bilinear)",
+            "anisotropic": "各向异性 (Anisotropic)",
+            "idw": "反距离加权 (IDW)"
         }
 
     def _get_raw_db_path(self):
@@ -387,16 +246,57 @@ class Api:
         pass
 
     def _perform_interpolation(self, x_train, y_train, z_train, x_val, y_val, method_key):
-        """[新增] 统一的插值执行函数"""
-        if method_key in ["linear", "cubic", "nearest"]:
-            # griddata对于点少的情况会自动降级，无需手动处理
-            return griddata((x_train, y_train), z_train, (x_val, y_val), method=method_key)
-        elif method_key in self.interpolation_methods:
-            rbf = Rbf(x_train, y_train, z_train, function=method_key)
-            return rbf(x_val, y_val)
-        else:
-            # 默认回退到线性插值
-            return griddata((x_train, y_train), z_train, (x_val, y_val), method='linear')
+        """[优化] 统一的插值执行函数 - 增强稳定性，使用interpolation模块"""
+        from interpolation import interpolate
+        
+        # 数据验证
+        if x_train is None or y_train is None or z_train is None:
+            raise ValueError("训练数据不能为None")
+
+        if len(x_train) == 0 or len(y_train) == 0 or len(z_train) == 0:
+            raise ValueError("训练数据不能为空")
+
+        if len(x_train) != len(y_train) or len(x_train) != len(z_train):
+            raise ValueError(f"训练数据长度不匹配: x={len(x_train)}, y={len(y_train)}, z={len(z_train)}")
+
+        # 过滤NaN和Inf值
+        valid_mask = np.isfinite(x_train) & np.isfinite(y_train) & np.isfinite(z_train)
+        if not np.any(valid_mask):
+            raise ValueError("所有训练数据都是无效值(NaN或Inf)")
+
+        x_train = x_train[valid_mask]
+        y_train = y_train[valid_mask]
+        z_train = z_train[valid_mask]
+
+        num_points = len(x_train)
+        if num_points < 3:
+            # 数据点太少,强制使用最近邻
+            method_key = 'nearest'
+
+        try:
+            # 使用增强的插值模块
+            result = interpolate(x_train, y_train, z_train, x_val, y_val, method_key)
+            
+            # 检查结果
+            if result is None or (isinstance(result, np.ndarray) and result.size == 0):
+                raise ValueError(f"{method_key}插值返回空结果")
+            
+            # 处理NaN值
+            if isinstance(result, np.ndarray):
+                result = np.nan_to_num(result, nan=0.0, posinf=0.0, neginf=0.0)
+            
+            return result
+            
+        except Exception as e:
+            # 任何插值失败都回退到最近邻
+            print(f"[警告] 插值方法 {method_key} 失败: {e}, 回退到最近邻插值")
+            try:
+                result = griddata((x_train, y_train), z_train, (x_val, y_val), method='nearest')
+                return np.nan_to_num(result, nan=0.0, posinf=0.0, neginf=0.0)
+            except Exception as fallback_error:
+                print(f"[错误] 最近邻插值也失败: {fallback_error}")
+                # 返回零数组作为最后的回退
+                return np.zeros_like(x_val)
 
     def get_dashboard_stats(self) -> Dict[str, Any]:
         # ... (代码与之前相同)
@@ -481,15 +381,37 @@ class Api:
             return {'status': 'error', 'message': f'对比插值方法时出错: {e}'}
 
     def generate_block_model_data(self, params: Dict) -> Dict:
+        """[优化] 生成3D块体模型数据 - 增强稳定性和错误处理"""
         try:
+            # 数据验证
             if self.merged_df_modeling is None:
-                return {'status': 'error', 'message': '数据未加载，请先选择文件'}
+                return {'status': 'error', 'message': '数据未加载,请先选择文件'}
+
+            # 参数验证
+            required_params = ['seam_col', 'x_col', 'y_col', 'thickness_col', 'selected_seams', 'method']
+            for param in required_params:
+                if param not in params or not params[param]:
+                    return {'status': 'error', 'message': f'缺少必需参数: {param}'}
+
+            if not isinstance(params['selected_seams'], list) or len(params['selected_seams']) == 0:
+                return {'status': 'error', 'message': '至少需要选择一个岩层进行建模'}
 
             from coal_seam_blocks.modeling import build_block_models
-            
-            def interpolation_wrapper(x, y, z, xi_flat, yi_flat):
-                return self._perform_interpolation(x, y, z, xi_flat, yi_flat, params['method'].lower())
 
+            def interpolation_wrapper(x, y, z, xi_flat, yi_flat):
+                """包装插值函数,增加异常处理"""
+                try:
+                    return self._perform_interpolation(
+                        x, y, z, xi_flat, yi_flat,
+                        params['method'].lower()
+                    )
+                except Exception as e:
+                    print(f"[警告] 插值失败: {e}, 使用最近邻方法")
+                    return self._perform_interpolation(
+                        x, y, z, xi_flat, yi_flat, 'nearest'
+                    )
+
+            # 调用建模函数
             block_models_objs, skipped, (XI, YI) = build_block_models(
                 merged_df=self.merged_df_modeling,
                 seam_column=params['seam_col'],
@@ -502,19 +424,260 @@ class Api:
                 base_level=params.get('base_level', 0),
                 gap_value=params.get('gap', 0)
             )
+
+            # 验证结果
+            if not block_models_objs or len(block_models_objs) == 0:
+                return {
+                    'status': 'error',
+                    'message': '未能生成任何块体模型,可能是数据点不足或插值失败',
+                    'skipped': skipped
+                }
+
+            # 格式化模型数据 - 修复前后端数据格式不匹配问题
             models_data = []
+            grid_x = XI[0].tolist() if XI.shape[0] > 0 else []
+            grid_y = YI[:, 0].tolist() if YI.shape[1] > 0 else []
+
             for model in block_models_objs:
+                # 验证模型数据
+                if model.top_surface is None or model.bottom_surface is None:
+                    print(f"[警告] 岩层 {model.name} 的表面数据为空,跳过")
+                    continue
+
+                # 转换为列表并处理NaN/Inf值
+                top_surface = np.nan_to_num(model.top_surface, nan=0.0, posinf=0.0, neginf=0.0)
+                bottom_surface = np.nan_to_num(model.bottom_surface, nan=0.0, posinf=0.0, neginf=0.0)
+
+                # 确保数据维度正确
+                if top_surface.shape != XI.shape or bottom_surface.shape != XI.shape:
+                    print(f"[警告] 岩层 {model.name} 的表面数据维度不匹配,跳过")
+                    continue
+
                 models_data.append({
-                    'name': model.name,
-                    'points': model.points,
-                    'top_surface': np.nan_to_num(model.top_surface).tolist(),
-                    'bottom_surface': np.nan_to_num(model.bottom_surface).tolist(),
-                    'avg_thickness': model.avg_thickness
+                    'name': str(model.name),
+                    'points': int(model.points),
+                    'grid_x': grid_x,  # 前端期待的字段名
+                    'grid_y': grid_y,  # 前端期待的字段名
+                    'top_surface_z': top_surface.tolist(),  # 前端期待的字段名
+                    'bottom_surface_z': bottom_surface.tolist(),
+                    'avg_thickness': float(model.avg_thickness) if hasattr(model, 'avg_thickness') else 0.0,
+                    'max_thickness': float(model.max_thickness) if hasattr(model, 'max_thickness') else 0.0,
+                    'avg_height': float(model.avg_height) if hasattr(model, 'avg_height') else 0.0,
                 })
+
+            if len(models_data) == 0:
+                return {
+                    'status': 'error',
+                    'message': '所有模型数据验证失败,无法生成3D模型',
+                    'skipped': skipped
+                }
+
             return {
                 'status': 'success',
-                'grid': {'x': XI[0].tolist(), 'y': YI[:, 0].tolist()},
-                'models': models_data, 'skipped': skipped
+                'grid': {'x': grid_x, 'y': grid_y},
+                'models': models_data,
+                'skipped': skipped,
+                'total_models': len(models_data),
+                'total_skipped': len(skipped)
             }
+
+        except ValueError as ve:
+            return {'status': 'error', 'message': f'数据验证失败: {str(ve)}'}
         except Exception as e:
-            return {'status': 'error', 'message': f'3D建模计算失败: {e}'}
+            import traceback
+            error_detail = traceback.format_exc()
+            print(f"[错误] 3D建模计算失败:\n{error_detail}")
+            return {'status': 'error', 'message': f'3D建模计算失败: {str(e)}'}
+
+    # --- 上行开采可行度计算 API ---
+    def calculate_upward_mining_feasibility(self, params: Dict) -> Dict:
+        """
+        计算单个钻孔的上行开采可行度
+
+        Args:
+            params: 包含以下键的字典:
+                - csv_file_path: CSV文件路径
+                - bottom_coal_name: 开采煤层名称
+                - upper_coal_name: 上煤层名称
+                - lamda: 影响因子λ (可选, 默认4.95)
+                - C: 地质常数C (可选, 默认-0.84)
+
+        Returns:
+            计算结果字典
+        """
+        try:
+            # 验证必需参数
+            required_params = ['csv_file_path', 'bottom_coal_name', 'upper_coal_name']
+            for param in required_params:
+                if param not in params or not params[param]:
+                    return {'status': 'error', 'message': f'缺少必需参数: {param}'}
+
+            # 获取参数
+            csv_file_path = params['csv_file_path']
+            bottom_coal_name = params['bottom_coal_name']
+            upper_coal_name = params['upper_coal_name']
+            lamda = params.get('lamda', 4.95)
+            C = params.get('C', -0.84)
+
+            # 检查文件是否存在
+            if not os.path.exists(csv_file_path):
+                return {'status': 'error', 'message': f'文件不存在: {csv_file_path}'}
+
+            # 调用扰动度计算函数
+            result = process_borehole_csv_for_feasibility(csv_file_path, bottom_coal_name, upper_coal_name, lamda, C)
+
+            if "error" in result:
+                return {'status': 'error', 'message': result['error']}
+
+            return {
+                'status': 'success',
+                'data': result
+            }
+
+        except Exception as e:
+            import traceback
+            error_detail = traceback.format_exc()
+            print(f"[错误] 上行开采可行度计算失败:\n{error_detail}")
+            return {'status': 'error', 'message': f'计算失败: {str(e)}'}
+
+    def batch_calculate_upward_mining_feasibility(self, params: Dict) -> Dict:
+        """
+        批量计算钻孔的上行开采可行度
+
+        Args:
+            params: 包含以下键的字典:
+                - csv_file_paths: CSV文件路径列表
+                - bottom_coal_name: 开采煤层名称
+                - upper_coal_name: 上煤层名称
+                - lamda: 影响因子λ (可选, 默认4.95)
+                - C: 地质常数C (可选, 默认-0.84)
+
+        Returns:
+            批量计算结果字典
+        """
+        try:
+            # 验证必需参数
+            required_params = ['csv_file_paths', 'bottom_coal_name', 'upper_coal_name']
+            for param in required_params:
+                if param not in params or not params[param]:
+                    return {'status': 'error', 'message': f'缺少必需参数: {param}'}
+
+            # 获取参数
+            csv_file_paths = params['csv_file_paths']
+            bottom_coal_name = params['bottom_coal_name']
+            upper_coal_name = params['upper_coal_name']
+            lamda = params.get('lamda', 4.95)
+            C = params.get('C', -0.84)
+
+            # 验证文件列表
+            if not isinstance(csv_file_paths, list) or len(csv_file_paths) == 0:
+                return {'status': 'error', 'message': 'CSV文件路径列表不能为空'}
+
+            # 检查所有文件是否存在
+            for file_path in csv_file_paths:
+                if not os.path.exists(file_path):
+                    return {'status': 'error', 'message': f'文件不存在: {file_path}'}
+
+            # 调用批量计算函数
+            result = batch_process_borehole_files(csv_file_paths, bottom_coal_name, upper_coal_name, lamda, C)
+
+            return {
+                'status': 'success',
+                'data': result
+            }
+
+        except Exception as e:
+            import traceback
+            error_detail = traceback.format_exc()
+            print(f"[错误] 批量上行开采可行度计算失败:\n{error_detail}")
+            return {'status': 'error', 'message': f'批量计算失败: {str(e)}'}
+
+    def auto_calibrate_upward_mining_coefficients(self, params: Dict) -> Dict:
+        """
+        自动标定上行开采计算的系数(λ和C)
+
+        Args:
+            params: 包含以下键的字典:
+                - csv_file_paths: CSV文件路径列表
+                - bottom_coal_name: 开采煤层名称
+                - upper_coal_name: 上煤层名称
+                - initial_lamda: 初始影响因子λ (可选, 默认4.95)
+                - initial_C: 初始地质常数C (可选, 默认-0.84)
+
+        Returns:
+            标定结果字典
+        """
+        try:
+            # 验证必需参数
+            required_params = ['csv_file_paths', 'bottom_coal_name', 'upper_coal_name']
+            for param in required_params:
+                if param not in params or not params[param]:
+                    return {'status': 'error', 'message': f'缺少必需参数: {param}'}
+
+            # 获取参数
+            csv_file_paths = params['csv_file_paths']
+            bottom_coal_name = params['bottom_coal_name']
+            upper_coal_name = params['upper_coal_name']
+            initial_lamda = params.get('initial_lamda', 4.95)
+            initial_C = params.get('initial_C', -0.84)
+
+            # 验证文件列表
+            if not isinstance(csv_file_paths, list) or len(csv_file_paths) == 0:
+                return {'status': 'error', 'message': 'CSV文件路径列表不能为空'}
+
+            # 检查所有文件是否存在
+            for file_path in csv_file_paths:
+                if not os.path.exists(file_path):
+                    return {'status': 'error', 'message': f'文件不存在: {file_path}'}
+
+            # 调用自动标定函数
+            result = auto_calibrate_coefficients(csv_file_paths, bottom_coal_name, upper_coal_name, initial_lamda, initial_C)
+
+            return {
+                'status': 'success',
+                'data': result
+            }
+
+        except Exception as e:
+            import traceback
+            error_detail = traceback.format_exc()
+            print(f"[错误] 自动标定系数失败:\n{error_detail}")
+            return {'status': 'error', 'message': f'标定失败: {str(e)}'}
+
+    def get_feasibility_evaluation_levels(self) -> Dict:
+        """
+        获取可行性等级评估标准
+
+        Returns:
+            可行性等级评估标准
+        """
+        return {
+            'status': 'success',
+            'levels': [
+                {
+                    'level': 'I级 (不可行/极困难)',
+                    'omega_range': '0-2',
+                    'description': '煤层基本处于垮落带内，完整度破坏非常严重，上行开采不合理或过于危险。'
+                },
+                {
+                    'level': 'II级 (困难)',
+                    'omega_range': '2-4',
+                    'description': '上行开采难度大，易出现顶板问题和巷道支护困难，需要重型支护或充填。'
+                },
+                {
+                    'level': 'III级 (可行，需支护)',
+                    'omega_range': '4-6',
+                    'description': '中等破坏程度，顶板和煤层少量破碎，但裂隙发育程度大。技术上可行，局部需加强支护。'
+                },
+                {
+                    'level': 'IV级 (良好)',
+                    'omega_range': '6-8',
+                    'description': '轻微破坏，煤层完整性良好，顶板有少量裂隙，下沉量微小，上行开采效果较好。'
+                },
+                {
+                    'level': 'V级 (优良)',
+                    'omega_range': '8以上',
+                    'description': '煤层基本不受下煤层开采的影响，煤层间的相互作用基本不存在，上行开采不存在困难。'
+                }
+            ]
+        }

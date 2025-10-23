@@ -416,7 +416,7 @@ const renderChart = () => {
   const xAxes = [];
   const yAxes = [];
   const seriesList = [];
-  const gridLeft = 92;
+  const gridLeft = 110;  // 增加左边距，为Y轴标签留出更多空间
   const gridRight = 68;
   const xAxisSplitNumber = 6;
 
@@ -462,7 +462,16 @@ const renderChart = () => {
         gridIndex: groupIndex,
         data: group.metrics.map((item) => item.metric),
         boundaryGap: 0.4,
-        axisLabel: { color: '#475569', align: 'right', margin: 16 },
+        axisLabel: {
+          color: '#475569',
+          align: 'right',
+          margin: 16,
+          // 启用文字换行
+          width: 70,
+          overflow: 'break',
+          lineHeight: 14,
+          fontSize: 12
+        },
         axisLine: { show: true, lineStyle: { color: '#cbd5f5' } },
         axisTick: { show: false },
       });

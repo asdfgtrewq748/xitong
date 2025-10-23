@@ -48,7 +48,7 @@
               </el-card>
 
               <el-card class="stats-card" style="margin-top: 20px;">
-                <template #header><div class="card-header"><span>省份样本 Top 8</span></div></template>
+                <template #header><div class="card-header"><span>省份样本分布</span></div></template>
                 <el-table :data="provinceTopData" stripe class="province-table" height="calc(100vh - 440px)">
                   <el-table-column type="index" label="#" width="50" />
                   <el-table-column prop="label" label="省份" show-overflow-tooltip />
@@ -262,7 +262,7 @@ const fetchData = async () => {
       };
     });
     const sortedDistribution = sanitized.slice().sort((a, b) => b.value - a.value);
-    provinceTopData.value = sortedDistribution.slice(0, 8);
+    provinceTopData.value = sortedDistribution;  // 显示所有省份，不再限制为Top 8
     distributionData.value = sanitized;
   } catch (error) {
     distributionData.value = [];

@@ -1,0 +1,29 @@
+# 用户体验和功能增强模块依赖
+# 安装: pip install -r requirements-ux.txt
+
+# PDF报告生成(可选)
+reportlab>=3.6.0
+# 如果不安装,系统会生成HTML格式报告
+
+# WebSocket支持(FastAPI已包含)
+# fastapi[all]>=0.104.0  # 已在主依赖中
+
+# 异步支持
+asyncio  # Python内置
+
+# 数据处理(已包含在主依赖中)
+# pandas>=1.3.0
+# numpy>=1.21.0
+
+# 说明:
+# - reportlab用于生成PDF报告,可选
+# - 如果不安装reportlab,系统会自动生成HTML格式报告
+# - 其他依赖已包含在主requirements.txt中
+
+# 验证安装:
+# python -c "import reportlab; print('reportlab已安装')"
+
+# 安装reportlab:
+# pip install reportlab
+
+# 如果安装失败,可以使用HTML报告功能,不影响系统正常运行

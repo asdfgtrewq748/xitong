@@ -113,6 +113,21 @@
                 <el-input-number v-model="params.gap" :min="0" :step="0.1" style="width: 100%;" />
                 <div style="font-size: 12px; color: #909399; margin-top: 4px;">用于3D可视化时各层之间的间距,不影响实际厚度</div>
               </el-form-item>
+              
+              <!-- 建模顺序说明 -->
+              <el-alert type="info" :closable="false" style="margin-top: 8px;">
+                <template #title>
+                  <div style="font-size: 13px; font-weight: 500;">建模顺序说明</div>
+                </template>
+                <div style="font-size: 12px; line-height: 1.6;">
+                  • 岩层按<b>选择顺序</b>从下到上堆叠<br/>
+                  • 第1层底面 = 基底高程<br/>
+                  • 每层顶面 = 底面 + 厚度<br/>
+                  • 下一层底面 = 上一层顶面 + 间隔<br/>
+                  • <span style="color: #e6a23c;">煤层自动显示为黑色</span><br/>
+                  • <span style="color: #409eff;">相同名称岩层使用相同颜色</span>
+                </div>
+              </el-alert>
             </el-form>
             <el-row :gutter="10" style="margin-bottom: 10px;">
               <el-col :span="12">
@@ -122,6 +137,74 @@
                 <el-button type="success" @click="generate3DModel" :loading="isLoading" :disabled="params.selected_seams.length === 0" class="full-width">生成 3D 块体模型</el-button>
               </el-col>
             </el-row>
+            
+            <!-- 导出按钮 (适用于2D和3D) -->
+            <div v-if="current3DModel">
+              <el-button type="primary" @click="exportModel" class="full-width" :loading="isExporting" style="margin-bottom: 12px;">
+                <el-icon style="margin-right: 4px;"><Download /></el-icon>
+                导出当前图表
+              </el-button>
+            </div>
+            
+            <!-- 3D视图控制 (仅在3D模型生成后显示) -->
+            <div v-if="current3DModel && current3DModel.type !== '2D'">
+              <el-divider content-position="left">3D 视图控制</el-divider>
+              <el-form label-position="top">
+                <el-form-item label="视图距离">
+                  <el-slider v-model="viewControl.distance" :min="80" :max="300" @input="update3DView" />
+                </el-form-item>
+                <el-form-item label="俯仰角度 (α)">
+                  <el-slider v-model="viewControl.alpha" :min="-90" :max="90" @input="update3DView" />
+                </el-form-item>
+                <el-form-item label="旋转角度 (β)">
+                  <el-slider v-model="viewControl.beta" :min="-180" :max="180" @input="update3DView" />
+                </el-form-item>
+                <el-form-item>
+                  <el-checkbox v-model="viewControl.autoRotate" @change="update3DView">自动旋转</el-checkbox>
+                </el-form-item>
+              </el-form>
+              
+              <el-divider content-position="left">渲染选项</el-divider>
+              <el-form label-position="top" size="small">
+                <el-form-item label="着色模式">
+                  <el-select v-model="renderOptions.shadingMode" @change="update3DView" class="full-width">
+                    <el-option label="真实感 (Realistic)" value="realistic" />
+                    <el-option label="朗伯 (Lambert)" value="lambert" />
+                    <el-option label="纯色 (Color)" value="color" />
+                  </el-select>
+                </el-form-item>
+                <el-form-item label="光照强度">
+                  <el-slider v-model="renderOptions.lightIntensity" :min="0.5" :max="3" :step="0.1" @input="update3DView" />
+                </el-form-item>
+                <el-form-item label="环境光强度">
+                  <el-slider v-model="renderOptions.ambientIntensity" :min="0.2" :max="1.5" :step="0.1" @input="update3DView" />
+                </el-form-item>
+                <el-form-item label="阴影质量">
+                  <el-select v-model="renderOptions.shadowQuality" @change="update3DView" class="full-width">
+                    <el-option label="低" value="low" />
+                    <el-option label="中" value="medium" />
+                    <el-option label="高" value="high" />
+                    <el-option label="超高" value="ultra" />
+                  </el-select>
+                </el-form-item>
+                <el-form-item>
+                  <el-checkbox v-model="renderOptions.showWireframe" @change="update3DView">显示网格线</el-checkbox>
+                </el-form-item>
+                <el-form-item>
+                  <el-checkbox v-model="renderOptions.showAxisPointer" @change="update3DView">显示坐标指示器</el-checkbox>
+                </el-form-item>
+              </el-form>
+              
+              <el-row :gutter="10" style="margin-bottom: 10px;">
+                <el-col :span="12">
+                  <el-button @click="resetView" size="small" class="full-width">重置视图</el-button>
+                </el-col>
+                <el-col :span="12">
+                  <el-button @click="showLayerControl" size="small" class="full-width">图层控制</el-button>
+                </el-col>
+              </el-row>
+            </div>
+            
             <el-divider content-position="left">插值方法对比</el-divider>
             <el-form label-position="top">
               <el-form-item label="验证集比例 (%)">
@@ -136,12 +219,94 @@
         </div>
       </el-col>
       <el-col :span="18" class="chart-col">
-        <el-card class="chart-card" v-loading="isLoading" element-loading-text="正在计算和渲染模型...">
-          <div class="chart-wrapper">
+        <div class="chart-container">
+          <!-- 快捷工具栏 -->
+          <div v-if="current3DModel && current3DModel.type !== '2D'" class="quick-toolbar">
+            <el-tooltip content="重置视图" placement="bottom">
+              <el-button circle size="small" @click="resetView">
+                <el-icon><Refresh /></el-icon>
+              </el-button>
+            </el-tooltip>
+            <el-tooltip content="俯视图" placement="bottom">
+              <el-button circle size="small" @click="setTopView">
+                <el-icon><Top /></el-icon>
+              </el-button>
+            </el-tooltip>
+            <el-tooltip content="侧视图" placement="bottom">
+              <el-button circle size="small" @click="setSideView">
+                <el-icon><Right /></el-icon>
+              </el-button>
+            </el-tooltip>
+            <el-tooltip content="前视图" placement="bottom">
+              <el-button circle size="small" @click="setFrontView">
+                <el-icon><Back /></el-icon>
+              </el-button>
+            </el-tooltip>
+            <el-divider direction="vertical" />
+            <el-tooltip :content="viewControl.autoRotate ? '停止旋转' : '自动旋转'" placement="bottom">
+              <el-button circle size="small" :type="viewControl.autoRotate ? 'primary' : ''" @click="toggleAutoRotate">
+                <el-icon><VideoPlay /></el-icon>
+              </el-button>
+            </el-tooltip>
+            <el-divider direction="vertical" />
+            <el-tooltip content="截图" placement="bottom">
+              <el-button circle size="small" @click="captureImage">
+                <el-icon><Camera /></el-icon>
+              </el-button>
+            </el-tooltip>
+            <el-tooltip content="全屏" placement="bottom">
+              <el-button circle size="small" @click="toggleFullscreen">
+                <el-icon><FullScreen /></el-icon>
+              </el-button>
+            </el-tooltip>
+          </div>
+
+          <!-- 模型统计信息面板 -->
+          <div v-if="modelStats" class="stats-panel">
+            <div class="stats-header">
+              <h4>模型统计信息</h4>
+              <el-button text @click="modelStats = null" size="small">
+                <el-icon><Close /></el-icon>
+              </el-button>
+            </div>
+            <el-row :gutter="12">
+              <el-col :span="8">
+                <div class="stat-item">
+                  <div class="stat-label">岩层数量</div>
+                  <div class="stat-value">{{ modelStats.layerCount }}</div>
+                </div>
+              </el-col>
+              <el-col :span="8">
+                <div class="stat-item">
+                  <div class="stat-label">总数据点</div>
+                  <div class="stat-value">{{ modelStats.totalPoints }}</div>
+                </div>
+              </el-col>
+              <el-col :span="8">
+                <div class="stat-item">
+                  <div class="stat-label">模型体积</div>
+                  <div class="stat-value">{{ modelStats.totalVolume.toFixed(2) }} m³</div>
+                </div>
+              </el-col>
+            </el-row>
+            <el-divider style="margin: 10px 0;" />
+            <el-scrollbar style="max-height: 150px;">
+              <div v-for="layer in modelStats.layers" :key="layer.name" class="layer-stat">
+                <div class="layer-name">{{ layer.name }}</div>
+                <div class="layer-details">
+                  <span>厚度: {{ layer.avgThickness.toFixed(2) }}m ({{ layer.minThickness.toFixed(2) }} ~ {{ layer.maxThickness.toFixed(2) }}m)</span>
+                  <span>点数: {{ layer.points }}</span>
+                  <span>体积: {{ layer.volume.toFixed(2) }} m³</span>
+                </div>
+              </div>
+            </el-scrollbar>
+          </div>
+          
+          <div class="chart-wrapper" v-loading="isLoading" element-loading-text="正在计算和渲染模型...">
             <div v-show="chartMessage" class="chart-placeholder">{{ chartMessage }}</div>
             <div ref="chartRef" class="chart-canvas"></div>
           </div>
-        </el-card>
+        </div>
       </el-col>
     </el-row>
     <el-dialog v-model="comparisonDialogVisible" title="插值方法对比结果" width="70%">
@@ -160,14 +325,95 @@
         </span>
       </template>
     </el-dialog>
+
+    <!-- 图层控制对话框 -->
+    <el-dialog v-model="layerControlVisible" title="图层显示控制" width="50%">
+      <div v-for="layer in layerVisibility" :key="layer.name" class="layer-control-item">
+        <el-row :gutter="12" align="middle">
+          <el-col :span="1">
+            <el-checkbox v-model="layer.visible" @change="updateLayerVisibility" />
+          </el-col>
+          <el-col :span="8">
+            <span class="layer-control-name">{{ layer.name }}</span>
+          </el-col>
+          <el-col :span="6">
+            <el-color-picker 
+              v-model="layer.color" 
+              @change="updateLayerVisibility"
+              size="small"
+            />
+          </el-col>
+          <el-col :span="9">
+            <el-slider 
+              v-model="layer.opacity" 
+              :min="0" 
+              :max="100"
+              :format-tooltip="(val) => `${val}%`"
+              @input="updateLayerVisibility"
+            />
+          </el-col>
+        </el-row>
+      </div>
+      <template #footer>
+        <el-button @click="resetLayers">重置</el-button>
+        <el-button type="primary" @click="layerControlVisible = false">确定</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 导出选项对话框 -->
+    <el-dialog v-model="exportDialogVisible" title="导出模型" width="40%">
+      <el-form label-width="100px">
+        <el-form-item label="导出格式">
+          <el-radio-group v-model="exportOptions.format">
+            <el-radio value="png">PNG 图片</el-radio>
+            <el-radio value="svg">SVG 矢量图</el-radio>
+            <el-radio value="json">JSON 数据</el-radio>
+            <el-radio value="csv">CSV 数据</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item v-if="exportOptions.format === 'png' || exportOptions.format === 'svg'" label="图片尺寸">
+          <el-row :gutter="10">
+            <el-col :span="11">
+              <el-input-number v-model="exportOptions.width" :min="800" :max="4000" placeholder="宽度" />
+            </el-col>
+            <el-col :span="2" style="text-align: center;">×</el-col>
+            <el-col :span="11">
+              <el-input-number v-model="exportOptions.height" :min="600" :max="4000" placeholder="高度" />
+            </el-col>
+          </el-row>
+        </el-form-item>
+        <el-form-item v-if="exportOptions.format === 'png'" label="图片质量">
+          <el-slider v-model="exportOptions.quality" :min="50" :max="100" show-input />
+        </el-form-item>
+        <el-form-item label="文件名">
+          <el-input v-model="exportOptions.filename" placeholder="输入文件名" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="exportDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="confirmExport" :loading="isExporting">导出</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
 
-import { ref, reactive, computed, onMounted, onUnmounted } from 'vue';
+import { ref, reactive, computed, onMounted, onUnmounted, nextTick } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { CircleCheckFilled, DataAnalysis } from '@element-plus/icons-vue';
+import { 
+  CircleCheckFilled, 
+  DataAnalysis, 
+  Close, 
+  Download,
+  Refresh, 
+  Top, 
+  Right, 
+  Back, 
+  VideoPlay, 
+  Camera, 
+  FullScreen
+} from '@element-plus/icons-vue';
 import * as echarts from 'echarts';
 import 'echarts-gl'; // 必须导入 echarts-gl 以支持 3D 图表
 import { getApiBase } from '@/utils/api';
@@ -189,19 +435,40 @@ const columns = ref({ numeric: [], text: [] });
 const availableSeams = ref([]);
 const chartMessage = ref('请先上传钻孔数据与坐标文件。');
 
-// 为不同岩层分配颜色
+// 为不同岩层分配颜色 - 使用更深的配色方案
 const layerColors = [
-  '#5470c6', '#91cc75', '#fac858', '#ee6666', '#73c0de', 
-  '#3ba272', '#fc8452', '#9a60b4', '#ea7ccc', '#d4a373',
-  '#8b5a3c', '#546570', '#c4ccd3'
+  '#2c5aa0', '#52883d', '#d4941e', '#c73e3a', '#2e91b8', 
+  '#2d7a54', '#d65a2c', '#7841a3', '#c94f9f', '#a67845',
+  '#6b4428', '#3e4f5c', '#8a94a0', '#8b3a62', '#5c6b2f'
 ];
-function getColorForLayer(index) {
-  return layerColors[index % layerColors.length];
+
+// 岩层名称到颜色的映射缓存
+const layerColorMap = new Map();
+
+function getColorForLayer(layerName) {
+  // 判断是否为煤层 (名称中包含"煤"字)
+  if (typeof layerName === 'string' && layerName.includes('煤')) {
+    return '#000000'; // 所有煤层使用黑色
+  }
+  
+  // 如果已经为该岩层名称分配过颜色,使用相同颜色
+  if (layerColorMap.has(layerName)) {
+    return layerColorMap.get(layerName);
+  }
+  
+  // 为新的岩层名称分配颜色
+  const colorIndex = layerColorMap.size % layerColors.length;
+  const color = layerColors[colorIndex];
+  layerColorMap.set(layerName, color);
+  
+  return color;
 }
 const interpolationMethods = {
+  // 基础griddata方法
   "linear": "线性 (Linear)",
   "cubic": "三次样条 (Cubic)",
   "nearest": "最近邻 (Nearest)",
+  // RBF径向基函数方法
   "multiquadric": "多重二次 (Multiquadric)",
   "inverse": "反距离 (Inverse)",
   "gaussian": "高斯 (Gaussian)",
@@ -209,8 +476,15 @@ const interpolationMethods = {
   "cubic_rbf": "三次RBF (Cubic RBF)",
   "quintic_rbf": "五次RBF (Quintic RBF)",
   "thin_plate": "薄板样条 (Thin Plate)",
+  // 高级插值方法
   "modified_shepard": "修正谢泼德 (Modified Shepard)",
-  "ordinary_kriging": "普通克里金 (Ordinary Kriging)"
+  "natural_neighbor": "自然邻点 (Natural Neighbor)",
+  "radial_basis": "径向基函数 (Radial Basis)",
+  "ordinary_kriging": "普通克里金 (Ordinary Kriging)",
+  "universal_kriging": "通用克里金 (Universal Kriging)",
+  "bilinear": "双线性 (Bilinear)",
+  "anisotropic": "各向异性 (Anisotropic)",
+  "idw": "反距离加权 (IDW)"
 };
 const API_BASE = getApiBase();
 const params = reactive({
@@ -231,6 +505,41 @@ const bestMethod = computed(() => (comparisonResults.value.length > 0 ? comparis
 const canProceedToModeling = computed(() =>
   !!(params.x_col && params.y_col && params.thickness_col && params.seam_col && params.selected_seams.length > 0)
 );
+
+// 新增状态
+const current3DModel = ref(null); // 当前生成的3D模型数据
+const modelStats = ref(null); // 模型统计信息
+const layerControlVisible = ref(false); // 图层控制对话框
+const layerVisibility = ref([]); // 图层可见性配置
+const exportDialogVisible = ref(false); // 导出对话框
+const isExporting = ref(false); // 导出状态
+
+// 3D视图控制参数
+const viewControl = reactive({
+  distance: 180, // 增加距离以便看清全景
+  alpha: 25, // 调整俯仰角
+  beta: 45, // 调整旋转角
+  autoRotate: false
+});
+
+// 渲染选项
+const renderOptions = reactive({
+  showWireframe: false, // 默认不显示网格线,性能更好
+  showAxisPointer: false, // 默认禁用以避免错误
+  shadingMode: 'lambert', // 使用lambert模式更稳定
+  lightIntensity: 1.5,
+  ambientIntensity: 0.7,
+  shadowQuality: 'medium' // 使用中等质量以平衡性能和效果
+});
+
+// 导出选项
+const exportOptions = reactive({
+  format: 'png',
+  width: 1920,
+  height: 1080,
+  quality: 90,
+  filename: '地质模型'
+});
 
 function triggerBoreholeSelection() {
   boreholeInput.value?.click();
@@ -270,23 +579,23 @@ async function loadAndMergeData() {
       return;
     }
   }
-  
+
   isLoading.value = true;
   try {
     const formData = new FormData();
-    
+
     if (useGlobalData.value) {
       // 使用全局数据：将数据转换为CSV并上传
       const data = globalDataStore.keyStratumData.value;
       const columns = globalDataStore.keyStratumColumns.value;
-      
+
       if (!columns || columns.length === 0) {
         throw new Error('全局数据列信息缺失');
       }
-      
+
       // 转换为CSV格式
       const csvHeader = columns.join(',');
-      const csvRows = data.map(record => 
+      const csvRows = data.map(record =>
         columns.map(col => {
           const value = record[col];
           if (value === null || value === undefined) return '';
@@ -295,7 +604,7 @@ async function loadAndMergeData() {
         }).join(',')
       );
       const csv = [csvHeader, ...csvRows].join('\n');
-      
+
       // 创建Blob并上传
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
       formData.append('borehole_files', blob, 'global_data.csv');
@@ -305,33 +614,54 @@ async function loadAndMergeData() {
       boreholeFiles.value.forEach(f => formData.append('borehole_files', f));
       console.log('使用上传文件，文件数:', boreholeFiles.value.length);
     }
-    
+
     formData.append('coords_file', coordsFile.value);
-    
+
     const response = await fetch(`${API_BASE}/modeling/columns`, {
       method: 'POST',
       body: formData
     });
-    
+
+    // 检查HTTP状态码
+    if (!response.ok) {
+      throw new Error(`服务器响应错误: ${response.status} ${response.statusText}`);
+    }
+
     // 检查响应是否为 JSON
     const contentType = response.headers.get('content-type');
     if (!contentType || !contentType.includes('application/json')) {
       const text = await response.text();
       console.error('服务器返回非JSON响应:', text.substring(0, 200));
-      throw new Error(`服务器返回错误: ${response.status} ${response.statusText}`);
+      throw new Error(`服务器返回错误格式，期待JSON但收到: ${contentType || '未知'}`);
     }
-    
+
     const res = await response.json();
-    
+
     if (res.status === 'success') {
+      // 验证返回的数据
+      if (!res.numeric_columns || !Array.isArray(res.numeric_columns)) {
+        throw new Error('服务器返回的数值列数据无效');
+      }
+      if (!res.text_columns || !Array.isArray(res.text_columns)) {
+        throw new Error('服务器返回的文本列数据无效');
+      }
+
       columns.value.numeric = res.numeric_columns;
       columns.value.text = res.text_columns;
-      ElMessage.success(`数据合并成功，共 ${res.record_count} 条记录`);
+
+      const recordCount = res.record_count || 0;
+      ElMessage.success(`数据合并成功，共 ${recordCount} 条记录`);
+
+      // 智能选择列
       params.x_col = res.numeric_columns.find(c => c.toLowerCase().includes('x')) || res.numeric_columns[0] || '';
       params.y_col = res.numeric_columns.find(c => c.toLowerCase().includes('y')) || res.numeric_columns[1] || '';
       params.thickness_col = res.numeric_columns.find(c => c.toLowerCase().includes('厚')) || res.numeric_columns.find(c => c.toLowerCase().includes('z')) || res.numeric_columns[2] || '';
       params.seam_col = res.text_columns.find(c => c.toLowerCase().includes('岩')) || res.text_columns[0] || '';
-      if (params.seam_col) await updateSeamList(params.seam_col);
+
+      if (params.seam_col) {
+        await updateSeamList(params.seam_col);
+      }
+
       step.value = 1;
       chartMessage.value = '请选择列并生成等值线或三维模型。';
     } else {
@@ -341,7 +671,7 @@ async function loadAndMergeData() {
     }
   } catch (e) {
     console.error('数据加载失败:', e);
-    const errorMsg = e.message || '数据加载失败';
+    const errorMsg = e.message || '数据加载失败，请检查文件格式和网络连接';
     ElMessage.error(errorMsg);
     chartMessage.value = errorMsg;
   } finally {
@@ -372,31 +702,52 @@ async function updateSeamList(seamCol) {
 }
 function initChart() {
   console.log('[initChart] 开始初始化图表...');
-  console.log('[initChart] chartRef.value:', chartRef.value);
-  console.log('[initChart] myChart 当前状态:', myChart);
-  
+
+  // 销毁旧图表实例
   if (myChart) {
     console.log('[initChart] 销毁旧图表实例');
-    myChart.dispose();
+    try {
+      myChart.dispose();
+    } catch (e) {
+      console.warn('[initChart] 销毁图表实例时出错:', e);
+    }
     myChart = null;
   }
-  
-  if (chartRef.value) {
-    console.log('[initChart] 图表容器尺寸:', {
-      width: chartRef.value.offsetWidth,
-      height: chartRef.value.offsetHeight,
-      clientWidth: chartRef.value.clientWidth,
-      clientHeight: chartRef.value.clientHeight
-    });
-    
-    try {
-      myChart = echarts.init(chartRef.value);
-      console.log('[initChart] ✅ 图表实例创建成功:', myChart);
-    } catch (error) {
-      console.error('[initChart] ❌ 创建图表实例失败:', error);
-    }
-  } else {
+
+  if (!chartRef.value) {
     console.error('[initChart] ❌ chartRef.value 为空!');
+    return;
+  }
+
+  console.log('[initChart] 图表容器尺寸:', {
+    width: chartRef.value.offsetWidth,
+    height: chartRef.value.offsetHeight,
+    clientWidth: chartRef.value.clientWidth,
+    clientHeight: chartRef.value.clientHeight
+  });
+
+  // 确保容器有有效的尺寸
+  if (chartRef.value.offsetWidth === 0 || chartRef.value.offsetHeight === 0) {
+    console.error('[initChart] ❌ 图表容器尺寸为0!');
+    return;
+  }
+
+  try {
+    myChart = echarts.init(chartRef.value, null, {
+      renderer: 'canvas',
+      useDirtyRect: true,  // 启用脏矩形优化
+      devicePixelRatio: window.devicePixelRatio || 1
+    });
+    console.log('[initChart] ✅ 图表实例创建成功');
+
+    // 添加错误处理
+    myChart.on('error', (err) => {
+      console.error('[echarts] 渲染错误:', err);
+      ElMessage.error('图表渲染出错: ' + (err.message || '未知错误'));
+    });
+  } catch (error) {
+    console.error('[initChart] ❌ 创建图表实例失败:', error);
+    ElMessage.error('图表初始化失败: ' + error.message);
   }
 }
 onMounted(() => {
@@ -430,12 +781,29 @@ onMounted(() => {
   window.addEventListener('resize', resizeHandler);
 });
 onUnmounted(() => {
+  console.log('[onUnmounted] 组件卸载，清理资源...');
+
+  // 移除事件监听器
   if (resizeHandler) {
     window.removeEventListener('resize', resizeHandler);
     resizeHandler = null;
+    console.log('[onUnmounted] ✅ 移除resize监听器');
   }
+
+  // 销毁图表实例
+  if (myChart) {
+    try {
+      myChart.dispose();
+      myChart = null;
+      console.log('[onUnmounted] ✅ 销毁图表实例');
+    } catch (e) {
+      console.warn('[onUnmounted] 销毁图表实例时出错:', e);
+    }
+  }
+
+  // 重置状态
   chartMessage.value = '请先上传钻孔数据与坐标文件。';
-  myChart?.dispose();
+  console.log('[onUnmounted] ✅ 清理完成');
 });
 async function generateContour() {
   isLoading.value = true;
@@ -456,7 +824,22 @@ async function generateContour() {
       const option = {
         title: { text: `${params.thickness_col} 等值线图 (${interpolationMethods[params.method]})`, left: 'center' },
         tooltip: { trigger: 'item', formatter: 'X: {b0}<br/>Y: {b1}<br/>Z: {c2}' },
-        grid: { right: '15%' },
+        toolbox: {
+          feature: {
+            saveAsImage: { 
+              title: '保存为图片',
+              pixelRatio: 2
+            },
+            dataView: { 
+              title: '数据视图',
+              readOnly: false 
+            },
+            restore: { title: '还原' }
+          },
+          right: 20,
+          top: 10
+        },
+        grid: { right: '15%', left: '5%', top: '15%', bottom: '10%' },
         visualMap: {
           min: Math.min(...res.points.z),
           max: Math.max(...res.points.z),
@@ -478,6 +861,13 @@ async function generateContour() {
         }]
       };
       myChart.setOption(option, true);
+      
+      // 保存当前图表类型用于导出
+      current3DModel.value = {
+        type: '2D',
+        data: res
+      };
+      
       ElMessage.success('2D等值线图生成成功！');
       chartMessage.value = '';
     } else {
@@ -492,9 +882,19 @@ async function generateContour() {
   }
 }
 async function generate3DModel() {
+  // 参数验证
+  if (!params.x_col || !params.y_col || !params.thickness_col || !params.seam_col) {
+    ElMessage.warning('请先选择所有必需的列');
+    return;
+  }
+  if (!params.selected_seams || params.selected_seams.length === 0) {
+    ElMessage.warning('请至少选择一个岩层进行建模');
+    return;
+  }
+
   isLoading.value = true;
   try {
-    const res = await fetch(`${API_BASE}/modeling/block_model`, {
+    const response = await fetch(`${API_BASE}/modeling/block_model`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -508,167 +908,513 @@ async function generate3DModel() {
         base_level: params.base_level,
         gap: params.gap
       })
-    }).then(r => r.json());
+    });
+
+    // 检查HTTP响应
+    if (!response.ok) {
+      throw new Error(`服务器响应错误: ${response.status} ${response.statusText}`);
+    }
+
+    const res = await response.json();
+
     if (res.status === 'success') {
       console.log('[3D建模] 响应数据:', res);
       console.log('[3D建模] 模型数量:', res.models?.length);
+      console.log('[3D建模] 跳过数量:', res.total_skipped);
       
-      if (!res.models || res.models.length === 0) {
-        ElMessage.warning('未能生成任何块体模型');
+      // 输出建模顺序信息
+      console.log('========== 建模顺序信息 ==========');
+      console.log('建模顺序说明: 岩层从底部到顶部依次堆叠');
+      console.log('每一层的底面 = 上一层的顶面 + 间隔(gap)');
+      res.models.forEach((model, index) => {
+        console.log(`${index + 1}. ${model.name} (${model.points || 0}个数据点)`);
+      });
+      console.log('=================================');
+
+      // 验证响应数据
+      if (!res.models || !Array.isArray(res.models)) {
+        throw new Error('服务器返回的模型数据格式无效');
+      }
+
+      if (res.models.length === 0) {
+        let warningMsg = '未能生成任何块体模型';
+        if (res.skipped && res.skipped.length > 0) {
+          warningMsg += `\n跳过的岩层:\n${res.skipped.join('\n')}`;
+        }
+        ElMessage.warning(warningMsg);
         chartMessage.value = '所有岩层数据不足,无法生成模型';
         return;
       }
-      
-      // 检查第一个模型的数据格式
-      if (res.models[0]) {
-        console.log('[3D建模] 第一个模型:', res.models[0].name);
-        console.log('[3D建模] X网格长度:', res.models[0].grid_x?.length);
-        console.log('[3D建模] Y网格长度:', res.models[0].grid_y?.length);
-        console.log('[3D建模] Z矩阵维度:', res.models[0].top_surface_z?.length, 'x', res.models[0].top_surface_z?.[0]?.length);
+
+      // 验证第一个模型的数据完整性
+      const firstModel = res.models[0];
+      if (!firstModel.grid_x || !firstModel.grid_y || !firstModel.top_surface_z) {
+        throw new Error('模型数据缺少必需字段 (grid_x, grid_y, top_surface_z)');
       }
-      
-      initChart();
-      
-      // 为每个岩层生成顶面的 surface
+
+      console.log('[3D建模] 第一个模型:', firstModel.name);
+      console.log('[3D建模] X网格长度:', firstModel.grid_x.length);
+      console.log('[3D建模] Y网格长度:', firstModel.grid_y.length);
+      console.log('[3D建模] Z矩阵维度:', firstModel.top_surface_z.length, 'x', firstModel.top_surface_z[0]?.length);
+
+      // 初始化图表
+      if (!myChart) {
+        initChart();
+      }
+
+      if (!myChart) {
+        throw new Error('图表初始化失败');
+      }
+
+      // 为每个岩层生成顶面和底面,形成完整的块体
       const series = [];
-      res.models.forEach((model, idx) => {
-        // 检查数据有效性
-        if (!model.grid_x || !model.grid_y || !model.top_surface_z) {
-          console.warn(`[3D建模] 岩层 ${model.name} 的数据不完整`);
+
+      res.models.forEach((model) => {
+        // 验证数据完整性
+        if (!model.grid_x || !Array.isArray(model.grid_x) || model.grid_x.length === 0) {
+          console.warn(`[3D建模] 岩层 ${model.name} 的grid_x数据无效`);
           return;
         }
-        
-        // 构建 wireframe 数据: [[x, y, z], ...]
-        const wireframeData = [];
+        if (!model.grid_y || !Array.isArray(model.grid_y) || model.grid_y.length === 0) {
+          console.warn(`[3D建模] 岩层 ${model.name} 的grid_y数据无效`);
+          return;
+        }
+        if (!model.top_surface_z || !Array.isArray(model.top_surface_z) || model.top_surface_z.length === 0) {
+          console.warn(`[3D建模] 岩层 ${model.name} 的top_surface_z数据无效`);
+          return;
+        }
+        if (!model.bottom_surface_z || !Array.isArray(model.bottom_surface_z) || model.bottom_surface_z.length === 0) {
+          console.warn(`[3D建模] 岩层 ${model.name} 的bottom_surface_z数据无效`);
+          return;
+        }
+
+        // 验证矩阵维度
+        if (model.top_surface_z.length !== model.grid_y.length) {
+          console.warn(`[3D建模] 岩层 ${model.name} 的Z矩阵行数不匹配: Z行=${model.top_surface_z.length}, Y长度=${model.grid_y.length}`);
+          return;
+        }
+        if (model.top_surface_z[0] && model.top_surface_z[0].length !== model.grid_x.length) {
+          console.warn(`[3D建模] 岩层 ${model.name} 的Z矩阵列数不匹配: Z列=${model.top_surface_z[0].length}, X长度=${model.grid_x.length}`);
+          return;
+        }
+
+        const layerColor = getColorForLayer(model.name);
+        const baseOpacity = model.name.includes('煤') ? 0.75 : 0.65; // 煤层稍微不透明一点
+
+        console.log(`[3D建模] 岩层 ${model.name}: 网格尺寸 ${model.grid_x.length} × ${model.grid_y.length}, 颜色=${layerColor}`);
+        console.log(`[3D建模] - grid_x范围: [${model.grid_x[0]}, ${model.grid_x[model.grid_x.length-1]}]`);
+        console.log(`[3D建模] - grid_y范围: [${model.grid_y[0]}, ${model.grid_y[model.grid_y.length-1]}]`);
+        console.log(`[3D建模] - top_surface_z样本: [${model.top_surface_z[0][0]}, ${model.top_surface_z[0][1]}, ${model.top_surface_z[0][2]}]`);
+
+        // 将Z矩阵展平为一维数组
+        const topZFlat = [];
+        const bottomZFlat = [];
         for (let i = 0; i < model.grid_y.length; i++) {
           for (let j = 0; j < model.grid_x.length; j++) {
-            wireframeData.push([
-              model.grid_x[j],
-              model.grid_y[i],
-              model.top_surface_z[i][j]
-            ]);
+            const topZ = model.top_surface_z[i] && model.top_surface_z[i][j] !== undefined 
+              ? model.top_surface_z[i][j] 
+              : 0;
+            const bottomZ = model.bottom_surface_z[i] && model.bottom_surface_z[i][j] !== undefined 
+              ? model.bottom_surface_z[i][j] 
+              : 0;
+            topZFlat.push(topZ);
+            bottomZFlat.push(bottomZ);
           }
         }
-        
-        console.log(`[3D建模] 岩层 ${model.name}: 生成 ${wireframeData.length} 个数据点`);
-        
-        // 顶面 Surface (使用 wireframe data)
+
+        console.log(`[3D建模] - Z数据长度: 顶面=${topZFlat.length}, 底面=${bottomZFlat.length}`);
+
+        // 添加顶面 - 使用数组格式
         series.push({
           type: 'surface',
-          name: model.name,
+          name: `${model.name}`,
+          data: topZFlat.map((z, idx) => {
+            const j = idx % model.grid_x.length;
+            const i = Math.floor(idx / model.grid_x.length);
+            return [model.grid_x[j], model.grid_y[i], z];
+          }),
           wireframe: {
-            show: false
+            show: renderOptions.showWireframe,
+            lineStyle: {
+              color: 'rgba(0,0,0,0.1)',
+              width: 0.5
+            }
           },
-          data: wireframeData,
-          shading: 'color',
+          shading: renderOptions.shadingMode,
+          realisticMaterial: renderOptions.shadingMode === 'realistic' ? {
+            roughness: 0.4,
+            metalness: 0.1,
+            textureTiling: 1
+          } : undefined,
           itemStyle: {
-            color: getColorForLayer(idx),
-            opacity: 0.85
+            color: layerColor,
+            opacity: baseOpacity + 0.15
           },
           emphasis: {
             itemStyle: {
-              color: getColorForLayer(idx),
+              color: layerColor,
               opacity: 1.0
             }
           }
         });
+
+        // 添加底面
+        series.push({
+          type: 'surface',
+          name: `${model.name} (底)`,
+          data: bottomZFlat.map((z, idx) => {
+            const j = idx % model.grid_x.length;
+            const i = Math.floor(idx / model.grid_x.length);
+            return [model.grid_x[j], model.grid_y[i], z];
+          }),
+          wireframe: {
+            show: renderOptions.showWireframe,
+            lineStyle: {
+              color: 'rgba(0,0,0,0.08)',
+              width: 0.5
+            }
+          },
+          shading: renderOptions.shadingMode,
+          realisticMaterial: renderOptions.shadingMode === 'realistic' ? {
+            roughness: 0.5,
+            metalness: 0.1,
+            textureTiling: 1
+          } : undefined,
+          itemStyle: {
+            color: layerColor,
+            opacity: baseOpacity - 0.1
+          },
+          emphasis: {
+            itemStyle: {
+              color: layerColor,
+              opacity: 0.9
+            }
+          }
+        });
       });
-      
-      console.log('[3D建模] 生成的 series 数量:', series.length);
-      
+
+      if (series.length === 0) {
+        throw new Error('所有模型的数据验证都失败了');
+      }
+
+      console.log('[3D建模] 生成的有效 series 数量:', series.length);
+
       // 计算数据范围用于设置坐标轴
       let xMin = Infinity, xMax = -Infinity;
       let yMin = Infinity, yMax = -Infinity;
       let zMin = Infinity, zMax = -Infinity;
-      
+
       res.models.forEach(model => {
-        if (model.grid_x && model.grid_x.length > 0) {
-          xMin = Math.min(xMin, ...model.grid_x);
-          xMax = Math.max(xMax, ...model.grid_x);
+        if (model.grid_x && Array.isArray(model.grid_x) && model.grid_x.length > 0) {
+          const validX = model.grid_x.filter(v => isFinite(v));
+          if (validX.length > 0) {
+            xMin = Math.min(xMin, ...validX);
+            xMax = Math.max(xMax, ...validX);
+          }
         }
-        if (model.grid_y && model.grid_y.length > 0) {
-          yMin = Math.min(yMin, ...model.grid_y);
-          yMax = Math.max(yMax, ...model.grid_y);
+        if (model.grid_y && Array.isArray(model.grid_y) && model.grid_y.length > 0) {
+          const validY = model.grid_y.filter(v => isFinite(v));
+          if (validY.length > 0) {
+            yMin = Math.min(yMin, ...validY);
+            yMax = Math.max(yMax, ...validY);
+          }
         }
-        if (model.top_surface_z) {
+        if (model.top_surface_z && Array.isArray(model.top_surface_z)) {
           model.top_surface_z.forEach(row => {
-            if (row && row.length > 0) {
-              zMin = Math.min(zMin, ...row.filter(v => isFinite(v)));
-              zMax = Math.max(zMax, ...row.filter(v => isFinite(v)));
+            if (row && Array.isArray(row) && row.length > 0) {
+              const validZ = row.filter(v => isFinite(v));
+              if (validZ.length > 0) {
+                zMin = Math.min(zMin, ...validZ);
+                zMax = Math.max(zMax, ...validZ);
+              }
             }
           });
         }
       });
-      
+
+      // 检查计算的范围是否有效
+      if (!isFinite(xMin) || !isFinite(xMax) || !isFinite(yMin) || !isFinite(yMax) || !isFinite(zMin) || !isFinite(zMax)) {
+        throw new Error('无法计算有效的坐标范围');
+      }
+
       console.log('[3D建模] 数据范围:', { xMin, xMax, yMin, yMax, zMin, zMax });
       
+      // 计算合理的box尺寸比例,基于实际数据范围
+      const xRange = xMax - xMin;
+      const yRange = yMax - yMin;
+      const zRange = zMax - zMin;
+      
+      // 归一化到合理的显示范围 (修正box尺寸计算)
+      const maxRange = Math.max(xRange, yRange, zRange);
+      const boxWidth = maxRange > 0 ? (xRange / maxRange) * 100 : 100;
+      const boxDepth = maxRange > 0 ? (yRange / maxRange) * 100 : 100;
+      const boxHeight = maxRange > 0 ? (zRange / maxRange) * 60 : 60; // Z轴压缩以便更好观察地层
+      
+      console.log('[3D建模] Box尺寸:', { boxWidth, boxDepth, boxHeight, xRange, yRange, zRange });
+      
+      // 保存模型数据用于后续操作
+      current3DModel.value = {
+        models: res.models,
+        series: series,
+        xRange: { min: xMin, max: xMax },
+        yRange: { min: yMin, max: yMax },
+        zRange: { min: zMin, max: zMax },
+        boxSize: { width: boxWidth, depth: boxDepth, height: boxHeight }
+      };
+      
+      // 初始化图层可见性控制
+      layerVisibility.value = series.map((s) => ({
+        name: s.name,
+        visible: true,
+        color: getColorForLayer(s.name),
+        opacity: 85
+      }));
+      
+      // 计算模型统计信息
+      calculateModelStats(res.models);
+      
       const option = {
-        title: { 
-          text: `三维岩层块体模型 (${res.models.length}个岩层)`, 
-          left: 'center',
-          textStyle: { fontSize: 16, fontWeight: 'bold' }
-        },
+        title: [
+          {
+            text: `三维地质块体模型`,
+            subtext: `${res.models.length}个岩层单元 | 插值方法: ${interpolationMethods[params.method]} | 分辨率: ${params.resolution}×${params.resolution}`,
+            left: 'center',
+            top: 10,
+            textStyle: { 
+              fontSize: 18, 
+              fontWeight: 'bold', 
+              color: '#1a1a1a',
+              fontFamily: 'Arial, SimHei'
+            },
+            subtextStyle: {
+              fontSize: 11,
+              color: '#666',
+              fontFamily: 'Arial, SimSun'
+            }
+          },
+          // 添加坐标系信息
+          {
+            text: `坐标系统\nX轴: ${params.x_col}\nY轴: ${params.y_col}\nZ轴: 高程 (m)`,
+            left: 15,
+            bottom: 15,
+            textStyle: {
+              fontSize: 10,
+              color: '#444',
+              lineHeight: 16,
+              fontFamily: 'Arial, SimSun'
+            }
+          },
+          // 添加数据范围信息
+          {
+            text: `数据范围\nX: ${xMin.toFixed(1)} ~ ${xMax.toFixed(1)} m\nY: ${yMin.toFixed(1)} ~ ${yMax.toFixed(1)} m\nZ: ${zMin.toFixed(1)} ~ ${zMax.toFixed(1)} m`,
+            right: 15,
+            bottom: 15,
+            textStyle: {
+              fontSize: 10,
+              color: '#444',
+              lineHeight: 16,
+              fontFamily: 'Arial, SimSun',
+              align: 'right'
+            }
+          }
+        ],
+        backgroundColor: '#ffffff',
         tooltip: { 
           formatter: (p) => {
-            if(p.value && p.value.length >= 3) {
-              return `<b>${p.seriesName}</b><br/>X: ${p.value[0].toFixed(2)} m<br/>Y: ${p.value[1].toFixed(2)} m<br/>高程: ${p.value[2].toFixed(2)} m`;
+            if(p.value && Array.isArray(p.value) && p.value.length >= 3) {
+              const layerName = p.seriesName.replace(/\s*\((顶|底)\)\s*$/, '');
+              const surfaceType = p.seriesName.includes('(底)') ? '底面' : '顶面';
+              return `
+                <div style="padding: 8px; font-family: Arial, SimSun;">
+                  <div style="font-weight: bold; font-size: 13px; margin-bottom: 6px; color: #1a1a1a;">${layerName}</div>
+                  <div style="font-size: 11px; color: #666; margin-bottom: 4px;">${surfaceType}</div>
+                  <div style="font-size: 11px; line-height: 18px; color: #333;">
+                    <span style="display: inline-block; width: 60px;">X坐标:</span><b>${p.value[0].toFixed(2)}</b> m<br/>
+                    <span style="display: inline-block; width: 60px;">Y坐标:</span><b>${p.value[1].toFixed(2)}</b> m<br/>
+                    <span style="display: inline-block; width: 60px;">高程:</span><b>${p.value[2].toFixed(2)}</b> m
+                  </div>
+                </div>
+              `;
             }
-            return p.seriesName;
+            return p.seriesName || '未知';
+          },
+          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+          borderColor: '#ddd',
+          borderWidth: 1,
+          padding: 0,
+          textStyle: {
+            color: '#333'
           }
         },
         legend: { 
-          data: series.map(s => s.name), 
+          data: series.filter(s => !s.name.includes('(底)')).map(s => s.name),
           orient: 'vertical', 
-          right: 10, 
-          top: 60,
-          textStyle: { fontSize: 11 },
-          backgroundColor: 'rgba(255,255,255,0.9)',
-          padding: 8,
-          borderRadius: 4,
+          right: 15, 
+          top: 80,
+          backgroundColor: 'rgba(255,255,255,0.95)',
+          padding: [10, 12],
+          borderRadius: 6,
+          borderColor: '#e0e0e0',
+          borderWidth: 1,
           type: 'scroll',
-          pageButtonPosition: 'end'
+          pageButtonPosition: 'end',
+          selector: [
+            {
+              type: 'all',
+              title: '全选'
+            },
+            {
+              type: 'inverse',
+              title: '反选'
+            }
+          ],
+          formatter: (name) => {
+            // 在图例中添加图标和格式化名称
+            const isCoal = name.includes('煤');
+            return isCoal ? `{coal|●} ${name}` : `{normal|●} ${name}`;
+          },
+          textStyle: {
+            fontSize: 11,
+            fontFamily: 'Arial, SimSun',
+            rich: {
+              coal: {
+                color: '#000000',
+                fontSize: 14
+              },
+              normal: {
+                fontSize: 14
+              }
+            }
+          }
         },
         xAxis3D: { 
           type: 'value', 
-          name: params.x_col,
-          min: isFinite(xMin) ? xMin : undefined,
-          max: isFinite(xMax) ? xMax : undefined
+          name: `${params.x_col} (m)`,
+          nameTextStyle: {
+            fontSize: 12,
+            fontWeight: 'bold',
+            color: '#333',
+            fontFamily: 'Arial, SimSun'
+          },
+          min: xMin,
+          max: xMax,
+          axisLabel: {
+            fontSize: 10,
+            color: '#666',
+            formatter: (value) => value !== undefined && value !== null ? value.toFixed(0) : '0'
+          },
+          splitNumber: 5
         },
         yAxis3D: { 
           type: 'value', 
-          name: params.y_col,
-          min: isFinite(yMin) ? yMin : undefined,
-          max: isFinite(yMax) ? yMax : undefined
+          name: `${params.y_col} (m)`,
+          nameTextStyle: {
+            fontSize: 12,
+            fontWeight: 'bold',
+            color: '#333',
+            fontFamily: 'Arial, SimSun'
+          },
+          min: yMin,
+          max: yMax,
+          axisLabel: {
+            fontSize: 10,
+            color: '#666',
+            formatter: (value) => value !== undefined && value !== null ? value.toFixed(0) : '0'
+          },
+          splitNumber: 5
         },
         zAxis3D: { 
           type: 'value', 
-          name: '高程(m)',
-          min: isFinite(zMin) ? zMin : undefined,
-          max: isFinite(zMax) ? zMax : undefined
+          name: '高程 (m)',
+          nameTextStyle: {
+            fontSize: 12,
+            fontWeight: 'bold',
+            color: '#333',
+            fontFamily: 'Arial, SimSun'
+          },
+          min: zMin,
+          max: zMax,
+          axisLabel: {
+            fontSize: 10,
+            color: '#666',
+            formatter: (value) => value !== undefined && value !== null ? value.toFixed(1) : '0.0'
+          },
+          splitNumber: 5
         },
         grid3D: {
+          show: true,
+          boxWidth: boxWidth,
+          boxDepth: boxDepth,
+          boxHeight: boxHeight,
+          environment: '#fff',
+          backgroundColor: '#ffffff',
           viewControl: { 
             projection: 'perspective', 
-            autoRotate: false,
-            distance: 150,
-            alpha: 30,
-            beta: 40,
+            autoRotate: viewControl.autoRotate,
+            autoRotateSpeed: 10,
+            distance: viewControl.distance,
+            alpha: viewControl.alpha,
+            beta: viewControl.beta,
             minAlpha: -90,
-            maxAlpha: 90
+            maxAlpha: 90,
+            minDistance: 80,
+            maxDistance: 300,
+            rotateSensitivity: 1,
+            zoomSensitivity: 1,
+            panSensitivity: 1,
+            animation: true,
+            animationDurationUpdate: 300
           },
-          boxWidth: 100,
-          boxDepth: 100,
-          boxHeight: 60,
-          light: {
-            main: {
-              intensity: 1.2,
-              shadow: true
-            },
-            ambient: {
-              intensity: 0.4
+          axisLine: {
+            show: true,
+            lineStyle: {
+              color: '#666',
+              width: 1.5
             }
           },
-          environment: '#f5f5f5'
+          axisPointer: {
+            show: renderOptions.showAxisPointer,
+            lineStyle: {
+              color: '#f00',
+              width: 2
+            },
+            label: {
+              show: true,
+              formatter: function (params) {
+                return params && params.value !== undefined && params.value !== null 
+                  ? params.value.toFixed(2) 
+                  : '0.00';
+              }
+            }
+          },
+          splitLine: {
+            show: true,
+            lineStyle: {
+              color: 'rgba(100, 100, 100, 0.15)',
+              width: 1
+            }
+          },
+          splitArea: {
+            show: false
+          },
+          light: {
+            main: {
+              intensity: renderOptions.lightIntensity,
+              shadow: true,
+              shadowQuality: renderOptions.shadowQuality,
+              alpha: 30,
+              beta: 40
+            },
+            ambient: {
+              intensity: renderOptions.ambientIntensity
+            }
+          },
+          postEffect: {
+            enable: false
+          },
+          temporalSuperSampling: {
+            enable: true
+          }
         },
         series: series
       };
@@ -685,18 +1431,33 @@ async function generate3DModel() {
       }
       
       try {
-        myChart.setOption(option, true);
-        console.log('[3D建模] ✅ echarts setOption 完成');
-        
-        // 强制刷新
-        setTimeout(() => {
-          if (myChart) {
-            myChart.resize();
-            console.log('[3D建模] 图表resize完成');
-          }
-        }, 100);
+        // 使用nextTick确保在DOM更新后执行
+        nextTick(() => {
+          if (!myChart) return;
+          
+          myChart.setOption(option, { notMerge: true, replaceMerge: ['series'] });
+          console.log('[3D建模] ✅ echarts setOption 完成');
+          console.log('[3D建模] 验证series配置:', {
+            seriesCount: option.series.length,
+            firstSeries: option.series[0] ? {
+              type: option.series[0].type,
+              name: option.series[0].name,
+              hasData: !!option.series[0].data,
+              dataType: typeof option.series[0].data
+            } : null
+          });
+          
+          // 延迟刷新,确保渲染完成
+          setTimeout(() => {
+            if (myChart) {
+              myChart.resize();
+              console.log('[3D建模] 图表resize完成');
+            }
+          }, 200);
+        });
       } catch (error) {
         console.error('[3D建模] ❌ setOption 失败:', error);
+        console.error('[3D建模] 错误堆栈:', error.stack);
         ElMessage.error('图表渲染失败: ' + error.message);
         return;
       }
@@ -730,16 +1491,422 @@ async function generate3DModel() {
         );
       }
     } else {
-      ElMessage.error(res.message);
-      chartMessage.value = res.message || '生成3D模型失败。';
+      const errorMsg = res.message || '生成3D模型失败';
+      ElMessage.error(errorMsg);
+      chartMessage.value = errorMsg;
     }
-  } catch(e) {
-    ElMessage.error('3D建模失败: ' + e.message);
-    chartMessage.value = '3D建模失败，请调整参数或检查数据。';
+  } catch (e) {
+    console.error('3D模型生成失败:', e);
+    const errorMsg = e.message || '3D模型生成失败，请检查数据和网络连接';
+    ElMessage.error(errorMsg);
+    chartMessage.value = errorMsg;
   } finally {
     isLoading.value = false;
   }
 }
+
+// 计算模型统计信息
+function calculateModelStats(models) {
+  if (!models || models.length === 0) {
+    modelStats.value = null;
+    return;
+  }
+
+  const layers = models.map(model => {
+    // 计算体积 (简化计算:网格面积 × 平均厚度)
+    const gridArea = (model.grid_x[model.grid_x.length - 1] - model.grid_x[0]) * 
+                     (model.grid_y[model.grid_y.length - 1] - model.grid_y[0]);
+    
+    // 计算厚度统计
+    const thicknesses = [];
+    for (let i = 0; i < model.top_surface_z.length; i++) {
+      for (let j = 0; j < model.top_surface_z[i].length; j++) {
+        const thickness = model.top_surface_z[i][j] - (model.bottom_surface_z?.[i]?.[j] || 0);
+        if (isFinite(thickness) && thickness > 0) {
+          thicknesses.push(thickness);
+        }
+      }
+    }
+    
+    const avgThickness = thicknesses.length > 0 
+      ? thicknesses.reduce((a, b) => a + b, 0) / thicknesses.length 
+      : 0;
+    const minThickness = thicknesses.length > 0 ? Math.min(...thicknesses) : 0;
+    const maxThickness = thicknesses.length > 0 ? Math.max(...thicknesses) : 0;
+    const volume = gridArea * avgThickness;
+
+    return {
+      name: model.name || '未命名',
+      points: model.points || 0,
+      avgThickness,
+      minThickness,
+      maxThickness,
+      volume
+    };
+  });
+
+  const totalPoints = layers.reduce((sum, l) => sum + l.points, 0);
+  const totalVolume = layers.reduce((sum, l) => sum + l.volume, 0);
+
+  modelStats.value = {
+    layerCount: models.length,
+    totalPoints,
+    totalVolume,
+    layers
+  };
+}
+
+// 更新3D视图
+function update3DView() {
+  if (!myChart || !current3DModel.value) return;
+
+  const updateOption = {
+    grid3D: {
+      viewControl: {
+        autoRotate: viewControl.autoRotate,
+        distance: viewControl.distance,
+        alpha: viewControl.alpha,
+        beta: viewControl.beta
+      },
+      light: {
+        main: {
+          intensity: renderOptions.lightIntensity,
+          shadow: true,
+          shadowQuality: renderOptions.shadowQuality,
+          alpha: 30,
+          beta: 40
+        },
+        ambient: {
+          intensity: renderOptions.ambientIntensity
+        }
+      }
+    }
+  };
+
+  // 如果有series数据,也更新series的渲染选项
+  if (current3DModel.value.series && current3DModel.value.series.length > 0) {
+    updateOption.series = current3DModel.value.series.map(s => ({
+      ...s,
+      wireframe: {
+        ...s.wireframe,
+        show: renderOptions.showWireframe
+      },
+      shading: renderOptions.shadingMode,
+      realisticMaterial: renderOptions.shadingMode === 'realistic' ? {
+        roughness: s.name.includes('底') ? 0.5 : 0.4,
+        metalness: 0.1,
+        textureTiling: 1
+      } : undefined
+    }));
+  }
+
+  // 使用nextTick避免在渲染过程中调用
+  nextTick(() => {
+    if (myChart) {
+      myChart.setOption(updateOption, { notMerge: false, lazyUpdate: false });
+    }
+  });
+}
+
+// 重置视图
+function resetView() {
+  viewControl.distance = 180;
+  viewControl.alpha = 25;
+  viewControl.beta = 45;
+  viewControl.autoRotate = false;
+  update3DView();
+  ElMessage.success('视图已重置');
+}
+
+// 设置俯视图
+function setTopView() {
+  viewControl.alpha = 90;
+  viewControl.beta = 0;
+  viewControl.autoRotate = false;
+  update3DView();
+  ElMessage.success('已切换到俯视图');
+}
+
+// 设置侧视图
+function setSideView() {
+  viewControl.alpha = 0;
+  viewControl.beta = 90;
+  viewControl.autoRotate = false;
+  update3DView();
+  ElMessage.success('已切换到侧视图');
+}
+
+// 设置前视图
+function setFrontView() {
+  viewControl.alpha = 0;
+  viewControl.beta = 0;
+  viewControl.autoRotate = false;
+  update3DView();
+  ElMessage.success('已切换到前视图');
+}
+
+// 切换自动旋转
+function toggleAutoRotate() {
+  viewControl.autoRotate = !viewControl.autoRotate;
+  update3DView();
+}
+
+// 截图
+function captureImage() {
+  if (!myChart) {
+    ElMessage.warning('没有可截图的内容');
+    return;
+  }
+  
+  const dataURL = myChart.getDataURL({
+    type: 'png',
+    pixelRatio: 2,
+    backgroundColor: '#fff'
+  });
+  
+  const link = document.createElement('a');
+  link.href = dataURL;
+  link.download = `地质模型_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.png`;
+  link.click();
+  
+  ElMessage.success('截图已保存');
+}
+
+// 全屏切换
+function toggleFullscreen() {
+  const container = chartRef.value?.parentElement;
+  if (!container) return;
+  
+  if (!document.fullscreenElement) {
+    container.requestFullscreen().then(() => {
+      ElMessage.success('已进入全屏模式');
+      // 全屏后重新调整图表大小
+      setTimeout(() => {
+        myChart?.resize();
+      }, 100);
+    }).catch(() => {
+      ElMessage.error('进入全屏失败');
+    });
+  } else {
+    document.exitFullscreen().then(() => {
+      ElMessage.success('已退出全屏');
+      setTimeout(() => {
+        myChart?.resize();
+      }, 100);
+    });
+  }
+}
+
+// 显示图层控制
+function showLayerControl() {
+  layerControlVisible.value = true;
+}
+
+// 更新图层可见性
+function updateLayerVisibility() {
+  if (!myChart || !current3DModel.value) return;
+
+  const updatedSeries = current3DModel.value.series.map((s, idx) => {
+    const layer = layerVisibility.value[idx];
+    return {
+      ...s,
+      silent: !layer.visible,
+      itemStyle: {
+        ...s.itemStyle,
+        color: layer.color,
+        opacity: layer.opacity / 100
+      },
+      emphasis: {
+        ...s.emphasis,
+        itemStyle: {
+          ...s.emphasis.itemStyle,
+          color: layer.color,
+          opacity: Math.min((layer.opacity + 15) / 100, 1)
+        }
+      }
+    };
+  }).filter((s, idx) => layerVisibility.value[idx].visible);
+
+  myChart.setOption({
+    series: updatedSeries,
+    legend: {
+      data: updatedSeries.map(s => s.name)
+    }
+  });
+}
+
+// 重置图层
+function resetLayers() {
+  if (!current3DModel.value) return;
+  
+  layerVisibility.value = current3DModel.value.series.map((s) => ({
+    name: s.name,
+    visible: true,
+    color: getColorForLayer(s.name),
+    opacity: 85
+  }));
+  
+  updateLayerVisibility();
+  ElMessage.success('图层设置已重置');
+}
+
+// 导出模型
+function exportModel() {
+  if (!myChart && !current3DModel.value) {
+    ElMessage.warning('没有可导出的模型');
+    return;
+  }
+  
+  // 根据当前模型类型设置默认文件名
+  if (current3DModel.value?.type === '2D') {
+    exportOptions.filename = '地质等值线图';
+  } else {
+    exportOptions.filename = '地质3D模型';
+  }
+  
+  exportDialogVisible.value = true;
+}
+
+// 确认导出
+async function confirmExport() {
+  if (!exportOptions.filename) {
+    ElMessage.warning('请输入文件名');
+    return;
+  }
+
+  isExporting.value = true;
+  try {
+    const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+    const filename = `${exportOptions.filename}_${timestamp}`;
+
+    switch (exportOptions.format) {
+      case 'png':
+        await exportAsPNG(filename);
+        break;
+      case 'svg':
+        await exportAsSVG(filename);
+        break;
+      case 'json':
+        await exportAsJSON(filename);
+        break;
+      case 'csv':
+        await exportAsCSV(filename);
+        break;
+    }
+
+    ElMessage.success(`导出成功: ${filename}`);
+    exportDialogVisible.value = false;
+  } catch (error) {
+    console.error('导出失败:', error);
+    ElMessage.error('导出失败: ' + error.message);
+  } finally {
+    isExporting.value = false;
+  }
+}
+
+// 导出为PNG
+async function exportAsPNG(filename) {
+  if (!myChart) return;
+
+  const dataURL = myChart.getDataURL({
+    type: 'png',
+    pixelRatio: exportOptions.quality / 50, // 质量转换为像素比
+    backgroundColor: '#fff'
+  });
+
+  downloadFile(dataURL, `${filename}.png`);
+}
+
+// 导出为SVG
+async function exportAsSVG(filename) {
+  if (!myChart) return;
+
+  const dataURL = myChart.getDataURL({
+    type: 'svg',
+    backgroundColor: '#fff'
+  });
+
+  downloadFile(dataURL, `${filename}.svg`);
+}
+
+// 导出为JSON
+async function exportAsJSON(filename) {
+  if (!current3DModel.value) return;
+
+  const data = {
+    metadata: {
+      exportTime: new Date().toISOString(),
+      modelType: '3D地质块体模型',
+      parameters: {
+        xCol: params.x_col,
+        yCol: params.y_col,
+        thicknessCol: params.thickness_col,
+        seamCol: params.seam_col,
+        method: params.method,
+        resolution: params.resolution,
+        baseLevel: params.base_level,
+        gap: params.gap
+      }
+    },
+    models: current3DModel.value.models,
+    statistics: modelStats.value
+  };
+
+  const jsonStr = JSON.stringify(data, null, 2);
+  const blob = new Blob([jsonStr], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  downloadFile(url, `${filename}.json`);
+  URL.revokeObjectURL(url);
+}
+
+// 导出为CSV
+async function exportAsCSV(filename) {
+  if (!current3DModel.value) return;
+
+  const rows = [
+    ['岩层名称', 'X坐标', 'Y坐标', '顶面高程', '底面高程', '厚度']
+  ];
+
+  current3DModel.value.models.forEach(model => {
+    for (let i = 0; i < model.grid_y.length; i++) {
+      for (let j = 0; j < model.grid_x.length; j++) {
+        const x = model.grid_x[j];
+        const y = model.grid_y[i];
+        const topZ = model.top_surface_z[i][j];
+        const bottomZ = model.bottom_surface_z?.[i]?.[j] || 0;
+        const thickness = topZ - bottomZ;
+
+        if (isFinite(topZ) && isFinite(bottomZ)) {
+          rows.push([
+            model.name,
+            x.toFixed(2),
+            y.toFixed(2),
+            topZ.toFixed(2),
+            bottomZ.toFixed(2),
+            thickness.toFixed(2)
+          ]);
+        }
+      }
+    }
+  });
+
+  const csvContent = rows.map(row => row.join(',')).join('\n');
+  const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  downloadFile(url, `${filename}.csv`);
+  URL.revokeObjectURL(url);
+}
+
+// 下载文件辅助函数
+function downloadFile(url, filename) {
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
 async function runComparison() {
   isLoading.value = true;
   try {
@@ -781,9 +1948,18 @@ async function runComparison() {
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
+  background: #f5f7fa;
 }
-.content-row { flex: 1; }
-.panel-col, .chart-col { height: 100%; }
+.content-row { 
+  flex: 1; 
+  height: 100%;
+  overflow: hidden;
+}
+.panel-col, .chart-col { 
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
 .panel {
   height: 100%;
   padding: 14px;
@@ -795,8 +1971,52 @@ async function runComparison() {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 .panel-step { display: flex; flex-direction: column; gap: 16px; }
+
+/* 图表容器样式优化 */
+.chart-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  position: relative;
+}
+
+.chart-wrapper { 
+  position: relative; 
+  height: 100%;
+  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.chart-canvas { 
+  width: 100% !important; 
+  height: 100% !important;
+  flex: 1;
+  background: #ffffff;
+}
+
+.chart-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  font-size: 16px;
+  pointer-events: none;
+  z-index: 10;
+  background-color: #ffffff;
+}
 
 /* 全局数据状态信息 */
 .data-status-info {
@@ -934,32 +2154,7 @@ async function runComparison() {
   border: 1px solid #e2e8f0;
 }
 .coords-summary .muted { color: #94a3b8; }
-.chart-card { height: 100%; }
-.chart-wrapper { 
-  position: relative; 
-  height: 100%; 
-  min-height: 460px;
-  display: flex;
-  flex-direction: column;
-}
-.chart-canvas { 
-  width: 100%; 
-  height: 100%;
-  flex: 1;
-  min-height: 400px;
-}
-.chart-placeholder {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #94a3b8;
-  font-size: 16px;
-  pointer-events: none;
-  z-index: 10;
-  background-color: #fafafa;
-}
+
 .full-width { 
   width: 100%; 
   min-height: 40px;
@@ -975,4 +2170,121 @@ async function runComparison() {
 }
 .el-form-item { margin-bottom: 12px; }
 h5 { margin: 0; font-size: 14px; color: #1f2937; }
+
+/* 快捷工具栏 */
+.quick-toolbar {
+  position: absolute;
+  top: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.98);
+  border-radius: 30px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  z-index: 100;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.quick-toolbar :deep(.el-button) {
+  transition: all 0.3s;
+}
+
+.quick-toolbar :deep(.el-button:hover) {
+  transform: scale(1.1);
+}
+
+.quick-toolbar :deep(.el-divider--vertical) {
+  height: 20px;
+  margin: 0 4px;
+}
+
+/* 统计信息面板 */
+.stats-panel {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 360px;
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: 10px;
+  padding: 14px 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.stats-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.stats-header h4 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.stat-item {
+  text-align: center;
+  padding: 8px;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border-radius: 6px;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+.stat-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: #0284c7;
+}
+
+.layer-stat {
+  padding: 8px;
+  background: #f8fafc;
+  border-radius: 4px;
+  margin-bottom: 6px;
+}
+
+.layer-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 4px;
+}
+
+.layer-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 11px;
+  color: #64748b;
+}
+
+/* 图层控制 */
+.layer-control-item {
+  padding: 10px;
+  margin-bottom: 8px;
+  background: #f8fafc;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+}
+
+.layer-control-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: #334155;
+}
+
 </style>

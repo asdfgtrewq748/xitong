@@ -1,0 +1,165 @@
+# ============================================================================
+# GitHub Actions - 自动化CI/CD流程
+# ============================================================================
+# 触发条件: push到main分支，或手动触发
+# 功能: 测试、构建Docker镜像、部署到服务器
+# ============================================================================
+
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:  # 允许手动触发
+
+env:
+  DOCKER_REGISTRY: docker.io  # 或使用其他镜像仓库
+  IMAGE_PREFIX: your-username  # 替换为你的Docker Hub用户名
+
+jobs:
+  # ──────────────────────────────────────────────────────────────────────────
+  # 作业1: 后端测试和构建
+  # ──────────────────────────────────────────────────────────────────────────
+  backend-build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 设置Python环境
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: 安装依赖
+        working-directory: ./backend
+        run: |
+          pip install -r requirements.txt
+
+      - name: 运行测试（如果有）
+        working-directory: ./backend
+        run: |
+          # python -m pytest tests/ --cov=. --cov-report=xml
+          echo "暂无测试，跳过"
+
+      - name: 登录Docker Hub
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: 构建并推送后端镜像
+        if: github.event_name != 'pull_request'
+        working-directory: ./backend
+        run: |
+          docker build -t ${{ env.IMAGE_PREFIX }}/mining-backend:latest \
+                       -t ${{ env.IMAGE_PREFIX }}/mining-backend:${{ github.sha }} .
+          docker push ${{ env.IMAGE_PREFIX }}/mining-backend:latest
+          docker push ${{ env.IMAGE_PREFIX }}/mining-backend:${{ github.sha }}
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 作业2: 前端测试和构建
+  # ──────────────────────────────────────────────────────────────────────────
+  frontend-build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 设置Node.js环境
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: 安装依赖
+        working-directory: ./frontend
+        run: npm ci --legacy-peer-deps
+
+      - name: 运行Lint检查
+        working-directory: ./frontend
+        run: |
+          # npm run lint
+          echo "暂无Lint配置，跳过"
+
+      - name: 构建前端
+        working-directory: ./frontend
+        run: npm run build
+
+      - name: 登录Docker Hub
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: 构建并推送前端镜像
+        if: github.event_name != 'pull_request'
+        working-directory: ./frontend
+        run: |
+          docker build -t ${{ env.IMAGE_PREFIX }}/mining-frontend:latest \
+                       -t ${{ env.IMAGE_PREFIX }}/mining-frontend:${{ github.sha }} .
+          docker push ${{ env.IMAGE_PREFIX }}/mining-frontend:latest
+          docker push ${{ env.IMAGE_PREFIX }}/mining-frontend:${{ github.sha }}
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 作业3: 部署到服务器
+  # ──────────────────────────────────────────────────────────────────────────
+  deploy:
+    needs: [backend-build, frontend-build]
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 部署到服务器
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: ${{ secrets.SERVER_PORT || 22 }}
+          script: |
+            # 进入项目目录
+            cd /path/to/your/project
+            
+            # 拉取最新代码
+            git pull origin main
+            
+            # 拉取最新镜像
+            docker pull ${{ env.IMAGE_PREFIX }}/mining-backend:latest
+            docker pull ${{ env.IMAGE_PREFIX }}/mining-frontend:latest
+            
+            # 重启服务
+            docker-compose down
+            docker-compose up -d
+            
+            # 清理旧镜像
+            docker image prune -f
+            
+            # 检查服务状态
+            docker-compose ps
+            
+            echo "部署完成！"
+
+      - name: 健康检查
+        run: |
+          sleep 10
+          curl -f http://${{ secrets.SERVER_HOST }}/health || exit 1
+          curl -f http://${{ secrets.SERVER_HOST }}/api/health || exit 1
+          echo "健康检查通过！"
+
+      - name: 通知部署结果
+        if: always()
+        run: |
+          echo "部署状态: ${{ job.status }}"
+          # 这里可以添加通知逻辑（邮件、钉钉、企业微信等）

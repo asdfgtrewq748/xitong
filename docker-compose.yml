@@ -1,84 +1,122 @@
-services:
-  # PostgreSQL 数据库 (可选,如果需要替换SQLite)
-  # postgres:
-  #   image: postgres:15-alpine
-  #   container_name: mining_postgres
-  #   restart: always
-  #   environment:
-  #     POSTGRES_DB: mining_system
-  #     POSTGRES_USER: mining_user
-  #     POSTGRES_PASSWORD: mining_password
-  #   volumes:
-  #     - postgres_data:/var/lib/postgresql/data
-  #   ports:
-  #     - "5432:5432"
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "pg_isready -U mining_user"]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 5
+# ============================================================================
+# Docker Compose 配置 - 煤层地质建模系统
+# ============================================================================
+# 版本: 3.8
+# 服务: frontend (Nginx + Vue), backend (FastAPI)
+# ============================================================================
 
-  # 后端服务
+version: '3.8'
+
+services:
+  # ──────────────────────────────────────────────────────────────────────────
+  # 后端服务 - FastAPI
+  # ──────────────────────────────────────────────────────────────────────────
   backend:
     build:
-      context: .
-      dockerfile: backend/Dockerfile
-    container_name: mining_backend
-    restart: always
+      context: ./backend
+      dockerfile: Dockerfile
+    image: mining-system-backend:latest
+    container_name: mining-backend
+    
+    restart: unless-stopped
+    
     ports:
       - "8000:8000"
-    volumes:
-      - ./data:/app/data
-      - backend_logs:/app/logs
+    
     environment:
-      - PYTHONPATH=/app
       - PYTHONUNBUFFERED=1
-      - DATABASE_PATH=/app/data/database.db
-      # 如果使用PostgreSQL,取消注释以下配置
-      # - DATABASE_URL=postgresql://mining_user:mining_password@postgres:5432/mining_system
-    # depends_on:
-    #   postgres:
-    #     condition: service_healthy
+      - TZ=Asia/Shanghai
+      # 可以通过环境变量覆盖配置
+      - MAX_UPLOAD_SIZE_MB=50
+      - CACHE_ENABLED=true
+    
+    volumes:
+      # 数据持久化
+      - ./backend/data:/app/data
+      - ./backend/logs:/app/logs
+      # 开发环境可以挂载代码（生产环境注释掉）
+      # - ./backend:/app
+    
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/api/health', timeout=5)"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
+    
+    networks:
+      - mining-network
+    
+    # 资源限制（根据服务器调整）
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
 
-  # 前端服务 (生产构建)
+  # ──────────────────────────────────────────────────────────────────────────
+  # 前端服务 - Nginx + Vue
+  # ──────────────────────────────────────────────────────────────────────────
   frontend:
     build:
-      context: .
-      dockerfile: frontend/Dockerfile.prod
-      args:
-        - VUE_APP_API_BASE_URL=/api
-    container_name: mining_frontend
-    restart: always
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: mining-system-frontend:latest
+    container_name: mining-frontend
+    
+    restart: unless-stopped
+    
     ports:
       - "80:80"
-      - "443:443"
+    
+    environment:
+      - TZ=Asia/Shanghai
+    
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/ssl:/etc/nginx/ssl:ro
-      - frontend_logs:/var/log/nginx
-    depends_on:
-      - backend
+      # Nginx日志
+      - ./frontend/logs:/var/log/nginx
+    
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80/"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 5s
+    
+    depends_on:
+      backend:
+        condition: service_healthy
+    
+    networks:
+      - mining-network
+    
+    # 资源限制
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
 
-volumes:
-  # postgres_data:
-  #   driver: local
-  backend_logs:
-    driver: local
-  frontend_logs:
-    driver: local
-
+# ──────────────────────────────────────────────────────────────────────────
+# 网络配置
+# ──────────────────────────────────────────────────────────────────────────
 networks:
-  default:
-    name: mining_network
+  mining-network:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# ──────────────────────────────────────────────────────────────────────────
+# 卷配置（如果需要命名卷）
+# ──────────────────────────────────────────────────────────────────────────
+# volumes:
+#   backend-data:
+#   backend-logs:
+#   frontend-logs:

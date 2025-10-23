@@ -26,6 +26,22 @@ from api import calculate_key_strata_details, process_single_borehole_file
 from coal_seam_blocks.modeling import build_block_models
 from db import get_engine, get_records_table, get_session, reset_table_cache
 
+# 性能优化模块
+from performance_config import (
+    MAX_UPLOAD_SIZE_MB, MAX_RESOLUTION, CACHE_ENABLED,
+    print_config_summary
+)
+from cache import cached, get_cache_stats, start_cache_cleanup_task, cache_database_query
+from rate_limiter import RateLimitMiddleware, start_rate_limit_cleanup_task
+from memory_utils import (
+    optimize_dataframe_memory, check_memory_usage,
+    memory_efficient_operation, clear_dataframe_cache, limit_dataframe_size
+)
+
+# 算法优化模块
+from interpolation import get_interpolator, interpolate_smart
+from data_validation import validate_geological_data, GeologicalDataValidator
+
 APP_ROOT = Path(__file__).resolve().parent
 DATA_DIR = APP_ROOT.parent / "data" / "input"
 CHINA_JSON_CANDIDATES = [
@@ -88,10 +104,30 @@ def _get_numeric_and_text_columns(df: pd.DataFrame) -> Dict[str, List[str]]:
 
 
 def _get_records_table_or_500():
+    """获取 records 表，如果失败则抛出 HTTPException
+    
+    已废弃：建议直接使用 get_records_table() 并自行处理异常
+    """
     try:
         return get_records_table()
     except RuntimeError as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+def _get_records_table_safe():
+    """安全获取 records 表，如果失败返回 None
+    
+    Returns:
+        Table 对象或 None（如果数据库未初始化）
+    """
+    try:
+        return get_records_table()
+    except RuntimeError as e:
+        print(f"[WARNING] 获取 records 表失败: {e}")
+        return None
+    except Exception as e:
+        print(f"[ERROR] 获取 records 表时发生未预期错误: {e}")
+        return None
 
 
 def _serialize_row(row: Dict[str, Any], columns: List[str]) -> Dict[str, Any]:
@@ -349,6 +385,8 @@ class ComparisonRequest(BaseModel):
 
 
 app = FastAPI(title="Mining System API", version="0.1.0")
+
+# CORS中间件
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -356,6 +394,45 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# 性能优化: 请求限流中间件
+rate_limit_middleware = RateLimitMiddleware(app, rate_per_minute=60)
+app.add_middleware(RateLimitMiddleware, rate_per_minute=60)
+
+
+# 启动事件: 初始化性能优化组件
+@app.on_event("startup")
+async def startup_event():
+    """应用启动时的初始化"""
+    print("\n" + "=" * 70)
+    print("Mining System API 启动中...".center(70))
+    print("=" * 70)
+
+    # 打印性能配置
+    print_config_summary()
+
+    # 启动缓存清理任务
+    start_cache_cleanup_task()
+
+    # 启动限流清理任务
+    start_rate_limit_cleanup_task(rate_limit_middleware)
+
+    # 显示内存状态
+    mem_usage = check_memory_usage()
+    if "error" not in mem_usage:
+        print(f"当前内存使用: {mem_usage['process_mb']:.1f}MB")
+        print(f"系统总内存: {mem_usage['system_total_mb']:.1f}MB")
+        print(f"系统可用内存: {mem_usage['system_available_mb']:.1f}MB")
+
+    print("=" * 70 + "\n")
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """应用关闭时的清理"""
+    print("\n[系统] 正在关闭，清理资源...")
+    clear_dataframe_cache([modeling_state, key_stratum_state])
+    print("[系统] 资源清理完成\n")
 
 
 @app.post("/api/modeling/columns")
@@ -490,11 +567,18 @@ async def generate_contour(data: ContourRequest):
     xi = np.linspace(x.min(), x.max(), resolution)
     yi = np.linspace(y.min(), y.max(), resolution)
     XI, YI = np.meshgrid(xi, yi)
+    
+    # 使用增强的插值模块
     try:
+        from interpolation import interpolate
         method = data.method.lower()
-        zi = griddata((x, y), z, (XI, YI), method=method)
-    except Exception:
-        zi = griddata((x, y), z, (XI, YI), method="linear")
+        zi = interpolate(x.values, y.values, z.values, XI, YI, method)
+    except Exception as e:
+        print(f"[WARNING] 插值失败: {e}, 使用线性插值")
+        try:
+            zi = griddata((x, y), z, (XI, YI), method="linear")
+        except Exception:
+            zi = griddata((x, y), z, (XI, YI), method="nearest")
 
     zi = np.nan_to_num(zi, nan=float(np.nanmean(z)))
 
@@ -523,87 +607,49 @@ async def generate_block_model(payload: BlockModelRequest):
             raise HTTPException(status_code=404, detail=f"数据集中缺少列: {col}")
 
     def interpolation_wrapper(x, y, z, xi_flat, yi_flat):
-        """智能插值包装函数,根据数据点数量和分布选择合适的方法"""
+        """智能插值包装函数,使用增强的interpolation模块"""
+        from interpolation import interpolate
+        
         num_points = len(x)
         method_key = payload.method.lower()
         
-        # 对于少量数据点,强制使用最近邻插值
+        # 数据验证
         if num_points <= 3:
-            return griddata((x, y), z, (xi_flat, yi_flat), method='nearest')
+            print(f"[WARNING] 数据点太少 ({num_points}), 使用最近邻插值")
+            method_key = 'nearest'
         
         # 检查点是否共线或接近共线
         if num_points >= 3:
             try:
-                # 计算点的分布范围
                 x_range = np.max(x) - np.min(x)
                 y_range = np.max(y) - np.min(y)
                 
                 # 如果点在一条线上(某个方向的范围非常小)
                 if x_range < 1e-6 or y_range < 1e-6:
-                    return griddata((x, y), z, (xi_flat, yi_flat), method='nearest')
-                
-                # 检查是否所有点都接近一条直线
-                if num_points >= 3:
-                    xy_points = np.column_stack([x, y])
-                    centroid = xy_points.mean(axis=0)
-                    centered = xy_points - centroid
-                    _, _, vh = np.linalg.svd(centered)
-                    if np.linalg.svd(centered, compute_uv=False)[1] < 1e-6:
-                        return griddata((x, y), z, (xi_flat, yi_flat), method='nearest')
+                    print(f"[WARNING] 数据点接近共线, 使用最近邻插值")
+                    method_key = 'nearest'
             except Exception:
                 pass
         
-        # 执行插值
+        # 使用增强的插值模块执行插值
         try:
-            # 基础 griddata 方法
-            if method_key in {"linear", "cubic", "nearest"}:
-                # 三次样条需要更多点
-                if method_key == "cubic" and num_points < 16:
-                    return griddata((x, y), z, (xi_flat, yi_flat), method='linear')
-                return griddata((x, y), z, (xi_flat, yi_flat), method=method_key)
+            result = interpolate(x, y, z, xi_flat, yi_flat, method_key)
             
-            # RBF 方法映射
-            rbf_map = {
-                "multiquadric": "multiquadric",
-                "inverse": "inverse",
-                "gaussian": "gaussian",
-                "linear_rbf": "linear",
-                "cubic_rbf": "cubic",
-                "quintic_rbf": "quintic",
-                "thin_plate": "thin_plate"
-            }
+            # 处理NaN值
+            if isinstance(result, np.ndarray):
+                result = np.nan_to_num(result, nan=0.0, posinf=0.0, neginf=0.0)
             
-            if method_key in rbf_map:
-                rbf = Rbf(x, y, z, function=rbf_map[method_key])
-                return rbf(xi_flat, yi_flat)
-            
-            # 修正谢泼德方法 (Modified Shepard)
-            if method_key == "modified_shepard":
-                result = []
-                for xv, yv in zip(xi_flat, yi_flat):
-                    distances = np.sqrt((x - xv) ** 2 + (y - yv) ** 2)
-                    distances = np.where(distances == 0, 1e-12, distances)
-                    weights = 1.0 / (distances ** 2)
-                    weights = weights / np.sum(weights)
-                    result.append(np.sum(weights * z))
-                return np.array(result)
-            
-            # 普通克里金 (Ordinary Kriging) - 使用高斯RBF近似
-            if method_key == "ordinary_kriging":
-                rbf = Rbf(x, y, z, function='gaussian')
-                return rbf(xi_flat, yi_flat)
-            
-            # 如果方法未识别,降级为线性
-            print(f"[WARNING] 未识别的插值方法: {method_key}, 降级为线性插值")
-            return griddata((x, y), z, (xi_flat, yi_flat), method='linear')
+            return result
             
         except Exception as e:
-            print(f"[ERROR] 插值方法 {method_key} 失败: {e}, 降级为线性插值")
+            print(f"[ERROR] 插值方法 {method_key} 失败: {e}, 回退到最近邻插值")
             try:
-                return griddata((x, y), z, (xi_flat, yi_flat), method='linear')
-            except Exception:
-                # 最后的保底:最近邻
-                return griddata((x, y), z, (xi_flat, yi_flat), method='nearest')
+                result = griddata((x, y), z, (xi_flat, yi_flat), method='nearest')
+                return np.nan_to_num(result, nan=0.0, posinf=0.0, neginf=0.0)
+            except Exception as fallback_error:
+                print(f"[ERROR] 最近邻插值也失败: {fallback_error}")
+                # 返回零数组作为最后的回退
+                return np.zeros_like(xi_flat)
 
     try:
         block_models, skipped, (XI, YI) = build_block_models(
@@ -754,64 +800,100 @@ async def get_database_overview(
     limit: int = Query(40, ge=1, le=200),
     db: Session = Depends(get_session),
 ):
-    table = _get_records_table_or_500()
-    column_map = {column.name: column for column in table.columns}
+    """获取数据库概览 (带错误处理)"""
+    try:
+        # 尝试获取数据库表
+        try:
+            table = get_records_table()
+        except RuntimeError as e:
+            # 数据库未初始化，返回空数据
+            print(f"[WARNING] 数据库未初始化: {e}")
+            return {
+                "status": "success",
+                "stats": {
+                    "records": 0,
+                    "provinces": 0,
+                    "mines": 0,
+                    "lithologies": 0,
+                },
+                "distribution": [],
+                "message": "数据库尚未初始化，请先导入数据"
+            }
+        
+        column_map = {column.name: column for column in table.columns}
 
-    stats = {
-        "records": int(db.execute(select(func.count()).select_from(table)).scalar() or 0),
-        "provinces": 0,
-        "mines": 0,
-        "lithologies": 0,
-    }
+        stats = {
+            "records": int(db.execute(select(func.count()).select_from(table)).scalar() or 0),
+            "provinces": 0,
+            "mines": 0,
+            "lithologies": 0,
+        }
 
-    province_column, _ = _resolve_column(column_map, PROVINCE_COLUMN_CANDIDATES)
-    if "矿名" in column_map:
-        stats["mines"] = int(
-            db.execute(select(func.count(func.distinct(column_map["矿名"])))).scalar() or 0
-        )
-    if "岩性" in column_map:
-        distinct_stmt = (
-            select(column_map["岩性"])
-            .where(column_map["岩性"].is_not(None))
-            .distinct()
-        )
-        normalized_set: set[str] = set()
-        for row in db.execute(distinct_stmt):
-            raw_value = row[0]
-            normalized_value = _normalize_lithology_name(raw_value)
-            if normalized_value:
-                normalized_set.add(normalized_value)
-        stats["lithologies"] = len(normalized_set)
-
-    distribution: List[Dict[str, Any]] = []
-    if province_column is not None:
-        province_stmt = (
-            select(
-                province_column.label("raw_name"),
-                func.count().label("value"),
+        province_column, _ = _resolve_column(column_map, PROVINCE_COLUMN_CANDIDATES)
+        if "矿名" in column_map:
+            stats["mines"] = int(
+                db.execute(select(func.count(func.distinct(column_map["矿名"])))).scalar() or 0
             )
-            .where(province_column.is_not(None))
-            .group_by(province_column)
-            .order_by(func.count().desc())
-        )
-        province_rows = db.execute(province_stmt).all()
-        unique_normalized: set[str] = set()
-        for row in province_rows:
-            raw_name = str(row.raw_name).strip() if row.raw_name is not None else ""
-            normalized = _normalize_province_name(raw_name) or "未知"
-            unique_normalized.add(normalized if normalized != "未知" else "")
-            if len(distribution) < limit:
-                distribution.append(
-                    {
-                        "name": normalized,
-                        "label": raw_name or normalized,
-                        "value": int(row.value or 0),
-                    }
+        if "岩性" in column_map:
+            distinct_stmt = (
+                select(column_map["岩性"])
+                .where(column_map["岩性"].is_not(None))
+                .distinct()
+            )
+            normalized_set: set[str] = set()
+            for row in db.execute(distinct_stmt):
+                raw_value = row[0]
+                normalized_value = _normalize_lithology_name(raw_value)
+                if normalized_value:
+                    normalized_set.add(normalized_value)
+            stats["lithologies"] = len(normalized_set)
+
+        distribution: List[Dict[str, Any]] = []
+        if province_column is not None:
+            province_stmt = (
+                select(
+                    province_column.label("raw_name"),
+                    func.count().label("value"),
                 )
+                .where(province_column.is_not(None))
+                .group_by(province_column)
+                .order_by(func.count().desc())
+            )
+            province_rows = db.execute(province_stmt).all()
+            unique_normalized: set[str] = set()
+            for row in province_rows:
+                raw_name = str(row.raw_name).strip() if row.raw_name is not None else ""
+                normalized = _normalize_province_name(raw_name) or "未知"
+                unique_normalized.add(normalized if normalized != "未知" else "")
+                if len(distribution) < limit:
+                    distribution.append(
+                        {
+                            "name": normalized,
+                            "label": raw_name or normalized,
+                            "value": int(row.value or 0),
+                        }
+                    )
 
-        stats["provinces"] = len({name for name in unique_normalized if name})
+            stats["provinces"] = len({name for name in unique_normalized if name})
 
-    return {"status": "success", "stats": stats, "distribution": distribution}
+        return {"status": "success", "stats": stats, "distribution": distribution}
+    
+    except Exception as e:
+        print(f"[ERROR] get_database_overview 发生错误: {e}")
+        import traceback
+        traceback.print_exc()
+        # 返回空数据而不是抛出异常
+        return {
+            "status": "success",
+            "stats": {
+                "records": 0,
+                "provinces": 0,
+                "mines": 0,
+                "lithologies": 0,
+            },
+            "distribution": [],
+            "message": "获取数据库信息时发生错误"
+        }
 
 
 @app.get("/api/database/records")
@@ -822,8 +904,33 @@ async def get_database_records(
     province: Optional[str] = Query(None, description="按省份过滤"),
     db: Session = Depends(get_session),
 ):
-    table = _get_records_table_or_500()
-    columns = [column.name for column in table.columns]
+    """获取数据库记录列表 (带错误处理)"""
+    try:
+        table = _get_records_table_safe()
+        if table is None:
+            # 数据库未初始化，返回空结果
+            return {
+                "status": "success",
+                "columns": [],
+                "records": [],
+                "page": page,
+                "page_size": page_size,
+                "total": 0,
+                "message": "数据库尚未初始化"
+            }
+        
+        columns = [column.name for column in table.columns]
+    except Exception as e:
+        print(f"[ERROR] get_database_records 获取表信息失败: {e}")
+        return {
+            "status": "success",
+            "columns": [],
+            "records": [],
+            "page": page,
+            "page_size": page_size,
+            "total": 0,
+            "message": "获取数据库信息失败"
+        }
 
     province_column, _ = _resolve_column({column.name: column for column in table.columns}, PROVINCE_COLUMN_CANDIDATES)
     province_clause = None
@@ -932,12 +1039,38 @@ async def save_database(request: SaveDatabaseRequest, db: Session = Depends(get_
 
 @app.get("/api/database/lithologies")
 async def get_lithology_summary(db: Session = Depends(get_session)):
-    table = _get_records_table_or_500()
-    column_map = {column.name: column for column in table.columns}
+    """获取岩性摘要 (带错误处理)"""
+    try:
+        table = _get_records_table_safe()
+        if table is None:
+            return {
+                "status": "success",
+                "lithologies": [],
+                "numeric_columns": [],
+                "counts": {},
+                "message": "数据库尚未初始化"
+            }
+        
+        column_map = {column.name: column for column in table.columns}
 
-    lithology_col_name = "岩性"
-    if lithology_col_name not in column_map:
-        raise HTTPException(status_code=404, detail="数据库缺少岩性列")
+        lithology_col_name = "岩性"
+        if lithology_col_name not in column_map:
+            return {
+                "status": "success",
+                "lithologies": [],
+                "numeric_columns": [],
+                "counts": {},
+                "message": "数据库缺少岩性列"
+            }
+    except Exception as e:
+        print(f"[ERROR] get_lithology_summary 发生错误: {e}")
+        return {
+            "status": "success",
+            "lithologies": [],
+            "numeric_columns": [],
+            "counts": {},
+            "message": "获取岩性数据失败"
+        }
 
     available_numeric = _infer_numeric_columns(table, db, exclude={lithology_col_name}) or [
         col for col in DEFAULT_NUMERIC_COLUMNS if col in column_map
@@ -981,63 +1114,94 @@ async def get_lithology_data(
     search: Optional[str] = Query(None, description="可选模糊搜索"),
     db: Session = Depends(get_session),
 ):
-    table = _get_records_table_or_500()
-    column_map = {column.name: column for column in table.columns}
+    """获取指定岩性的数据 (带错误处理)"""
+    try:
+        table = _get_records_table_safe()
+        if table is None:
+            return {
+                "status": "success",
+                "values": {},
+                "count": 0,
+                "stats": {},
+                "message": "数据库尚未初始化"
+            }
+        
+        column_map = {column.name: column for column in table.columns}
 
-    lithology_col_name = "岩性"
-    if lithology_col_name not in column_map:
-        raise HTTPException(status_code=404, detail="数据库缺少岩性列")
+        lithology_col_name = "岩性"
+        if lithology_col_name not in column_map:
+            return {
+                "status": "success",
+                "values": {},
+                "count": 0,
+                "stats": {},
+                "message": "数据库缺少岩性列"
+            }
 
-    name = lithology.strip()
-    if not name:
-        raise HTTPException(status_code=400, detail="岩性名称不能为空")
-    normalized_name = _normalize_lithology_name(name)
-    if not normalized_name:
-        raise HTTPException(status_code=400, detail="岩性名称不能为空")
+        name = lithology.strip()
+        if not name:
+            raise HTTPException(status_code=400, detail="岩性名称不能为空")
+        normalized_name = _normalize_lithology_name(name)
+        if not normalized_name:
+            raise HTTPException(status_code=400, detail="岩性名称不能为空")
 
-    available_numeric = _infer_numeric_columns(table, db, exclude={lithology_col_name}) or [
-        col for col in DEFAULT_NUMERIC_COLUMNS if col in column_map
-    ]
-    if not available_numeric:
-        return {"status": "success", "values": {}, "count": 0, "stats": {}}
+        available_numeric = _infer_numeric_columns(table, db, exclude={lithology_col_name}) or [
+            col for col in DEFAULT_NUMERIC_COLUMNS if col in column_map
+        ]
+        if not available_numeric:
+            return {"status": "success", "values": {}, "count": 0, "stats": {}}
 
-    comparator = column_map[lithology_col_name]
-    if normalized_name == COAL_NORMALIZED_NAME:
-        base_condition = comparator.like("%煤%")
-    else:
-        base_condition = comparator == normalized_name
+        comparator = column_map[lithology_col_name]
+        if normalized_name == COAL_NORMALIZED_NAME:
+            base_condition = comparator.like("%煤%")
+        else:
+            base_condition = comparator == normalized_name
 
-    stmt = select(*[column_map[col] for col in available_numeric]).where(base_condition)
-    filters = _build_optional_filters(table, search)
-    if filters is not None:
-        stmt = stmt.where(filters)
-    rows = db.execute(stmt).all()
-    if not rows:
-        return {"status": "success", "values": {}, "count": 0, "stats": {}}
+        stmt = select(*[column_map[col] for col in available_numeric]).where(base_condition)
+        filters = _build_optional_filters(table, search)
+        if filters is not None:
+            stmt = stmt.where(filters)
+        rows = db.execute(stmt).all()
+        if not rows:
+            return {"status": "success", "values": {}, "count": 0, "stats": {}}
 
-    data_frame = pd.DataFrame(rows, columns=available_numeric)
-    values: Dict[str, List[float]] = {}
-    stats: Dict[str, Dict[str, float]] = {}
-    for col in available_numeric:
-        series = pd.to_numeric(data_frame[col], errors="coerce").dropna()
-        if series.empty:
-            continue
-        values[col] = series.tolist()
-        stats[col] = {
-            "count": int(series.count()),
-            "min": float(series.min()),
-            "max": float(series.max()),
-            "mean": float(series.mean()),
-            "median": float(series.median()),
-            "std": float(series.std(ddof=0)) if series.count() > 1 else 0.0,
+        data_frame = pd.DataFrame(rows, columns=available_numeric)
+        values: Dict[str, List[float]] = {}
+        stats: Dict[str, Dict[str, float]] = {}
+        for col in available_numeric:
+            series = pd.to_numeric(data_frame[col], errors="coerce").dropna()
+            if series.empty:
+                continue
+            values[col] = series.tolist()
+            stats[col] = {
+                "count": int(series.count()),
+                "min": float(series.min()),
+                "max": float(series.max()),
+                "mean": float(series.mean()),
+                "median": float(series.median()),
+                "std": float(series.std(ddof=0)) if series.count() > 1 else 0.0,
+            }
+
+        count_stmt = select(func.count()).select_from(table).where(base_condition)
+        if filters is not None:
+            count_stmt = count_stmt.where(filters)
+        count = int(db.execute(count_stmt).scalar() or 0)
+
+        return {"status": "success", "values": values, "count": count, "stats": stats}
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[ERROR] get_lithology_data 发生错误: {e}")
+        import traceback
+        traceback.print_exc()
+        return {
+            "status": "success",
+            "values": {},
+            "count": 0,
+            "stats": {},
+            "message": "获取岩性数据失败"
         }
-
-    count_stmt = select(func.count()).select_from(table).where(base_condition)
-    if filters is not None:
-        count_stmt = count_stmt.where(filters)
-    count = int(db.execute(count_stmt).scalar() or 0)
-
-    return {"status": "success", "values": values, "count": count, "stats": stats}
 
 
 @app.get("/api/health")
@@ -1045,31 +1209,66 @@ async def health_check():
     return {"status": "ok"}
 
 
-@app.get("/api/dashboard/stats")
-async def get_dashboard_stats(db: Session = Depends(get_session)):
-    rock_db_count = 0
-    try:
-        table = get_records_table()
-        rock_db_count = int(db.execute(select(func.count()).select_from(table)).scalar() or 0)
-    except RuntimeError:
-        rock_db_count = 0
-    except Exception:
-        rock_db_count = 0
-
-    modeling_record_count = 0
-    if modeling_state.merged_df is not None:
-        modeling_record_count = int(len(modeling_state.merged_df))
-
-    borehole_file_count = int(modeling_state.borehole_file_count or 0)
+@app.get("/api/performance/stats")
+async def get_performance_stats():
+    """获取性能统计信息"""
+    mem_usage = check_memory_usage()
+    cache_stats = get_cache_stats()
 
     return {
         "status": "success",
-        "stats": {
-            "rock_db_count": rock_db_count,
-            "borehole_file_count": borehole_file_count,
-            "modeling_record_count": modeling_record_count,
-        },
+        "memory": mem_usage,
+        "cache": cache_stats,
+        "config": {
+            "max_upload_mb": MAX_UPLOAD_SIZE_MB,
+            "max_resolution": MAX_RESOLUTION,
+            "cache_enabled": CACHE_ENABLED
+        }
     }
+
+
+@app.get("/api/dashboard/stats")
+async def get_dashboard_stats(db: Session = Depends(get_session)):
+    """获取仪表板统计信息 (带错误处理)"""
+    try:
+        def query_rock_db_count():
+            try:
+                table = get_records_table()
+                return int(db.execute(select(func.count()).select_from(table)).scalar() or 0)
+            except (RuntimeError, Exception) as e:
+                print(f"[WARNING] 查询岩石数据库记录数失败: {e}")
+                return 0
+
+        # 使用数据库查询缓存
+        rock_db_count = cache_database_query("rock_count", query_rock_db_count, ttl=180)
+
+        modeling_record_count = 0
+        if modeling_state.merged_df is not None:
+            modeling_record_count = int(len(modeling_state.merged_df))
+
+        borehole_file_count = int(modeling_state.borehole_file_count or 0)
+
+        return {
+            "status": "success",
+            "stats": {
+                "rock_db_count": rock_db_count,
+                "borehole_file_count": borehole_file_count,
+                "modeling_record_count": modeling_record_count,
+            },
+        }
+    except Exception as e:
+        print(f"[ERROR] get_dashboard_stats 发生错误: {e}")
+        import traceback
+        traceback.print_exc()
+        # 返回默认值而不是抛出异常
+        return {
+            "status": "success",
+            "stats": {
+                "rock_db_count": 0,
+                "borehole_file_count": 0,
+                "modeling_record_count": 0,
+            },
+        }
 
 
 @app.post("/api/csv/columns")

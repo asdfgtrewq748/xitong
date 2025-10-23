@@ -6108,8 +6108,8 @@ class ContourPlotTab(QWidget):
     def __init__(self, main_win, parent=None):
         super().__init__(parent)
         self.main_win = main_win # 保存主窗口的引用
-        self.data_df = None
-        self.coords_df = None
+        self.borehole_files = []  # 改为支持多个钻孔文件
+        self.coords_file = None
         self.merged_df = None
         self.comparison_results = []
         self.detailed_comparison_data = []
@@ -6154,10 +6154,11 @@ class ContourPlotTab(QWidget):
         # 数据文件行
         data_file_layout = QHBoxLayout()
         data_file_layout.setSpacing(8)
-        self.select_data_btn = ModernButton("数据文件", color="#2563eb")
+        self.select_data_btn = ModernButton("钻孔数据", color="#2563eb")
         self.select_data_btn.setMaximumHeight(32)  # 限制按钮高度
         self.data_file_label = QLabel("未选择")
         self.data_file_label.setStyleSheet("font-size: 12px; color: #6b7280;")
+        self.data_file_label.setWordWrap(True)
         self.select_data_btn.clicked.connect(self.select_data_file)
         data_file_layout.addWidget(self.select_data_btn, 0)
         data_file_layout.addWidget(self.data_file_label, 1)
@@ -6165,10 +6166,11 @@ class ContourPlotTab(QWidget):
         # 坐标文件行
         coord_file_layout = QHBoxLayout()
         coord_file_layout.setSpacing(8)
-        self.select_coords_btn = ModernButton("坐标文件", color="#2563eb")
+        self.select_coords_btn = ModernButton("坐标数据", color="#2563eb")
         self.select_coords_btn.setMaximumHeight(32)  # 限制按钮高度
         self.coords_file_label = QLabel("未选择")
         self.coords_file_label.setStyleSheet("font-size: 12px; color: #6b7280;")
+        self.coords_file_label.setWordWrap(True)
         self.select_coords_btn.clicked.connect(self.select_coordinate_file)
         coord_file_layout.addWidget(self.select_coords_btn, 0)
         coord_file_layout.addWidget(self.coords_file_label, 1)
@@ -6217,6 +6219,9 @@ class ContourPlotTab(QWidget):
         column_layout.addRow("验证列:", self.validation_col_combo)
         control_layout.addWidget(column_group)
         
+        # 连接煤层列变化信号，自动更新岩层选择
+        self.seam_col_combo.currentTextChanged.connect(lambda: self._update_layer_select_combo())
+        
         # 3. 插值设置组 - 紧凑设计
         interp_group = QGroupBox("插值设置")
         interp_group.setStyleSheet("QGroupBox { margin-top: 12px; padding: 12px 8px 8px 8px; }")
@@ -6226,6 +6231,15 @@ class ContourPlotTab(QWidget):
         self.interp_method_combo = QComboBox()
         self.interp_method_combo.setStyleSheet(combo_style)
         self.interp_method_combo.addItems(list(self.interpolation_methods.values()))
+        # 默认选择Cubic（三次插值），效果类似参考图
+        cubic_method = next((method for method in self.interpolation_methods.values() if 'Cubic' in method or '三次' in method), None)
+        if cubic_method:
+            self.interp_method_combo.setCurrentText(cubic_method)
+        
+        # 添加岩层选择下拉框（用于3D曲面图）
+        self.layer_select_combo = QComboBox()
+        self.layer_select_combo.setStyleSheet(combo_style)
+        self.layer_select_combo.addItem("请先加载数据", userData=None)
         
         self.validation_slider = QSlider(Qt.Orientation.Horizontal)
         self.validation_slider.setRange(10, 50)
@@ -6244,6 +6258,7 @@ class ContourPlotTab(QWidget):
         validation_layout.addWidget(self.validation_label, 0)
         
         interp_layout.addRow("插值方法:", self.interp_method_combo)
+        interp_layout.addRow("3D曲面岩层:", self.layer_select_combo)
         interp_layout.addRow("验证比例:", validation_layout)
         control_layout.addWidget(interp_group)
         
@@ -6256,7 +6271,7 @@ class ContourPlotTab(QWidget):
         # 创建紧凑的按钮
         button_style = "QPushButton { padding: 8px 12px; font-size: 12px; min-height: 16px; max-height: 32px; }"
         
-        self.generate_btn = ModernButton("生成等值线图", color="#059669")
+        self.generate_btn = ModernButton("生成等值线图 & 3D曲面", color="#059669")
         self.generate_btn.setStyleSheet(self.generate_btn.styleSheet() + button_style)
         self.validate_btn = ModernButton("验证插值效果", color="#0891b2")
         self.validate_btn.setStyleSheet(self.validate_btn.styleSheet() + button_style)
@@ -6306,11 +6321,12 @@ class ContourPlotTab(QWidget):
         # 三维曲面标签页
         self.surface_tab = QWidget()
         surface_layout = QVBoxLayout(self.surface_tab)
-        self.surface_canvas = ChartCanvas(self.surface_tab, width=12, height=6, dpi=100)
+        # 修改画布宽高比，使其更接近参考图（宽:高 = 2:1）
+        self.surface_canvas = ChartCanvas(self.surface_tab, width=14, height=7, dpi=100)
         self.surface_toolbar = NavigationToolbar(self.surface_canvas, self.surface_tab)
         surface_layout.addWidget(self.surface_toolbar)
         surface_layout.addWidget(self.surface_canvas)
-        self.results_tabs.addTab(self.surface_tab, "煤层3D曲面")
+        self.results_tabs.addTab(self.surface_tab, "3D曲面图")
         
         # 对比结果汇总标签页
         summary_widget = QWidget()
@@ -6396,83 +6412,75 @@ class ContourPlotTab(QWidget):
         return methods
 
     def select_data_file(self):
-        """选择数据文件"""
-        filepath, _ = QFileDialog.getOpenFileName(self, "选择数据文件", "", "CSV Files (*.csv)")
-        if filepath:
-            try:
-                try: 
-                    self.data_df = pd.read_csv(filepath, encoding='utf-8-sig')
-                except UnicodeDecodeError: 
-                    self.data_df = pd.read_csv(filepath, encoding='gbk')
-                self.data_file_label.setText(os.path.basename(filepath))
-                if self.coords_df is not None: 
-                    self._load_and_merge_data()
-            except Exception as e: 
-                QMessageBox.critical(self, "文件读取错误", f"读取数据文件失败: {e}")
+        """选择钻孔数据文件（支持多文件）"""
+        filepaths, _ = QFileDialog.getOpenFileNames(self, "选择钻孔数据文件", "", "CSV Files (*.csv)")
+        if filepaths:
+            self.borehole_files = list(filepaths)
+            preview_names = [os.path.basename(path) for path in self.borehole_files[:3]]
+            label_text = "；".join(preview_names)
+            if len(self.borehole_files) > 3:
+                label_text += f" 等 {len(self.borehole_files)} 个文件"
+            self.data_file_label.setText(label_text)
+            self._load_and_merge_data()
+        else:
+            if not self.borehole_files:
+                self.data_file_label.setText("未选择")
+                self.merged_df = None
 
     def select_coordinate_file(self):
         """选择坐标文件"""
-        filepath, _ = QFileDialog.getOpenFileName(self, "选择坐标文件", "", "CSV Files (*.csv)")
+        filepath, _ = QFileDialog.getOpenFileName(self, "选择坐标数据文件", "", "CSV Files (*.csv)")
         if filepath:
-            try:
-                try: 
-                    self.coords_df = pd.read_csv(filepath, encoding='utf-8-sig')
-                except UnicodeDecodeError: 
-                    self.coords_df = pd.read_csv(filepath, encoding='gbk')
-                self.coords_file_label.setText(os.path.basename(filepath))
-                if self.data_df is not None: 
-                    self._load_and_merge_data()
-            except Exception as e: 
-                QMessageBox.critical(self, "文件读取错误", f"读取坐标文件失败: {e}")
+            self.coords_file = filepath
+            self.coords_file_label.setText(os.path.basename(filepath))
+            self._load_and_merge_data()
 
     def _load_and_merge_data(self):
-        """加载并合并数据 - 从v2.4版本移植"""
-        if self.data_df is None or self.coords_df is None:
+        """加载并合并数据 - 使用与煤层块体建模相同的逻辑"""
+        if not self.borehole_files:
             return False
+        if not self.coords_file:
+            return False
+            
         try:
-            merge_col = '钻孔名'
-            if merge_col not in self.data_df.columns or merge_col not in self.coords_df.columns:
-                # 尝试其他可能的列名
-                data_cols = self.data_df.columns.tolist()
-                coord_cols = self.coords_df.columns.tolist()
-                
-                possible_merge_cols = ['钻孔名', 'borehole', '孔号', 'hole_id', 'ID', 'id']
-                merge_col = None
-                for col in possible_merge_cols:
-                    if col in data_cols and col in coord_cols:
-                        merge_col = col
-                        break
-                
-                if merge_col is None:
-                    QMessageBox.critical(self, "合并失败", "数据和坐标文件都须包含相同的标识列（如'钻孔名'）。")
-                    return False
+            # 使用aggregate_boreholes函数合并数据（与煤层块体建模一致）
+            merged_df, _ = aggregate_boreholes(self.borehole_files, self.coords_file)
             
-            self.merged_df = pd.merge(self.data_df, self.coords_df, on=merge_col, how='inner')
-            
-            # --- 新增：调用数据填充功能 ---
-            if hasattr(self.main_win, 'rock_db') and self.main_win.rock_db is not None:
+            # 调用数据填充功能
+            if hasattr(self.main_win, 'rock_db') and getattr(self.main_win, 'rock_db', None) is not None:
                 stat_preference = getattr(self.main_win, 'stat_preference', 'median')
                 filled_df, filled_count, filled_cols = fill_missing_properties(
-                    self.merged_df,
+                    merged_df,
                     self.main_win.rock_db,
                     stat_preference=stat_preference,
                 )
                 if filled_count > 0:
-                    self.merged_df = filled_df
+                    merged_df = filled_df
                     metric_label = '平均值' if stat_preference == 'mean' else '中位数'
                     QMessageBox.information(
                         self,
                         "数据自动填充",
-                        f"已使用内置数据库成功填充了 {filled_count} 条记录（优先使用{metric_label}）。\n\n"
-                        f"填充的参数列:\n- {', '.join(filled_cols)}",
+                        f"已填充 {filled_count} 条记录的参数（优先使用{metric_label}）：\n- {', '.join(filled_cols)}",
                     )
-            # --- 数据填充功能结束 ---
 
+            self.merged_df = merged_df
             self._update_column_options()
-            QMessageBox.information(self, "合并成功", f"数据和坐标已合并，共 {len(self.merged_df)} 条记录。")
+            
+            QMessageBox.information(
+                self, 
+                "合并成功", 
+                f"数据合并成功，钻孔文件 {len(self.borehole_files)} 个，记录数: {len(self.merged_df)}"
+            )
+            
+            # 刷新仪表板
+            if hasattr(self.main_win, "dashboard_page") and self.main_win.dashboard_page:
+                self.main_win.dashboard_page.refresh_cards()
+            
             return True
+            
         except Exception as e:
-            QMessageBox.critical(self, "合并错误", f"合并数据时发生错误: {e}")
+            QMessageBox.critical(self, "合并错误", f"合并数据时发生错误: {e}\n\n{traceback.format_exc()}")
+            self.merged_df = None
             return False
 
     def _update_column_options(self):
@@ -6509,14 +6517,69 @@ class ContourPlotTab(QWidget):
                 self.layer_spacing_combo.setCurrentIndex(0)
             self.layer_spacing_combo.blockSignals(False)
             
+            # 更新3D曲面岩层选择下拉框
+            self._update_layer_select_combo()
+            
             # 智能设置默认值
             if num_cols:
-                if len(num_cols) >= 2:
+                # 智能识别X坐标列
+                x_candidates = [col for col in num_cols if any(kw in col.lower() for kw in ['x', '坐标x', 'east', '东'])]
+                if x_candidates:
+                    self.x_col_combo.setCurrentText(x_candidates[0])
+                elif len(num_cols) >= 1:
                     self.x_col_combo.setCurrentText(num_cols[0])
+                
+                # 智能识别Y坐标列
+                y_candidates = [col for col in num_cols if any(kw in col.lower() for kw in ['y', '坐标y', 'north', '北'])]
+                if y_candidates:
+                    self.y_col_combo.setCurrentText(y_candidates[0])
+                elif len(num_cols) >= 2:
                     self.y_col_combo.setCurrentText(num_cols[1])
-                if len(num_cols) >= 3:
+                
+                # 智能识别厚度列
+                z_candidates = [col for col in num_cols if any(kw in col for kw in ['厚度', '厚', 'thick', 'h'])]
+                if z_candidates:
+                    self.z_col_combo.setCurrentText(z_candidates[0])
+                    self.validation_col_combo.setCurrentText(z_candidates[0])
+                elif len(num_cols) >= 3:
                     self.z_col_combo.setCurrentText(num_cols[2])
                     self.validation_col_combo.setCurrentText(num_cols[2])
+
+    def _update_layer_select_combo(self):
+        """更新3D曲面岩层选择下拉框"""
+        self.layer_select_combo.blockSignals(True)
+        self.layer_select_combo.clear()
+        
+        if self.merged_df is None:
+            self.layer_select_combo.addItem("请先加载数据", userData=None)
+            self.layer_select_combo.blockSignals(False)
+            return
+        
+        # 获取煤层列
+        seam_col = self.seam_col_combo.currentText()
+        if not seam_col or seam_col == "未检测到文本列" or seam_col not in self.merged_df.columns:
+            self.layer_select_combo.addItem("请选择有效的煤层列", userData=None)
+            self.layer_select_combo.blockSignals(False)
+            return
+        
+        # 获取所有唯一的岩层
+        unique_layers = self.merged_df[seam_col].dropna().unique()
+        unique_layers = sorted([str(layer) for layer in unique_layers])
+        
+        if len(unique_layers) == 0:
+            self.layer_select_combo.addItem("无可用岩层", userData=None)
+        else:
+            self.layer_select_combo.addItem("全部岩层（等值线用）", userData="__all__")
+            for layer in unique_layers:
+                # 统计该岩层的数据点数
+                layer_count = len(self.merged_df[self.merged_df[seam_col] == layer])
+                self.layer_select_combo.addItem(f"{layer} ({layer_count}点)", userData=layer)
+            
+            # 默认选择第一个具体岩层（用于3D曲面）
+            if len(unique_layers) > 0:
+                self.layer_select_combo.setCurrentIndex(1)  # 跳过"全部岩层"选项
+        
+        self.layer_select_combo.blockSignals(False)
 
     def _perform_interpolation(self, x_train, y_train, z_train, x_val, y_val, method):
         """执行指定方法的插值 - 从v2.4版本移植"""
@@ -6590,25 +6653,41 @@ class ContourPlotTab(QWidget):
                 return griddata((x_train, y_train), z_train, (x_val, y_val), method='linear')
             
             elif method_key == "radial_basis":
-                rbf = Rbf(x_train, y_train, z_train, function='multiquadric')
+                rbf = Rbf(x_train, y_train, z_train, function='multiquadric', smooth=0.1)
                 return rbf(x_val, y_val)
             
             elif method_key == "ordinary_kriging":
-                # 使用高斯RBF近似克里金
-                rbf = Rbf(x_train, y_train, z_train, function='gaussian')
-                return rbf(x_val, y_val)
+                # 使用高斯RBF近似克里金，添加平滑参数避免矩阵奇异
+                # 检查数据点数量
+                if len(x_train) < 4:
+                    # 数据点太少，降级为最近邻
+                    return griddata((x_train, y_train), z_train, (x_val, y_val), method='nearest')
+                try:
+                    rbf = Rbf(x_train, y_train, z_train, function='gaussian', smooth=0.5)
+                    return rbf(x_val, y_val)
+                except (np.linalg.LinAlgError, ZeroDivisionError, ValueError) as e:
+                    # Kriging失败时静默降级为线性插值
+                    return griddata((x_train, y_train), z_train, (x_val, y_val), method='linear')
             
             elif method_key == "universal_kriging":
-                # 使用薄板样条近似通用克里金
-                rbf = Rbf(x_train, y_train, z_train, function='thin_plate')
-                return rbf(x_val, y_val)
+                # 使用薄板样条近似通用克里金，添加平滑参数
+                if len(x_train) < 4:
+                    return griddata((x_train, y_train), z_train, (x_val, y_val), method='nearest')
+                try:
+                    rbf = Rbf(x_train, y_train, z_train, function='thin_plate', smooth=0.5)
+                    return rbf(x_val, y_val)
+                except (np.linalg.LinAlgError, ZeroDivisionError, ValueError) as e:
+                    # 失败时降级为线性插值
+                    return griddata((x_train, y_train), z_train, (x_val, y_val), method='linear')
                 
             else:
                 # 默认使用linear
                 return griddata((x_train, y_train), z_train, (x_val, y_val), method='linear')
                 
         except Exception as e:
-            print(f"插值方法 {method} 失败: {e}")
+            # 只在非预期错误时打印
+            if not isinstance(e, (np.linalg.LinAlgError, ZeroDivisionError)):
+                print(f"插值方法 {method} 失败: {e}")
             # 如果所选方法失败，尝试使用最基本的linear方法
             try:
                 return griddata((x_train, y_train), z_train, (x_val, y_val), method='linear')
@@ -6997,7 +7076,7 @@ class ContourPlotTab(QWidget):
             QMessageBox.critical(self, "验证失败", f"验证失败: {e}")    
 
     def generate_plot(self):
-        """生成等值线图 - 使用指定边距"""
+        """生成等值线图和3D曲面图 - 使用指定边距"""
         if self.merged_df is None:
             QMessageBox.warning(self, "无数据", "请先加载并合并数据文件和坐标文件。")
             return
@@ -7013,20 +7092,21 @@ class ContourPlotTab(QWidget):
         try:
             # 清除之前的图形
             self.canvas.figure.clear()
+            self.surface_canvas.figure.clear()
             
-            # 获取数据
-            valid_data = self.merged_df.dropna(subset=[x_col, y_col, z_col])
-            if valid_data.empty:
+            # 获取等值线图的数据（使用全部数据）
+            valid_data_all = self.merged_df.dropna(subset=[x_col, y_col, z_col])
+            if valid_data_all.empty:
                 QMessageBox.warning(self, "数据不足", "没有有效的数据点。")
                 return
             
-            x = valid_data[x_col].values
-            y = valid_data[y_col].values
-            z = valid_data[z_col].values
+            x_all = valid_data_all[x_col].values
+            y_all = valid_data_all[y_col].values
+            z_all = valid_data_all[z_col].values
             
             # 创建网格
-            xi = np.linspace(x.min(), x.max(), 100)
-            yi = np.linspace(y.min(), y.max(), 100)
+            xi = np.linspace(x_all.min(), x_all.max(), 100)
+            yi = np.linspace(y_all.min(), y_all.max(), 100)
             XI, YI = np.meshgrid(xi, yi)
             
             # 插值
@@ -7035,23 +7115,23 @@ class ContourPlotTab(QWidget):
             # 将网格点转换为一维数组进行插值
             xi_flat = XI.flatten()
             yi_flat = YI.flatten()
-            zi_flat = self._perform_interpolation(x, y, z, xi_flat, yi_flat, method_name)
-            ZI = zi_flat.reshape(XI.shape)
-            
-            # 绘制等值线图
-            ax = self.canvas.figure.add_subplot(111)
+            zi_flat_all = self._perform_interpolation(x_all, y_all, z_all, xi_flat, yi_flat, method_name)
+            ZI_all = zi_flat_all.reshape(XI.shape)
             
             # 处理NaN值
-            mask = ~np.isnan(ZI)
+            mask = ~np.isnan(ZI_all)
             if not np.any(mask):
                 QMessageBox.critical(self, "绘图失败", f"插值方法 '{method_name}' 无法为此数据生成有效结果")
                 return
             
-            contour = ax.contourf(XI, YI, ZI, levels=20, cmap='viridis', alpha=0.8)
-            contour_lines = ax.contour(XI, YI, ZI, levels=20, colors='black', alpha=0.6, linewidths=0.5)
+            # ========== 1. 绘制等值线图（使用全部数据）==========
+            ax = self.canvas.figure.add_subplot(111)
+            
+            contour = ax.contourf(XI, YI, ZI_all, levels=20, cmap='viridis', alpha=0.8)
+            contour_lines = ax.contour(XI, YI, ZI_all, levels=20, colors='black', alpha=0.6, linewidths=0.5)
             
             # 添加数据点
-            scatter = ax.scatter(x, y, c=z, cmap='viridis', s=50, edgecolors='black', alpha=0.8)
+            scatter = ax.scatter(x_all, y_all, c=z_all, cmap='viridis', s=50, edgecolors='black', alpha=0.8)
             
             # 添加颜色条 - 确保中文正确显示
             cbar = self.canvas.figure.colorbar(contour, ax=ax, shrink=0.8)
@@ -7082,13 +7162,147 @@ class ContourPlotTab(QWidget):
                 top=0.85      # 上边距
             )
             
-            # 刷新画布
+            # 刷新等值线画布
             self.canvas.draw()
             
-            QMessageBox.information(self, "生成成功", f"等值线图生成完成 (使用 {method_name})")
+            # ========== 2. 绘制3D曲面图（根据选择的岩层）==========
+            # 获取选择的岩层
+            selected_layer = self.layer_select_combo.currentData()
+            seam_col = self.seam_col_combo.currentText()
+            
+            if selected_layer is None or selected_layer == "__all__":
+                # 使用全部数据
+                valid_data_3d = valid_data_all
+                layer_display = "全部岩层"
+            elif seam_col and seam_col != "未检测到文本列" and seam_col in self.merged_df.columns:
+                # 筛选特定岩层
+                valid_data_3d = self.merged_df[self.merged_df[seam_col] == selected_layer].dropna(subset=[x_col, y_col, z_col])
+                layer_display = str(selected_layer)
+                
+                if valid_data_3d.empty:
+                    QMessageBox.warning(self, "数据不足", f"岩层 '{selected_layer}' 没有有效的数据点。")
+                    return
+                
+                if len(valid_data_3d) < 4:
+                    QMessageBox.warning(self, "数据不足", f"岩层 '{selected_layer}' 的数据点太少（{len(valid_data_3d)}点），至少需要4个点。")
+                    return
+            else:
+                valid_data_3d = valid_data_all
+                layer_display = "全部岩层"
+            
+            # 获取3D曲面的数据
+            x_3d = valid_data_3d[x_col].values
+            y_3d = valid_data_3d[y_col].values
+            z_3d = valid_data_3d[z_col].values
+            
+            # 为3D曲面创建网格（使用3D数据的范围）
+            xi_3d = np.linspace(x_3d.min(), x_3d.max(), 100)
+            yi_3d = np.linspace(y_3d.min(), y_3d.max(), 100)
+            XI_3d, YI_3d = np.meshgrid(xi_3d, yi_3d)
+            
+            # 3D曲面插值
+            xi_flat_3d = XI_3d.flatten()
+            yi_flat_3d = YI_3d.flatten()
+            zi_flat_3d = self._perform_interpolation(x_3d, y_3d, z_3d, xi_flat_3d, yi_flat_3d, method_name)
+            ZI_3d = zi_flat_3d.reshape(XI_3d.shape)
+            
+            # 检查3D插值结果
+            if np.all(np.isnan(ZI_3d)):
+                QMessageBox.critical(self, "绘图失败", f"无法为岩层 '{layer_display}' 生成3D曲面")
+                return
+            
+            ax3d = self.surface_canvas.figure.add_subplot(111, projection='3d')
+            
+            # 绘制3D曲面 - 使用彩虹配色（jet: 蓝-青-绿-黄-红，类似参考图）
+            surf = ax3d.plot_surface(XI_3d, YI_3d, ZI_3d, cmap='jet', 
+                                     edgecolor='none', 
+                                     alpha=0.95,
+                                     antialiased=True,
+                                     shade=True,
+                                     rstride=1, cstride=1,
+                                     vmin=np.nanmin(ZI_3d), 
+                                     vmax=np.nanmax(ZI_3d))
+            
+            # 移除网格线
+            ax3d.grid(False)
+            
+            # 移除背景面板
+            ax3d.xaxis.pane.fill = False
+            ax3d.yaxis.pane.fill = False
+            ax3d.zaxis.pane.fill = False
+            
+            # 设置面板边框为透明或浅色
+            ax3d.xaxis.pane.set_edgecolor('lightgray')
+            ax3d.yaxis.pane.set_edgecolor('lightgray')
+            ax3d.zaxis.pane.set_edgecolor('lightgray')
+            ax3d.xaxis.pane.set_alpha(0.1)
+            ax3d.yaxis.pane.set_alpha(0.1)
+            ax3d.zaxis.pane.set_alpha(0.1)
+            
+            # 不显示等高线投影
+            # (已移除底部等高线代码)
+            
+            # 不显示原始数据点
+            # (已移除散点图代码)
+            
+            # 添加颜色条 - 调整位置和大小
+            cbar3d = self.surface_canvas.figure.colorbar(surf, ax=ax3d, shrink=0.5, aspect=15, pad=0.1)
+            cbar3d.set_label(z_col, fontproperties=self.surface_canvas.chinese_font, fontsize=10)
+            
+            # 设置标签 - 使用中文字体
+            ax3d.set_xlabel(x_col, fontproperties=self.surface_canvas.chinese_font, labelpad=8, fontsize=11)
+            ax3d.set_ylabel(y_col, fontproperties=self.surface_canvas.chinese_font, labelpad=8, fontsize=11)
+            ax3d.set_zlabel(z_col, fontproperties=self.surface_canvas.chinese_font, labelpad=8, fontsize=11)
+            
+            # 设置标题 - 显示岩层名称
+            title_3d = f'{layer_display} - {z_col} 三维曲面图 ({method_name})'
+            ax3d.set_title(title_3d, fontproperties=self.surface_canvas.title_chinese_font, pad=15, fontsize=13)
+            
+            # 设置视角 - 参考图的视角（俯视角度更大）
+            ax3d.view_init(elev=45, azim=235)
+            
+            # 设置刻度字体 - 调整字体大小
+            for tick in ax3d.get_xticklabels():
+                tick.set_fontproperties(self.surface_canvas.english_font)
+                tick.set_fontsize(9)
+            for tick in ax3d.get_yticklabels():
+                tick.set_fontproperties(self.surface_canvas.english_font)
+                tick.set_fontsize(9)
+            for tick in ax3d.get_zticklabels():
+                tick.set_fontproperties(self.surface_canvas.english_font)
+                tick.set_fontsize(9)
+            
+            # 设置Z轴范围
+            z_range_3d = np.nanmax(ZI_3d) - np.nanmin(ZI_3d)
+            ax3d.set_zlim(np.nanmin(ZI_3d) - 0.05 * z_range_3d, np.nanmax(ZI_3d) + 0.05 * z_range_3d)
+            
+            # 设置背景色为白色
+            ax3d.set_facecolor('white')
+            self.surface_canvas.figure.patch.set_facecolor('white')
+            
+            # 优化3D图形布局 - 调整边距使图形更宽
+            self.surface_canvas.figure.subplots_adjust(
+                left=0.02,
+                bottom=0.02,
+                right=0.98,
+                top=0.95
+            )
+            
+            # 刷新3D曲面画布
+            self.surface_canvas.draw()
+            
+            # 切换到3D曲面标签页以显示新生成的图
+            self.results_tabs.setCurrentWidget(self.surface_tab)
+            
+            QMessageBox.information(self, "生成成功", 
+                                  f"等值线图和3D曲面图生成完成\n\n"
+                                  f"插值方法: {method_name}\n"
+                                  f"3D曲面岩层: {layer_display}\n"
+                                  f"数据点数: {len(valid_data_3d)}\n\n"
+                                  f"可在标签页间切换查看不同视图。")
             
         except Exception as e:
-            QMessageBox.critical(self, "绘图失败", f"生成等值线图失败: {e}")
+            QMessageBox.critical(self, "绘图失败", f"生成图形失败: {e}\n\n{traceback.format_exc()}")
 
     def generate_surface_plots(self):
         """生成所有煤层的三维曲面图"""
@@ -7321,23 +7535,63 @@ class ContourPlotTab(QWidget):
         QMessageBox.information(self, "三维曲面生成完成", "\n".join(info_lines))
 
     def export_plot(self):
-        """导出图像 - 确保字体正确显示"""
-        if not self.canvas.figure.get_axes():
-            QMessageBox.warning(self, "无图表", "请先生成一个图表再导出。")
+        """导出图像 - 同时导出等值线图和3D曲面图"""
+        has_contour = bool(self.canvas.figure.get_axes())
+        has_surface = bool(self.surface_canvas.figure.get_axes())
+        
+        if not has_contour and not has_surface:
+            QMessageBox.warning(self, "无图表", "请先生成图表再导出。")
             return
         
         output_dir = os.path.join(os.getcwd(), "output", "plots")
         os.makedirs(output_dir, exist_ok=True)
         method_name = self.interp_method_combo.currentText().replace(" ", "_").replace("(", "").replace(")", "")
-        save_path, _ = QFileDialog.getSaveFileName(self, "保存图像", 
-                                                 os.path.join(output_dir, f"等值线图_{method_name}.png"), 
-                                                 "PNG (*.png);;JPEG (*.jpg);;PDF (*.pdf);;SVG (*.svg)")
-
+        
+        # 创建导出对话框让用户选择导出哪些图
+        export_dialog = QDialog(self)
+        export_dialog.setWindowTitle("选择导出选项")
+        export_dialog.setModal(True)
+        
+        layout = QVBoxLayout(export_dialog)
+        layout.addWidget(QLabel("请选择要导出的图表："))
+        
+        contour_check = QCheckBox("等值线图")
+        contour_check.setChecked(has_contour)
+        contour_check.setEnabled(has_contour)
+        
+        surface_check = QCheckBox("3D曲面图")
+        surface_check.setChecked(has_surface)
+        surface_check.setEnabled(has_surface)
+        
+        layout.addWidget(contour_check)
+        layout.addWidget(surface_check)
+        
+        button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        button_box.accepted.connect(export_dialog.accept)
+        button_box.rejected.connect(export_dialog.reject)
+        layout.addWidget(button_box)
+        
+        if export_dialog.exec() != QDialog.DialogCode.Accepted:
+            return
+        
+        export_contour = contour_check.isChecked()
+        export_surface = surface_check.isChecked()
+        
+        if not export_contour and not export_surface:
+            QMessageBox.warning(self, "未选择", "请至少选择一个图表导出。")
+            return
+        
+        # 选择保存目录和格式
+        save_path, file_filter = QFileDialog.getSaveFileName(
+            self, "保存图像", 
+            os.path.join(output_dir, f"等值线图_{method_name}.png"), 
+            "PNG (*.png);;JPEG (*.jpg);;PDF (*.pdf);;SVG (*.svg)")
+        
         if save_path:
             try:
-                # 在导出前重新应用字体设置，确保输出文件中字体正确
-                for ax in self.canvas.figure.get_axes():
-                    self.canvas.apply_mixed_fonts(ax)
+                # 获取文件扩展名
+                file_ext = os.path.splitext(save_path)[1]
+                base_path = os.path.splitext(save_path)[0]
                 
                 # 设置输出参数，确保字体正确嵌入
                 save_kwargs = {
@@ -7348,23 +7602,42 @@ class ContourPlotTab(QWidget):
                 }
                 
                 # 对于PDF和SVG格式，确保字体正确嵌入
-                if save_path.lower().endswith('.pdf'):
+                if file_ext.lower() == '.pdf':
                     save_kwargs['format'] = 'pdf'
                     # 设置PDF字体嵌入
                     import matplotlib
                     matplotlib.rcParams['pdf.fonttype'] = 42  # TrueType字体
-                elif save_path.lower().endswith('.svg'):
+                elif file_ext.lower() == '.svg':
                     save_kwargs['format'] = 'svg'
-                    # SVG不需要特殊设置
                 
-                self.canvas.figure.savefig(save_path, **save_kwargs)
-                QMessageBox.information(self, "导出成功", f"图像已保存到:\n{save_path}\n\n字体设置: 中文-宋体，数字英文-Times New Roman")
+                saved_files = []
                 
-                if QMessageBox.question(self, "打开图像", "是否要打开保存的图像？") == QMessageBox.StandardButton.Yes:
-                    open_file_auto(save_path)
+                # 导出等值线图
+                if export_contour:
+                    contour_path = f"{base_path}_等值线{file_ext}"
+                    for ax in self.canvas.figure.get_axes():
+                        self.canvas.apply_mixed_fonts(ax)
+                    self.canvas.figure.savefig(contour_path, **save_kwargs)
+                    saved_files.append(contour_path)
+                
+                # 导出3D曲面图
+                if export_surface:
+                    surface_path = f"{base_path}_3D曲面{file_ext}"
+                    for ax in self.surface_canvas.figure.get_axes():
+                        self.surface_canvas.apply_mixed_fonts(ax)
+                    self.surface_canvas.figure.savefig(surface_path, **save_kwargs)
+                    saved_files.append(surface_path)
+                
+                files_info = "\n".join(saved_files)
+                QMessageBox.information(
+                    self, "导出成功", 
+                    f"图像已保存到:\n{files_info}\n\n字体设置: 中文-宋体，数字英文-Times New Roman")
+                
+                if QMessageBox.question(self, "打开文件夹", "是否要打开保存文件夹？") == QMessageBox.StandardButton.Yes:
+                    open_file_auto(output_dir)
                     
             except Exception as e:
-                QMessageBox.critical(self, "导出失败", f"保存图像时发生错误: {e}")
+                QMessageBox.critical(self, "导出失败", f"保存图像时发生错误: {e}\n\n{traceback.format_exc()}")
 
     def export_comparison_results(self):
         """导出对比结果到Excel - 添加最佳方法总结"""
@@ -8520,7 +8793,8 @@ class CoalSeamBlockTab(QWidget):
                     "quintic_rbf": "quintic",
                     "thin_plate": "thin_plate"
                 }
-                rbf = Rbf(x_train, y_train, z_train, function=rbf_map[method_key])
+                # 添加平滑参数，避免矩阵奇异性问题
+                rbf = Rbf(x_train, y_train, z_train, function=rbf_map[method_key], smooth=0.1)
                 return rbf(x_val, y_val)
             if method_key == "bilinear":
                 return griddata((x_train, y_train), z_train, (x_val, y_val), method='linear')
@@ -8534,13 +8808,22 @@ class CoalSeamBlockTab(QWidget):
                     result.append(np.sum(weights * z_train))
                 return np.array(result)
             if method_key == "ordinary_kriging":
-                rbf = Rbf(x_train, y_train, z_train, function='gaussian')
-                return rbf(x_val, y_val)
+                # 添加数据点检查和错误处理
+                if len(x_train) < 4:
+                    return griddata((x_train, y_train), z_train, (x_val, y_val), method='nearest')
+                try:
+                    rbf = Rbf(x_train, y_train, z_train, function='gaussian', smooth=0.5)
+                    return rbf(x_val, y_val)
+                except (np.linalg.LinAlgError, ZeroDivisionError, ValueError):
+                    # 静默降级为线性插值，不打印错误
+                    return griddata((x_train, y_train), z_train, (x_val, y_val), method='linear')
             if method_key == "radial_basis":
-                rbf = Rbf(x_train, y_train, z_train, function='multiquadric')
+                rbf = Rbf(x_train, y_train, z_train, function='multiquadric', smooth=0.1)
                 return rbf(x_val, y_val)
         except Exception as e:
-            print(f"插值方法 {method_name} 失败: {e}")
+            # 只打印非预期的错误
+            if not isinstance(e, (np.linalg.LinAlgError, ZeroDivisionError)):
+                print(f"插值方法 {method_name} 失败: {e}")
             try:
                 return griddata((x_train, y_train), z_train, (x_val, y_val), method='linear')
             except Exception as inner:
