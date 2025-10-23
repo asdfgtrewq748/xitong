@@ -56,11 +56,13 @@ echo "4️⃣  清理未使用的 Docker 资源..."
 docker system prune -f --volumes || echo "⚠️  清理跳过"
 
 # ──────────────────────────────────────────────────────────────────────────
-# 步骤 5: 重新构建镜像
+# 步骤 5: 重新构建镜像（使用 BuildKit 加速）
 # ──────────────────────────────────────────────────────────────────────────
 echo ""
-echo "5️⃣  重新构建 Docker 镜像..."
-docker compose build --no-cache
+echo "5️⃣  重新构建 Docker 镜像（启用 BuildKit 加速）..."
+export DOCKER_BUILDKIT=1
+export COMPOSE_DOCKER_CLI_BUILD=1
+docker compose build --parallel
 echo "✓ 镜像构建完成"
 
 # ──────────────────────────────────────────────────────────────────────────

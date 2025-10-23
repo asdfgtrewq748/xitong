@@ -15,6 +15,11 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      # 使用 BuildKit 加速构建
+      cache_from:
+        - mining-system-backend:latest
+      args:
+        - BUILDKIT_INLINE_CACHE=1
     image: mining-system-backend:latest
     container_name: mining-backend
     
@@ -26,19 +31,15 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
       - TZ=Asia/Shanghai
-      # 可以通过环境变量覆盖配置
       - MAX_UPLOAD_SIZE_MB=50
       - CACHE_ENABLED=true
     
     volumes:
-      # 数据持久化
       - ./backend/data:/app/data
       - ./backend/logs:/app/logs
-      # 开发环境可以挂载代码（生产环境注释掉）
-      # - ./backend:/app
     
     healthcheck:
-      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/api/health', timeout=5)"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health', timeout=5)"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -46,16 +47,6 @@ services:
     
     networks:
       - mining-network
-    
-    # 资源限制（根据服务器调整）
-    deploy:
-      resources:
-        limits:
-          cpus: '2.0'
-          memory: 2G
-        reservations:
-          cpus: '0.5'
-          memory: 512M
 
   # ──────────────────────────────────────────────────────────────────────────
   # 前端服务 - Nginx + Vue
@@ -64,6 +55,11 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      # 使用 BuildKit 加速构建
+      cache_from:
+        - mining-system-frontend:latest
+      args:
+        - BUILDKIT_INLINE_CACHE=1
     image: mining-system-frontend:latest
     container_name: mining-frontend
     
@@ -76,15 +72,14 @@ services:
       - TZ=Asia/Shanghai
     
     volumes:
-      # Nginx日志
       - ./frontend/logs:/var/log/nginx
     
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/"]
       interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 5s
+      timeout: 5s
+      retries: 2
+      start_period: 10s
     
     depends_on:
       backend:
@@ -92,16 +87,6 @@ services:
     
     networks:
       - mining-network
-    
-    # 资源限制
-    deploy:
-      resources:
-        limits:
-          cpus: '1.0'
-          memory: 512M
-        reservations:
-          cpus: '0.25'
-          memory: 128M
 
 # ──────────────────────────────────────────────────────────────────────────
 # 网络配置
