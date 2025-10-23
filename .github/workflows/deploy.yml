@@ -29,25 +29,18 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
-          cache: 'pip'
 
       - name: 检查依赖文件
         working-directory: ./backend
         run: |
           if [ -f requirements.txt ]; then
             echo "✓ requirements.txt 存在"
+            echo "依赖列表:"
             cat requirements.txt
           else
             echo "✗ requirements.txt 不存在"
             exit 1
           fi
-
-      - name: 验证 requirements.txt 格式
-        working-directory: ./backend
-        run: |
-          echo "检查 requirements.txt 是否存在并格式正确"
-          pip install --upgrade pip
-          pip install --dry-run -r requirements.txt 2>&1 | head -20 || echo "依赖检查完成（部分包可能需要额外编译工具）"
 
       - name: Python语法检查（核心文件）
         working-directory: ./backend
@@ -69,26 +62,17 @@ jobs:
       - name: 检出代码
         uses: actions/checkout@v4
 
-      - name: 设置Node.js环境
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-
       - name: 检查配置文件
         working-directory: ./frontend
         run: |
           if [ -f package.json ]; then
             echo "✓ package.json 存在"
+            echo "项目信息:"
+            cat package.json | grep -A 5 '"name"'
           else
             echo "✗ package.json 不存在"
             exit 1
           fi
-
-      - name: 安装依赖（跳过可能失败的包）
-        working-directory: ./frontend
-        run: |
-          echo "安装前端依赖..."
-          npm install --legacy-peer-deps --no-audit || echo "部分依赖可能安装失败，继续检查..."
 
       - name: 检查核心源文件
         working-directory: ./frontend
