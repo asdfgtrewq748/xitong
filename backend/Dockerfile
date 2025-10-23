@@ -34,19 +34,23 @@ RUN pip install --no-cache-dir --upgrade pip -i https://mirrors.aliyun.com/pypi/
 # ────────────────────────────────────────────────────────────────────────────
 # 第三层：应用代码（经常变化，放最后）
 # ────────────────────────────────────────────────────────────────────────────
-
-# ────────────────────────────────────────────────────────────────────────────
-# 第三层：应用代码（经常变化，放最后）
-# ────────────────────────────────────────────────────────────────────────────
+# 复制应用代码
 COPY . .
+
+# 确保数据目录存在
+RUN mkdir -p /app/data/input /app/data/output /app/logs
 
 # 环境变量
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     TZ=Asia/Shanghai
 
-# 创建必要的目录
-RUN mkdir -p /app/data /app/logs
+# 验证关键文件（调试用）
+RUN echo "检查关键文件..." && \
+    ls -la /app/ && \
+    echo "检查数据目录..." && \
+    ls -la /app/data/ 2>/dev/null || echo "data 目录不存在" && \
+    ls -la /app/data/input/ 2>/dev/null || echo "data/input 目录不存在"
 
 # 健康检查（使用内置库，不依赖 requests）
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \

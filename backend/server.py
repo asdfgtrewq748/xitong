@@ -424,7 +424,96 @@ async def startup_event():
         print(f"系统总内存: {mem_usage['system_total_mb']:.1f}MB")
         print(f"系统可用内存: {mem_usage['system_available_mb']:.1f}MB")
 
+    # 检查并初始化数据库
+    await check_and_init_database()
+
     print("=" * 70 + "\n")
+
+
+async def check_and_init_database():
+    """检查数据库状态，如果为空则自动导入数据"""
+    try:
+        from sqlalchemy import create_engine, inspect
+        from db import DB_PATH, get_engine
+        
+        # 检查数据库文件是否存在
+        if not DB_PATH.exists():
+            print(f"⚠️  数据库文件不存在: {DB_PATH}")
+            print("📥 尝试自动初始化数据库...")
+            await auto_import_csv()
+            return
+        
+        # 检查数据库表和数据
+        engine = get_engine()
+        inspector = inspect(engine)
+        
+        if 'records' not in inspector.get_table_names():
+            print("⚠️  数据库表不存在")
+            print("📥 尝试自动初始化数据库...")
+            await auto_import_csv()
+            return
+        
+        # 检查记录数
+        with engine.connect() as conn:
+            result = conn.execute(text('SELECT COUNT(*) FROM records'))
+            count = result.fetchone()[0]
+            
+            if count == 0:
+                print("⚠️  数据库为空（0条记录）")
+                print("📥 尝试自动初始化数据库...")
+                await auto_import_csv()
+            else:
+                print(f"✓ 数据库已加载 ({count} 条记录)")
+                
+    except Exception as e:
+        print(f"⚠️  数据库检查失败: {e}")
+        print("📥 尝试自动初始化数据库...")
+        await auto_import_csv()
+
+
+async def auto_import_csv():
+    """自动导入 CSV 数据到数据库"""
+    try:
+        csv_path = APP_ROOT / "data" / "input" / "汇总表.csv"
+        
+        if not csv_path.exists():
+            print(f"❌ CSV 文件不存在: {csv_path}")
+            return
+        
+        print(f"📂 找到 CSV 文件: {csv_path}")
+        print("📊 开始导入数据...")
+        
+        # 读取 CSV
+        df = pd.read_csv(csv_path, encoding='utf-8-sig')
+        print(f"   读取 {len(df)} 条记录")
+        
+        # 导入到数据库
+        from sqlalchemy import create_engine
+        from db import DB_PATH
+        
+        # 确保目录存在
+        DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+        
+        # 创建引擎并导入
+        engine = create_engine(f'sqlite:///{DB_PATH}')
+        df.to_sql('records', engine, if_exists='replace', index=False)
+        
+        # 创建索引
+        with engine.connect() as conn:
+            conn.execute(text('CREATE INDEX IF NOT EXISTS idx_province ON records (省份)'))
+            conn.execute(text('CREATE INDEX IF NOT EXISTS idx_mine ON records (矿名)'))
+            conn.execute(text('CREATE INDEX IF NOT EXISTS idx_lithology ON records (岩性)'))
+            conn.commit()
+        
+        print(f"✅ 数据库初始化完成！导入 {len(df)} 条记录")
+        
+        # 重置表缓存
+        reset_table_cache()
+        
+    except Exception as e:
+        print(f"❌ 数据库初始化失败: {e}")
+        import traceback
+        traceback.print_exc()
 
 
 @app.on_event("shutdown")

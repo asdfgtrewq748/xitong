@@ -59,8 +59,13 @@ docker-compose*.yml
 
 # 临时文件和输出
 data/output/
+data/*.db
+data/*.db-*
 tmp/
 temp/
+
+# 重要：保留输入数据
+!data/input/
 
 # 文档
 README.md

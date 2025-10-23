@@ -1,6 +1,6 @@
 class DataService {
   constructor() {
-    this.baseURL = process.env.VUE_APP_API_URL || 'http://localhost:5000'
+    this.baseURL = process.env.VUE_APP_API_URL || 'http://localhost:8000'
     this.globalData = {
       boreholeData: [],
       summaryData: [],
