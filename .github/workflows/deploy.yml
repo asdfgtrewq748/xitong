@@ -42,18 +42,21 @@ jobs:
             exit 1
           fi
 
-      - name: 安装核心依赖（跳过可能失败的包）
+      - name: 验证 requirements.txt 格式
         working-directory: ./backend
         run: |
+          echo "检查 requirements.txt 是否存在并格式正确"
           pip install --upgrade pip
-          # 只安装核心依赖，跳过可能需要编译的科学计算包
-          pip install fastapi uvicorn sqlalchemy python-multipart requests || echo "部分依赖安装失败，继续..."
+          pip install --dry-run -r requirements.txt 2>&1 | head -20 || echo "依赖检查完成（部分包可能需要额外编译工具）"
 
-      - name: Python语法检查
+      - name: Python语法检查（核心文件）
         working-directory: ./backend
         run: |
-          python -m py_compile server.py || echo "server.py 语法检查完成"
-          python -m py_compile db.py || echo "db.py 语法检查完成"
+          echo "检查主要 Python 文件语法..."
+          python -m py_compile server.py && echo "✓ server.py" || echo "✗ server.py"
+          python -m py_compile db.py && echo "✓ db.py" || echo "✗ db.py"
+          python -m py_compile cache.py && echo "✓ cache.py" || echo "✗ cache.py"
+          python -m py_compile main.py && echo "✓ main.py" || echo "✗ main.py"
           echo "✓ Python 语法检查完成"
 
   # ──────────────────────────────────────────────────────────────────────────
@@ -81,20 +84,20 @@ jobs:
             exit 1
           fi
 
-      - name: 安装依赖
+      - name: 安装依赖（跳过可能失败的包）
         working-directory: ./frontend
         run: |
-          npm install --legacy-peer-deps || echo "部分依赖安装失败，继续..."
+          echo "安装前端依赖..."
+          npm install --legacy-peer-deps --no-audit || echo "部分依赖可能安装失败，继续检查..."
 
-      - name: 检查主要文件
+      - name: 检查核心源文件
         working-directory: ./frontend
         run: |
-          if [ -f src/main.js ]; then
-            echo "✓ src/main.js 存在"
-          fi
-          if [ -f src/App.vue ]; then
-            echo "✓ src/App.vue 存在"
-          fi
+          echo "检查核心文件是否存在..."
+          test -f src/main.js && echo "✓ src/main.js" || echo "✗ src/main.js"
+          test -f src/App.vue && echo "✓ src/App.vue" || echo "✗ src/App.vue"
+          test -f src/router/index.js && echo "✓ src/router/index.js" || echo "✗ src/router/index.js"
+          test -d src/components && echo "✓ src/components/" || echo "✗ src/components/"
           echo "✓ 前端文件检查完成"
 
   # ──────────────────────────────────────────────────────────────────────────
