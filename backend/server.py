@@ -478,7 +478,20 @@ async def auto_import_csv():
         
         if not csv_path.exists():
             print(f"❌ CSV 文件不存在: {csv_path}")
-            return
+            print(f"   查找路径: {csv_path}")
+            print(f"   APP_ROOT: {APP_ROOT}")
+            # 尝试其他可能的路径
+            alternative_paths = [
+                Path("/app/data/input/汇总表.csv"),
+                APP_ROOT.parent / "data" / "input" / "汇总表.csv",
+            ]
+            for alt_path in alternative_paths:
+                if alt_path.exists():
+                    csv_path = alt_path
+                    print(f"✓ 在备用路径找到: {csv_path}")
+                    break
+            else:
+                return
         
         print(f"📂 找到 CSV 文件: {csv_path}")
         print("📊 开始导入数据...")
@@ -486,6 +499,7 @@ async def auto_import_csv():
         # 读取 CSV
         df = pd.read_csv(csv_path, encoding='utf-8-sig')
         print(f"   读取 {len(df)} 条记录")
+        print(f"   列名: {list(df.columns)}")
         
         # 导入到数据库
         from sqlalchemy import create_engine
@@ -498,14 +512,33 @@ async def auto_import_csv():
         engine = create_engine(f'sqlite:///{DB_PATH}')
         df.to_sql('records', engine, if_exists='replace', index=False)
         
-        # 创建索引
-        with engine.connect() as conn:
-            conn.execute(text('CREATE INDEX IF NOT EXISTS idx_province ON records (省份)'))
-            conn.execute(text('CREATE INDEX IF NOT EXISTS idx_mine ON records (矿名)'))
-            conn.execute(text('CREATE INDEX IF NOT EXISTS idx_lithology ON records (岩性)'))
-            conn.commit()
+        print(f"✅ 数据库初始化完成！导入 {len(df)} 条记录到 {DB_PATH}")
         
-        print(f"✅ 数据库初始化完成！导入 {len(df)} 条记录")
+        # 创建索引（尝试多个可能的列名）
+        try:
+            with engine.connect() as conn:
+                # 获取实际的列名
+                actual_columns = df.columns.tolist()
+                
+                # 为常见列创建索引
+                province_cols = ['省份', 'Province', 'province', '省', 'sheng']
+                mine_cols = ['矿名', 'Mine', 'mine', '矿', 'kuang']
+                lithology_cols = ['岩性', 'Lithology', 'lithology', '岩', 'yan']
+                
+                for col_list, idx_name in [
+                    (province_cols, 'idx_province'),
+                    (mine_cols, 'idx_mine'),
+                    (lithology_cols, 'idx_lithology')
+                ]:
+                    for col in col_list:
+                        if col in actual_columns:
+                            conn.execute(text(f'CREATE INDEX IF NOT EXISTS {idx_name} ON records ("{col}")'))
+                            print(f"   创建索引: {idx_name} on {col}")
+                            break
+                
+                conn.commit()
+        except Exception as idx_err:
+            print(f"⚠️  创建索引失败（不影响使用）: {idx_err}")
         
         # 重置表缓存
         reset_table_cache()
