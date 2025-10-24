@@ -34,11 +34,14 @@ RUN pip install --no-cache-dir --upgrade pip -i https://mirrors.aliyun.com/pypi/
 # ────────────────────────────────────────────────────────────────────────────
 # 第三层：应用代码（经常变化，放最后）
 # ────────────────────────────────────────────────────────────────────────────
-# 复制应用代码
-COPY . .
-
 # 确保数据目录存在
 RUN mkdir -p /app/data/input /app/data/output /app/logs
+
+# 先复制 CSV 文件（关键！）
+COPY data/input/*.csv /app/data/input/
+
+# 复制应用代码
+COPY . .
 
 # 环境变量
 ENV PYTHONUNBUFFERED=1 \
