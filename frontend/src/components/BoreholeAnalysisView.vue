@@ -4,13 +4,13 @@
     
     <el-card class="box-card">
       <el-alert 
-        v-if="globalDataStore.boreholeData.value.length > 0" 
+        v-if="globalDataStore.boreholeData.length > 0" 
         type="info" 
         :closable="false"
         style="margin-bottom: 16px;"
       >
         <template #title>
-          全局数据已加载 ({{ globalDataStore.boreholeData.value.length }} 条记录)
+          全局数据已加载 ({{ globalDataStore.boreholeData.length }} 条记录)
         </template>
       </el-alert>
       
@@ -32,7 +32,7 @@
             type="primary" 
             @click="loadGlobalData" 
             :loading="isProcessing"
-            :disabled="globalDataStore.boreholeData.value.length === 0"
+            :disabled="globalDataStore.boreholeData.length === 0"
           >
             加载全局数据
           </el-button>
@@ -91,7 +91,10 @@
 import { ref, computed } from 'vue';
 import { ElMessage } from 'element-plus';
 import { getApiBase } from '@/utils/api';
-import globalDataStore from '@/stores/globalData';
+import { useGlobalDataStore } from '@/stores/globalData';
+
+// 初始化store
+const globalDataStore = useGlobalDataStore();
 
 const API_BASE = getApiBase();
 const useGlobalData = ref(true); // 默认使用全局数据
@@ -116,7 +119,7 @@ const defaultSummary = () => ({
 });
 
 const loadGlobalData = () => {
-  if (globalDataStore.boreholeData.value.length === 0) {
+  if (globalDataStore.boreholeData.length === 0) {
     ElMessage.warning('全局数据为空，请先在首页导入数据');
     return;
   }
@@ -124,7 +127,7 @@ const loadGlobalData = () => {
   isProcessing.value = true;
   
   try {
-    const data = globalDataStore.boreholeData.value;
+    const data = globalDataStore.boreholeData;
     const columns = data.length > 0 ? Object.keys(data[0]) : [];
     
     tableData.value = data;

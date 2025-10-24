@@ -141,8 +141,8 @@
                 全局钻孔数据管理
               </span>
               <div>
-                <el-tag v-if="globalDataStore.keyStratumData.value.length > 0" type="primary" size="large">
-                  {{ globalDataStore.keyStratumData.value.length }} 条记录
+                <el-tag v-if="globalDataStore.keyStratumData.length > 0" type="primary" size="large">
+                  {{ globalDataStore.keyStratumData.length }} 条记录
                 </el-tag>
               </div>
             </div>
@@ -162,12 +162,12 @@
               <div class="summary-item">
                 <el-icon class="summary-icon" color="#409EFF"><Document /></el-icon>
                 <div class="summary-label">记录数量</div>
-                <div class="summary-value">{{ globalDataStore.keyStratumData.value.length }}</div>
+                <div class="summary-value">{{ globalDataStore.keyStratumData.length }}</div>
               </div>
               <div class="summary-item">
                 <el-icon class="summary-icon" color="#67C23A"><Grid /></el-icon>
                 <div class="summary-label">字段数量</div>
-                <div class="summary-value">{{ globalDataStore.keyStratumColumns.value.length }}</div>
+                <div class="summary-value">{{ globalDataStore.keyStratumColumns.length }}</div>
               </div>
               <div class="summary-item">
                 <el-icon class="summary-icon" color="#E6A23C"><Location /></el-icon>
@@ -329,7 +329,7 @@
     <el-dialog v-model="showPreviewDialog" title="全局数据预览" width="90%" top="5vh">
       <div style="margin-bottom: 12px;">
         <el-text>
-          显示前 100 条记录 (共 {{ globalDataStore.keyStratumData.value.length }} 条原始钻孔数据)
+          显示前 100 条记录 (共 {{ globalDataStore.keyStratumData.length }} 条原始钻孔数据)
         </el-text>
       </div>
       <el-table :data="previewData" border stripe height="60vh" style="width: 100%">
@@ -592,7 +592,10 @@ import {
 } from '@element-plus/icons-vue';
 import * as echarts from 'echarts';
 import { getApiBase } from '@/utils/api';
-import globalDataStore from '@/stores/globalData';
+import { useGlobalDataStore } from '@/stores/globalData';
+
+// 初始化store
+const globalDataStore = useGlobalDataStore();
 
 const API_BASE = getApiBase();
 const stats = ref({
@@ -621,12 +624,12 @@ const recentActivities = ref([
 ]);
 
 const hasGlobalData = computed(() => 
-  globalDataStore.boreholeData.value.length > 0 || 
-  globalDataStore.keyStratumData.value.length > 0
+  globalDataStore.boreholeData.length > 0 || 
+  globalDataStore.keyStratumData.length > 0
 );
 
 const uniqueBoreholes = computed(() => {
-  const data = globalDataStore.keyStratumData.value;
+  const data = globalDataStore.keyStratumData;
   if (!data || !data.length) return 0;
   const boreholes = new Set(data.map(row => row['钻孔名'] || row['钻孔'] || row['BK']).filter(Boolean));
   return boreholes.size;
@@ -634,8 +637,8 @@ const uniqueBoreholes = computed(() => {
 
 const previewData = computed(() => {
   // 只显示岩层数据(钻孔原始数据)
-  if (globalDataStore.keyStratumData.value.length > 0) {
-    return globalDataStore.keyStratumData.value.slice(0, 100);
+  if (globalDataStore.keyStratumData.length > 0) {
+    return globalDataStore.keyStratumData.slice(0, 100);
   }
   return [];
 });
@@ -735,13 +738,13 @@ const previewGlobalData = () => {
 
 const exportGlobalData = async () => {
   try {
-    if (globalDataStore.keyStratumData.value.length === 0) {
+    if (globalDataStore.keyStratumData.length === 0) {
       ElMessage.warning('没有可导出的数据');
       return;
     }
     
-    const records = globalDataStore.keyStratumData.value;
-    const columns = globalDataStore.keyStratumColumns.value;
+    const records = globalDataStore.keyStratumData;
+    const columns = globalDataStore.keyStratumColumns;
     const filename = `钻孔原始数据_${new Date().toISOString().slice(0,10)}.csv`;
     
     const csv = convertToCSV(records, columns);

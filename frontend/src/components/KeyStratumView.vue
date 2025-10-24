@@ -34,10 +34,10 @@
               </template>
               <div class="card-body">
                 <!-- 全局数据状态提示 -->
-                <div v-if="globalDataStore.keyStratumData.value.length > 0" class="data-status-info">
+                <div v-if="globalDataStore.keyStratumData.length > 0" class="data-status-info">
                   <el-icon class="status-icon"><CircleCheckFilled /></el-icon>
                   <span class="status-text">全局数据已加载</span>
-                  <span class="status-count">({{ globalDataStore.keyStratumData.value.length }} 条)</span>
+                  <span class="status-count">({{ globalDataStore.keyStratumData.length }} 条)</span>
                 </div>
                 
                 <!-- 数据源选择 -->
@@ -90,12 +90,12 @@
                         size="large"
                         @click="loadGlobalData"
                         :loading="isLoadingFiles"
-                        :disabled="globalDataStore.keyStratumData.value.length === 0"
+                        :disabled="globalDataStore.keyStratumData.length === 0"
                         class="action-button primary"
                         style="width: 100%;"
                       >
                         <el-icon><Download /></el-icon>
-                        <span>加载全局数据 ({{ globalDataStore.keyStratumData.value.length }} 条)</span>
+                        <span>加载全局数据 ({{ globalDataStore.keyStratumData.length }} 条)</span>
                       </el-button>
                     </el-col>
                     <el-col :span="12">
@@ -265,7 +265,10 @@ import { ref, computed } from 'vue';
 import { ElMessage } from 'element-plus';
 import { CircleCheckFilled, Upload, Download, Search } from '@element-plus/icons-vue';
 import { getApiBase } from '@/utils/api';
-import globalDataStore from '@/stores/globalData';
+import { useGlobalDataStore } from '@/stores/globalData';
+
+// 初始化store
+const globalDataStore = useGlobalDataStore();
 
 const API_BASE = getApiBase();
 const useGlobalData = ref(true); // 默认使用全局数据
@@ -361,10 +364,9 @@ const loadGlobalData = async () => {
   console.log('loadGlobalData 被调用');
   console.log('globalDataStore:', globalDataStore);
   console.log('keyStratumData:', globalDataStore.keyStratumData);
-  console.log('keyStratumData.value:', globalDataStore.keyStratumData.value);
-  console.log('数据长度:', globalDataStore.keyStratumData.value.length);
+  console.log('数据长度:', globalDataStore.keyStratumData.length);
   
-  if (!globalDataStore.keyStratumData.value || globalDataStore.keyStratumData.value.length === 0) {
+  if (!globalDataStore.keyStratumData || globalDataStore.keyStratumData.length === 0) {
     ElMessage.warning('全局数据为空，请先在首页导入岩层数据');
     return;
   }
@@ -375,7 +377,7 @@ const loadGlobalData = async () => {
   selectedCoal.value = null;
   
   try {
-    const data = globalDataStore.keyStratumData.value;
+    const data = globalDataStore.keyStratumData;
     console.log('加载的数据:', data);
     console.log('数据条数:', data.length);
     
@@ -670,7 +672,7 @@ const processWithGlobalData = async () => {
   const count = data.processed_count || 0;
   
   // 自动合并结果到全局数据
-  if (hasProcessed.value && globalDataStore.keyStratumData.value.length > 0) {
+  if (hasProcessed.value && globalDataStore.keyStratumData.length > 0) {
     try {
       globalDataStore.mergeKeyStratumResults(tableData.value);
       ElMessage.success(`计算完成，处理了 ${count} 个钻孔，并已更新全局数据`);

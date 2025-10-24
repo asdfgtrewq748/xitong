@@ -1393,6 +1393,282 @@ async def get_dashboard_stats(db: Session = Depends(get_session)):
         }
 
 
+@app.get("/api/borehole-data")
+async def get_borehole_data(db: Session = Depends(get_session)):
+    """获取钻孔数据 (从数据库中读取所有记录)"""
+    try:
+        table = _get_records_table_safe()
+        if table is None:
+            return []
+        
+        # 获取所有记录
+        columns = [column.name for column in table.columns]
+        stmt = select(*[table.c[col] for col in columns])
+        rows = db.execute(stmt).mappings().all()
+        
+        records = []
+        for row in rows:
+            row_dict = dict(row)
+            records.append(_serialize_row(row_dict, columns))
+        
+        return records
+    except Exception as e:
+        print(f"[ERROR] get_borehole_data 发生错误: {e}")
+        import traceback
+        traceback.print_exc()
+        return []
+
+
+@app.get("/api/summary-data")
+async def get_summary_data(db: Session = Depends(get_session)):
+    """获取汇总数据 (从数据库中读取并按矿名分组)"""
+    try:
+        table = _get_records_table_safe()
+        if table is None:
+            return []
+        
+        column_map = {column.name: column for column in table.columns}
+        
+        # 如果有矿名列，按矿名分组统计
+        if "矿名" in column_map:
+            stmt = (
+                select(
+                    column_map["矿名"].label("mine_name"),
+                    func.count().label("record_count")
+                )
+                .where(column_map["矿名"].is_not(None))
+                .group_by(column_map["矿名"])
+            )
+            rows = db.execute(stmt).all()
+            
+            summary = []
+            for row in rows:
+                summary.append({
+                    "矿名": row.mine_name,
+                    "记录数": int(row.record_count)
+                })
+            return summary
+        else:
+            # 如果没有矿名列，返回空数组
+            return []
+    except Exception as e:
+        print(f"[ERROR] get_summary_data 发生错误: {e}")
+        import traceback
+        traceback.print_exc()
+        return []
+
+
+@app.get("/api/coal-seam-data")
+async def get_coal_seam_data(db: Session = Depends(get_session)):
+    """获取煤层数据 (从数据库中筛选包含"煤"的岩性记录)"""
+    try:
+        table = _get_records_table_safe()
+        if table is None:
+            return []
+        
+        column_map = {column.name: column for column in table.columns}
+        columns = [column.name for column in table.columns]
+        
+        # 如果有岩性列，筛选包含"煤"的记录
+        if "岩性" in column_map:
+            stmt = (
+                select(*[table.c[col] for col in columns])
+                .where(column_map["岩性"].like("%煤%"))
+            )
+            rows = db.execute(stmt).mappings().all()
+            
+            records = []
+            for row in rows:
+                row_dict = dict(row)
+                records.append(_serialize_row(row_dict, columns))
+            return records
+        else:
+            # 如果没有岩性列，尝试岩层名称列
+            if "岩层名称" in column_map:
+                stmt = (
+                    select(*[table.c[col] for col in columns])
+                    .where(column_map["岩层名称"].like("%煤%"))
+                )
+                rows = db.execute(stmt).mappings().all()
+                
+                records = []
+                for row in rows:
+                    row_dict = dict(row)
+                    records.append(_serialize_row(row_dict, columns))
+                return records
+            else:
+                return []
+    except Exception as e:
+        print(f"[ERROR] get_coal_seam_data 发生错误: {e}")
+        import traceback
+        traceback.print_exc()
+        return []
+
+
+@app.post("/api/get_feasibility_evaluation_levels")
+async def get_feasibility_evaluation_levels():
+    """获取上行开采可行性等级评估标准"""
+    return {
+        "status": "success",
+        "data": {
+            "levels": [
+                {
+                    "level": "I级 (不可行/极困难)",
+                    "omega_range": "0-2",
+                    "description": "煤层基本处于垮落带内，完整度破坏非常严重，上行开采不合理或过于危险。"
+                },
+                {
+                    "level": "II级 (困难)",
+                    "omega_range": "2-4",
+                    "description": "上行开采难度大，易出现顶板问题和巷道支护困难，需要重型支护或充填。"
+                },
+                {
+                    "level": "III级 (可行，需支护)",
+                    "omega_range": "4-6",
+                    "description": "中等破坏程度，顶板和煤层少量破碎，但裂隙发育程度大。技术上可行，局部需加强支护。"
+                },
+                {
+                    "level": "IV级 (良好)",
+                    "omega_range": "6-8",
+                    "description": "轻微破坏，煤层完整性良好，顶板有少量裂隙，下沉量微小，上行开采效果较好。"
+                },
+                {
+                    "level": "V级 (优良)",
+                    "omega_range": "8以上",
+                    "description": "煤层基本不受下煤层开采的影响，煤层间的相互作用基本不存在，上行开采不存在困难。"
+                }
+            ]
+        }
+    }
+
+
+@app.post("/api/calculate_upward_mining_feasibility")
+async def calculate_upward_mining_feasibility(request: dict):
+    """计算单个钻孔的上行开采可行度"""
+    try:
+        from upward_mining_feasibility import process_borehole_csv_for_feasibility
+        
+        # 验证必需参数
+        required_params = ['csv_file_path', 'bottom_coal_name', 'upper_coal_name']
+        for param in required_params:
+            if param not in request or not request[param]:
+                raise HTTPException(status_code=400, detail=f'缺少必需参数: {param}')
+        
+        csv_file_path = request['csv_file_path']
+        bottom_coal_name = request['bottom_coal_name']
+        upper_coal_name = request['upper_coal_name']
+        lamda = request.get('lamda', 4.95)
+        C = request.get('C', -0.84)
+        
+        # 检查文件是否存在
+        if not Path(csv_file_path).exists():
+            raise HTTPException(status_code=404, detail=f'文件不存在: {csv_file_path}')
+        
+        # 调用计算函数
+        result = process_borehole_csv_for_feasibility(
+            csv_file_path, bottom_coal_name, upper_coal_name, lamda, C
+        )
+        
+        if "error" in result:
+            raise HTTPException(status_code=400, detail=result['error'])
+        
+        return {"status": "success", "data": result}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[ERROR] calculate_upward_mining_feasibility 发生错误: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f'计算失败: {str(e)}')
+
+
+@app.post("/api/batch_calculate_upward_mining_feasibility")
+async def batch_calculate_upward_mining_feasibility(request: dict):
+    """批量计算钻孔的上行开采可行度"""
+    try:
+        from upward_mining_feasibility import batch_process_borehole_files
+        
+        # 验证必需参数
+        required_params = ['csv_file_paths', 'bottom_coal_name', 'upper_coal_name']
+        for param in required_params:
+            if param not in request or not request[param]:
+                raise HTTPException(status_code=400, detail=f'缺少必需参数: {param}')
+        
+        csv_file_paths = request['csv_file_paths']
+        bottom_coal_name = request['bottom_coal_name']
+        upper_coal_name = request['upper_coal_name']
+        lamda = request.get('lamda', 4.95)
+        C = request.get('C', -0.84)
+        
+        # 验证文件列表
+        if not isinstance(csv_file_paths, list) or len(csv_file_paths) == 0:
+            raise HTTPException(status_code=400, detail='CSV文件路径列表不能为空')
+        
+        # 检查所有文件是否存在
+        for file_path in csv_file_paths:
+            if not Path(file_path).exists():
+                raise HTTPException(status_code=404, detail=f'文件不存在: {file_path}')
+        
+        # 调用批量计算函数
+        result = batch_process_borehole_files(
+            csv_file_paths, bottom_coal_name, upper_coal_name, lamda, C
+        )
+        
+        return {"status": "success", "data": result}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[ERROR] batch_calculate_upward_mining_feasibility 发生错误: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f'批量计算失败: {str(e)}')
+
+
+@app.post("/api/auto_calibrate_upward_mining_coefficients")
+async def auto_calibrate_upward_mining_coefficients(request: dict):
+    """自动标定上行开采计算的系数(λ和C)"""
+    try:
+        from upward_mining_feasibility import auto_calibrate_coefficients
+        
+        # 验证必需参数
+        required_params = ['csv_file_paths', 'bottom_coal_name', 'upper_coal_name']
+        for param in required_params:
+            if param not in request or not request[param]:
+                raise HTTPException(status_code=400, detail=f'缺少必需参数: {param}')
+        
+        csv_file_paths = request['csv_file_paths']
+        bottom_coal_name = request['bottom_coal_name']
+        upper_coal_name = request['upper_coal_name']
+        initial_lamda = request.get('initial_lamda', 4.95)
+        initial_C = request.get('initial_C', -0.84)
+        
+        # 验证文件列表
+        if not isinstance(csv_file_paths, list) or len(csv_file_paths) == 0:
+            raise HTTPException(status_code=400, detail='CSV文件路径列表不能为空')
+        
+        # 检查所有文件是否存在
+        for file_path in csv_file_paths:
+            if not Path(file_path).exists():
+                raise HTTPException(status_code=404, detail=f'文件不存在: {file_path}')
+        
+        # 调用自动标定函数
+        result = auto_calibrate_coefficients(
+            csv_file_paths, bottom_coal_name, upper_coal_name, initial_lamda, initial_C
+        )
+        
+        return {"status": "success", "data": result}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[ERROR] auto_calibrate_upward_mining_coefficients 发生错误: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f'标定失败: {str(e)}')
+
+
 @app.post("/api/csv/columns")
 async def get_csv_columns(file: UploadFile = File(...)):
     if not file.filename:

@@ -18,10 +18,10 @@
             />
             
             <!-- 全局数据状态提示 -->
-            <div v-if="globalDataStore.keyStratumData.value.length > 0" class="data-status-info">
+            <div v-if="globalDataStore.keyStratumData.length > 0" class="data-status-info">
               <el-icon class="status-icon"><CircleCheckFilled /></el-icon>
               <span class="status-text">全局数据已加载</span>
-              <span class="status-count">({{ globalDataStore.keyStratumData.value.length }} 条)</span>
+              <span class="status-count">({{ globalDataStore.keyStratumData.length }} 条)</span>
             </div>
             
             <!-- 数据源选择 -->
@@ -57,7 +57,7 @@
                 <el-icon class="data-icon"><DataAnalysis /></el-icon>
                 <div class="data-info">
                   <span class="data-label">全局钻孔数据</span>
-                  <span class="data-count">{{ globalDataStore.keyStratumData.value.length }} 条记录</span>
+                  <span class="data-count">{{ globalDataStore.keyStratumData.length }} 条记录</span>
                 </div>
               </div>
             </div>
@@ -417,7 +417,10 @@ import {
 import * as echarts from 'echarts';
 import 'echarts-gl'; // 必须导入 echarts-gl 以支持 3D 图表
 import { getApiBase } from '@/utils/api';
-import globalDataStore from '@/stores/globalData';
+import { useGlobalDataStore } from '@/stores/globalData';
+
+// 初始化store
+const globalDataStore = useGlobalDataStore();
 
 console.log('[GeologicalModeling] echarts版本:', echarts.version);
 console.log('[GeologicalModeling] 可用图表类型:', Object.keys(echarts.ComponentModel || {}));
@@ -565,7 +568,7 @@ function formatFileSize(size) {
 async function loadAndMergeData() {
   // 验证数据
   if (useGlobalData.value) {
-    if (globalDataStore.keyStratumData.value.length === 0) {
+    if (globalDataStore.keyStratumData.length === 0) {
       ElMessage.warning('全局数据为空，请先在Dashboard导入钻孔数据');
       return;
     }
@@ -586,8 +589,8 @@ async function loadAndMergeData() {
 
     if (useGlobalData.value) {
       // 使用全局数据：将数据转换为CSV并上传
-      const data = globalDataStore.keyStratumData.value;
-      const columns = globalDataStore.keyStratumColumns.value;
+      const data = globalDataStore.keyStratumData;
+      const columns = globalDataStore.keyStratumColumns;
 
       if (!columns || columns.length === 0) {
         throw new Error('全局数据列信息缺失');
