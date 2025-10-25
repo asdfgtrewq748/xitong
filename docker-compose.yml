@@ -33,9 +33,13 @@ services:
       - TZ=Asia/Shanghai
       - MAX_UPLOAD_SIZE_MB=50
       - CACHE_ENABLED=true
+      - DB_PATH=/app/data/database.db
+      - DATA_DIR=/app/data
     
     volumes:
-      - ./backend/data:/app/data
+      # 关键修改：挂载项目根目录的data文件夹，而不是backend/data
+      # 这样容器内就能访问到 /app/data/input/汇总表.csv
+      - ./data:/app/data
       - ./backend/logs:/app/logs
     
     healthcheck:

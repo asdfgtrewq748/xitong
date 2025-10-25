@@ -78,6 +78,11 @@
                 <template #title>三维地质建模</template>
               </el-menu-item>
             </el-sub-menu>
+
+            <el-menu-item index="/visualization">
+              <el-icon><TrendCharts /></el-icon>
+              <template #title>科研绘图工作台</template>
+            </el-menu-item>
           </div>
         </el-menu>
       </el-aside>
@@ -127,7 +132,7 @@ import { computed, ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import {
   House, DataLine, Document, Operation, Grid,
-  TrendCharts, Location,
+  TrendCharts, Location, Calculator, Menu,
   Histogram, Box, Bell, Setting, Help, Expand, Fold, Sunny, Moon
 } from '@element-plus/icons-vue';
 

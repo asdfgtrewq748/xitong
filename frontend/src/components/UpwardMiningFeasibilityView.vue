@@ -133,37 +133,44 @@
             </template>
 
             <div class="action-buttons">
+              <!-- 主操作按钮：批量计算（全宽） -->
               <el-button
                 type="danger"
                 @click="batchCalculate"
                 :loading="calculating"
                 :disabled="!canCalculate"
                 size="large"
-                style="width: 100%; margin-bottom: 10px;"
+                style="width: 100%; margin-bottom: 12px;"
               >
                 <el-icon><Calculator /></el-icon>
                 {{ calculating ? '计算中...' : '批量计算可行度' }}
               </el-button>
 
-              <el-button
-                type="primary"
-                @click="exportResults"
-                :disabled="!hasResults"
-                size="large"
-                style="width: 100%; margin-bottom: 10px;"
-              >
-                <el-icon><Download /></el-icon>
-                导出结果
-              </el-button>
-
-              <el-button
-                @click="clearAll"
-                size="large"
-                style="width: 100%;"
-              >
-                <el-icon><Delete /></el-icon>
-                清空数据
-              </el-button>
+              <!-- 次要操作：水平排列 -->
+              <el-row :gutter="10" style="margin-bottom: 0;">
+                <el-col :span="12">
+                  <el-button
+                    type="primary"
+                    @click="exportResults"
+                    :disabled="!hasResults"
+                    size="large"
+                    style="width: 100%;"
+                  >
+                    <el-icon><Download /></el-icon>
+                    导出结果
+                  </el-button>
+                </el-col>
+                <el-col :span="12">
+                  <el-button
+                    @click="clearAll"
+                    size="large"
+                    style="width: 100%;"
+                  >
+                    <el-icon><Delete /></el-icon>
+                    清空数据
+                  </el-button>
+                </el-col>
+              </el-row>
             </div>
 
             <!-- 输出设置 -->

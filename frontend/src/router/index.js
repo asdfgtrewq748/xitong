@@ -13,6 +13,9 @@ const GeologicalModelingView = () => import(/* webpackChunkName: "modeling" */ '
 const UpwardMiningFeasibilityView = () => import(/* webpackChunkName: "upward-mining" */ '../components/UpwardMiningFeasibilityView.vue')
 const DataManagementView = () => import(/* webpackChunkName: "data-management" */ '../components/DataManagementView.vue')
 
+// 科研绘图模块 - 统一工作台
+const VisualizationHome = () => import(/* webpackChunkName: "visualization" */ '../components/visualization/ImprovedVisualizationHome.vue')
+
 const routes = [
   {
     path: '/',
@@ -55,6 +58,12 @@ const routes = [
     name: 'UpwardMiningFeasibility',
     component: UpwardMiningFeasibilityView,
     meta: { title: '上行开采可行度分析' }
+  },
+  {
+    path: '/visualization',
+    name: 'Visualization',
+    component: VisualizationHome,
+    meta: { title: '科研绘图工作台' }
   },
   {
     path: '/data-management',
