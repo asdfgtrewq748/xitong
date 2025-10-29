@@ -25,6 +25,7 @@ from coal_seam_blocks.aggregator import aggregate_boreholes, unify_columns
 from api import calculate_key_strata_details, process_single_borehole_file
 from coal_seam_blocks.modeling import build_block_models
 from db import get_engine, get_records_table, get_session, reset_table_cache
+from tunnel_support import TunnelSupportCalculator, batch_calculate_tunnel_support
 
 # 性能优化模块
 from performance_config import (
@@ -2320,3 +2321,138 @@ async def import_raw_stratum_data(files: List[UploadFile] = File(...)):
         result["excluded_columns"] = sorted(list(excluded_columns))
     
     return result
+
+
+# ==============================================================================
+# 巷道支护计算 API
+# ==============================================================================
+
+class TunnelSupportInput(BaseModel):
+    """巷道支护计算输入参数"""
+    B: float  # 巷道宽度 (m)
+    H: float  # 巷道高度 (m)
+    K: float  # 应力集中系数
+    depth: float  # 埋深 (m)
+    gamma: float  # 容重 (kN/m³)
+    C: float  # 粘聚力 (MPa)
+    phi: float  # 内摩擦角 (度)
+
+
+class TunnelSupportBatchRequest(BaseModel):
+    """批量计算请求"""
+    data: List[TunnelSupportInput]
+    constants: Optional[Dict[str, float]] = None
+
+
+@app.post("/api/tunnel-support/calculate")
+async def calculate_tunnel_support(params: TunnelSupportInput):
+    """
+    单个巷道支护计算
+    
+    基于《巷道支护理论公式.docx》实现完整计算流程
+    """
+    try:
+        calculator = TunnelSupportCalculator()
+        result = calculator.calculate_complete(params.dict())
+        
+        return {
+            "status": "success",
+            "result": result
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"计算失败: {str(e)}")
+
+
+@app.post("/api/tunnel-support/batch-calculate")
+async def batch_calculate_tunnel_support_api(request: TunnelSupportBatchRequest):
+    """
+    批量巷道支护计算
+    
+    支持批量处理多组参数，可自定义计算常量
+    """
+    try:
+        data_list = [item.dict() for item in request.data]
+        
+        df_result = batch_calculate_tunnel_support(data_list, request.constants)
+        
+        return {
+            "status": "success",
+            "count": len(df_result),
+            "results": json.loads(df_result.to_json(orient="records", force_ascii=False))
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"批量计算失败: {str(e)}")
+
+
+@app.post("/api/tunnel-support/parse-excel")
+async def parse_tunnel_support_excel(file: UploadFile = File(...)):
+    """
+    解析上传的巷道参数Excel文件
+    
+    返回解析后的数据，用于前端展示和编辑
+    """
+    if not file.filename or not (file.filename.endswith('.xlsx') or file.filename.endswith('.xls')):
+        raise HTTPException(status_code=400, detail="请上传Excel文件 (.xlsx 或 .xls)")
+    
+    try:
+        content = await file.read()
+        df = pd.read_excel(io.BytesIO(content))
+        
+        # 验证必需列
+        required = ['B', 'H', '应力集中系数K', '埋深', '容重', '粘聚力', '内摩擦角']
+        missing = [col for col in required if col not in df.columns]
+        
+        if missing:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Excel文件缺少必需列: {', '.join(missing)}"
+            )
+        
+        # 标准化列名
+        column_map = {
+            '应力集中系数K': 'K',
+            '埋深': 'depth',
+            '容重': 'gamma',
+            '粘聚力': 'C',
+            '内摩擦角': 'phi'
+        }
+        
+        df_renamed = df.rename(columns=column_map)
+        
+        return {
+            "status": "success",
+            "count": len(df_renamed),
+            "columns": df_renamed.columns.tolist(),
+            "data": json.loads(df_renamed.to_json(orient="records", force_ascii=False))
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"文件解析失败: {str(e)}")
+
+
+@app.get("/api/tunnel-support/default-constants")
+async def get_default_constants():
+    """
+    获取默认计算常量
+    
+    返回系统预设的计算参数，用于前端显示和用户参考
+    """
+    return {
+        "status": "success",
+        "constants": TunnelSupportCalculator.DEFAULT_CONSTANTS,
+        "descriptions": {
+            "Sn": "锚索截面积 (mm²)",
+            "Rm_anchor": "锚索抗拉强度 (MPa)",
+            "Rm_rod": "锚杆抗拉强度 (MPa)",
+            "Q_anchor": "锚索设计荷载 (kN)",
+            "Q_rod": "锚杆设计荷载 (kN)",
+            "c0": "树脂锚固力 (MPa)",
+            "tau_rod": "锚杆锚固力 (MPa)",
+            "R_mm": "锚索半径 (mm)",
+            "D_mm": "锚杆直径 (mm)",
+            "safety_K": "安全系数",
+            "m": "锚杆(索)工作状态系数",
+            "n": "根数"
+        }
+    }

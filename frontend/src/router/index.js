@@ -15,6 +15,7 @@ const DataManagementView = () => import(/* webpackChunkName: "data-management" *
 
 // 科研绘图模块 - 统一工作台
 const VisualizationHome = () => import(/* webpackChunkName: "visualization" */ '../components/visualization/ImprovedVisualizationHome.vue')
+const TunnelSupportView = () => import(/* webpackChunkName: "tunnel-support" */ '../components/TunnelSupportView.vue')
 
 const routes = [
   {
@@ -28,6 +29,12 @@ const routes = [
     name: 'KeyStratum',
     component: KeyStratumView,
     meta: { title: '关键层计算' }
+  },
+  {
+    path: '/tunnel-support',
+    name: 'TunnelSupport',
+    component: TunnelSupportView,
+    meta: { title: '巷道支护计算' }
   },
   {
     path: '/borehole-analysis',

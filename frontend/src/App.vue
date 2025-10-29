@@ -58,6 +58,10 @@
                 <el-icon><TrendCharts /></el-icon>
                 <template #title>关键层计算</template>
               </el-menu-item>
+              <el-menu-item index="/tunnel-support">
+                <el-icon><Calculator /></el-icon>
+                <template #title>巷道支护计算</template>
+              </el-menu-item>
               <el-menu-item index="/borehole-analysis">
                 <el-icon><Location /></el-icon>
                 <template #title>钻孔数据分析</template>

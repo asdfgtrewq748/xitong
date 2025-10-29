@@ -4,10 +4,12 @@
 
 ## 📚 文档导航
 
-> **2025-10-20 更新**: 所有项目文档已整理到 `docs/` 目录
+> **2025-10-29 更新**: 新增巷道支护计算模块
 
 - 📖 **[完整文档索引](docs/INDEX.md)** - 查看所有可用文档
 - 🚀 **[快速开始](docs/QUICKSTART.md)** - 快速上手指南
+- 🔧 **[巷道支护计算指南](docs/TUNNEL_SUPPORT_GUIDE.md)** - 巷道支护计算完整文档
+- ⚡ **[巷道支护快速开始](docs/TUNNEL_SUPPORT_QUICKSTART.md)** - 5分钟上手巷道支护计算
 - 🐳 **[Docker 部署](docs/DOCKER部署指南.md)** - 使用 Docker 部署
 - 🔧 **[错误修复](docs/错误修复说明.md)** - 常见问题解决
 - ⚡ **[性能优化](docs/backend/PERFORMANCE_GUIDE.md)** - 性能优化指南
