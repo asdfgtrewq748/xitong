@@ -560,7 +560,8 @@ async def shutdown_event():
 @app.post("/api/modeling/columns")
 async def load_modeling_columns(
     borehole_files: List[UploadFile] = File(..., description="多个钻孔CSV"),
-    coords_file: UploadFile = File(..., description="坐标CSV"),
+    coords_file: UploadFile = File(None, description="坐标CSV（可选，若数据已包含坐标）"),
+    use_merged_data: bool = Form(False, description="是否使用已合并的数据"),
 ):
     if not borehole_files:
         raise HTTPException(status_code=400, detail="请至少上传一个钻孔文件")
@@ -587,26 +588,59 @@ async def load_modeling_columns(
                     print(f"[ERROR] 保存钻孔文件失败: {file.filename}, 错误: {e}")
                     raise HTTPException(status_code=400, detail=f"保存钻孔文件失败: {file.filename} - {str(e)}")
 
-            # 保存坐标文件
-            try:
-                coords_data = await coords_file.read()
-                if not coords_data:
-                    raise ValueError("坐标文件为空")
-                coords_path = tmp_path / (coords_file.filename or "coordinates.csv")
-                coords_path.write_bytes(coords_data)
-                print(f"[DEBUG] 保存坐标文件: {coords_file.filename}, 大小: {len(coords_data)} bytes")
-            except Exception as e:
-                print(f"[ERROR] 保存坐标文件失败: {e}")
-                raise HTTPException(status_code=400, detail=f"保存坐标文件失败: {str(e)}")
+            # 根据是否使用已合并数据决定处理方式
+            if use_merged_data:
+                # 数据已包含坐标信息，直接加载
+                print(f"[DEBUG] 使用已合并数据模式")
+                
+                # 加载所有钻孔文件并合并
+                from coal_seam_blocks.aggregator import load_borehole_csv, unify_columns
+                merged_frames = []
+                for file_path in borehole_paths:
+                    df = load_borehole_csv(file_path)
+                    df = unify_columns(df)
+                    merged_frames.append(df)
+                
+                merged_df = pd.concat(merged_frames, ignore_index=True)
+                print(f"[DEBUG] 已合并数据加载成功，记录数: {len(merged_df)}")
+                
+                # 验证数据中是否包含坐标列
+                coord_candidates = ['X', 'x', 'X坐标', 'x坐标', 'Y', 'y', 'Y坐标', 'y坐标']
+                found_coords = [col for col in merged_df.columns if any(cand in col for cand in coord_candidates)]
+                
+                if len(found_coords) < 2:
+                    raise HTTPException(
+                        status_code=400, 
+                        detail=f"数据中未找到足够的坐标列。找到: {found_coords}，需要至少2个坐标列（X和Y）"
+                    )
+                
+                coords_df = None  # 已合并数据不需要单独的坐标文件
+                
+            else:
+                # 传统模式：需要坐标文件进行合并
+                if not coords_file:
+                    raise HTTPException(status_code=400, detail="未使用已合并数据时，必须提供坐标文件")
+                
+                # 保存坐标文件
+                try:
+                    coords_data = await coords_file.read()
+                    if not coords_data:
+                        raise ValueError("坐标文件为空")
+                    coords_path = tmp_path / (coords_file.filename or "coordinates.csv")
+                    coords_path.write_bytes(coords_data)
+                    print(f"[DEBUG] 保存坐标文件: {coords_file.filename}, 大小: {len(coords_data)} bytes")
+                except Exception as e:
+                    print(f"[ERROR] 保存坐标文件失败: {e}")
+                    raise HTTPException(status_code=400, detail=f"保存坐标文件失败: {str(e)}")
 
-            # 聚合数据
-            try:
-                print(f"[DEBUG] 开始聚合数据，钻孔文件数: {len(borehole_paths)}")
-                merged_df, coords_df = aggregate_boreholes(borehole_paths, str(coords_path))
-                print(f"[DEBUG] 数据聚合成功，记录数: {len(merged_df)}")
-            except Exception as e:
-                print(f"[ERROR] 数据聚合失败: {e}")
-                raise HTTPException(status_code=400, detail=f"数据聚合失败: {str(e)}")
+                # 聚合数据
+                try:
+                    print(f"[DEBUG] 开始聚合数据，钻孔文件数: {len(borehole_paths)}")
+                    merged_df, coords_df = aggregate_boreholes(borehole_paths, str(coords_path))
+                    print(f"[DEBUG] 数据聚合成功，记录数: {len(merged_df)}")
+                except Exception as e:
+                    print(f"[ERROR] 数据聚合失败: {e}")
+                    raise HTTPException(status_code=400, detail=f"数据聚合失败: {str(e)}")
 
         modeling_state.merged_df = merged_df
         modeling_state.coords_df = coords_df
@@ -614,12 +648,30 @@ async def load_modeling_columns(
         columns_info = _get_numeric_and_text_columns(merged_df)
         modeling_state.numeric_columns = columns_info["numeric"]
         modeling_state.text_columns = columns_info["text"]
+        
+        # 详细日志：输出数据摘要用于调试
+        print(f"[DEBUG] ========== 数据加载摘要 ==========")
+        print(f"[DEBUG] 数据模式: {'已合并数据' if use_merged_data else '传统合并'}")
+        print(f"[DEBUG] 总记录数: {len(merged_df)}")
+        print(f"[DEBUG] 数值列: {modeling_state.numeric_columns}")
+        print(f"[DEBUG] 文本列: {modeling_state.text_columns}")
+        print(f"[DEBUG] 列总数: {len(merged_df.columns)}")
+        
+        # 输出数据样本
+        if len(merged_df) > 0:
+            sample_cols = ['钻孔名'] + [col for col in merged_df.columns if 'X' in col or 'x' in col or 'Y' in col or 'y' in col][:4]
+            sample_cols = [col for col in sample_cols if col in merged_df.columns]
+            if sample_cols:
+                print(f"[DEBUG] 数据样本 (前3行):")
+                print(merged_df[sample_cols].head(3).to_string())
+        print(f"[DEBUG] ====================================")
 
         return {
             "status": "success",
             "numeric_columns": modeling_state.numeric_columns,
             "text_columns": modeling_state.text_columns,
             "record_count": int(len(merged_df)),
+            "data_mode": "merged" if use_merged_data else "traditional",
         }
     except HTTPException:
         raise
@@ -635,14 +687,55 @@ async def get_unique_seams(column: str = Query(..., description="岩层列名"))
     modeling_state.ensure_loaded()
     if column not in modeling_state.merged_df.columns:
         raise HTTPException(status_code=404, detail=f"在合并数据中未找到列: {column}")
+    
+    df = modeling_state.merged_df
+    
+    # 检查是否有序号列（用于确定地层顺序）
+    sequence_col = None
+    for possible_col in ['序号', '序号(从下到上)', '层序', '编号', 'sequence', 'order']:
+        if possible_col in df.columns:
+            sequence_col = possible_col
+            break
+    
+    # 获取唯一的岩层名称
     values = (
-        modeling_state.merged_df[column]
+        df[column]
         .dropna()
         .astype(str)
         .map(str.strip)
         .replace({"nan": ""})
     )
-    unique_values = sorted({v for v in values if v})
+    unique_values = [v for v in values.unique() if v]
+    
+    # 如果有序号列，按序号排序（从小到大，即从下到上）
+    if sequence_col:
+        try:
+            # 为每个岩层找到最小的序号（代表该岩层最底部的位置）
+            seam_order = {}
+            for seam in unique_values:
+                seam_data = df[df[column].astype(str).str.strip() == seam]
+                if not seam_data.empty and sequence_col in seam_data.columns:
+                    # 使用最小序号（最底层）作为该岩层的排序依据
+                    min_seq = pd.to_numeric(seam_data[sequence_col], errors='coerce').min()
+                    if pd.notna(min_seq):
+                        seam_order[seam] = min_seq
+            
+            # 按序号排序
+            if seam_order:
+                unique_values = sorted(unique_values, key=lambda x: seam_order.get(x, float('inf')))
+                print(f"[DEBUG] 按序号列'{sequence_col}'排序岩层: {unique_values}")
+            else:
+                # 如果无法提取有效序号，回退到字母排序
+                unique_values = sorted(unique_values)
+                print(f"[DEBUG] 序号列'{sequence_col}'无有效数据，使用字母排序")
+        except Exception as e:
+            print(f"[WARNING] 按序号排序失败: {e}，使用字母排序")
+            unique_values = sorted(unique_values)
+    else:
+        # 没有序号列，使用字母排序
+        unique_values = sorted(unique_values)
+        print(f"[DEBUG] 未找到序号列，使用字母排序: {unique_values}")
+    
     modeling_state.last_selected_seam_column = column
     return {"status": "success", "values": unique_values}
 
@@ -658,9 +751,15 @@ def _filter_dataframe_by_seams(df: pd.DataFrame, seams: Optional[List[str]], sea
 async def generate_contour(data: ContourRequest):
     modeling_state.ensure_loaded()
     df = modeling_state.merged_df.copy()
+    
+    print(f"[CONTOUR] ========== 等值线生成开始 ==========")
+    print(f"[CONTOUR] 原始数据: {len(df)} 条记录")
+    print(f"[CONTOUR] 请求列: X={data.x_col}, Y={data.y_col}, Z={data.z_col}")
+    print(f"[CONTOUR] 岩层过滤: {data.seams}")
 
     seam_col = modeling_state.last_selected_seam_column
     df = _filter_dataframe_by_seams(df, data.seams, seam_col)
+    print(f"[CONTOUR] 过滤后数据: {len(df)} 条记录")
 
     if df.empty:
         raise HTTPException(status_code=400, detail="过滤后的数据为空，无法生成等值线")
@@ -673,11 +772,19 @@ async def generate_contour(data: ContourRequest):
     subset = df.dropna(subset=required_cols).copy()
     if subset.empty:
         raise HTTPException(status_code=400, detail="有效数据点不足以进行插值")
+    
+    print(f"[CONTOUR] 去除NA后: {len(subset)} 条记录")
 
     x = pd.to_numeric(subset[data.x_col], errors="coerce").dropna()
     y = pd.to_numeric(subset[data.y_col], errors="coerce").dropna()
     z = pd.to_numeric(subset[data.z_col], errors="coerce").dropna()
     valid_length = min(len(x), len(y), len(z))
+    
+    print(f"[CONTOUR] 有效数据点: {valid_length}")
+    print(f"[CONTOUR] X范围: [{x.min():.2f}, {x.max():.2f}]")
+    print(f"[CONTOUR] Y范围: [{y.min():.2f}, {y.max():.2f}]")
+    print(f"[CONTOUR] Z范围: [{z.min():.2f}, {z.max():.2f}]")
+    
     if valid_length < 4:
         raise HTTPException(status_code=400, detail="至少需要4个有效数据点来生成等值线")
 
@@ -723,10 +830,28 @@ async def generate_contour(data: ContourRequest):
 async def generate_block_model(payload: BlockModelRequest):
     modeling_state.ensure_loaded()
     df = modeling_state.merged_df
+    
+    print(f"[3D_MODEL] ========== 3D建模开始 ==========")
+    print(f"[3D_MODEL] 原始数据: {len(df)} 条记录")
+    print(f"[3D_MODEL] 请求参数:")
+    print(f"[3D_MODEL]   X列: {payload.x_col}")
+    print(f"[3D_MODEL]   Y列: {payload.y_col}")
+    print(f"[3D_MODEL]   厚度列: {payload.thickness_col}")
+    print(f"[3D_MODEL]   岩层列: {payload.seam_col}")
+    print(f"[3D_MODEL]   选择岩层: {payload.selected_seams}")
+    print(f"[3D_MODEL]   插值方法: {payload.method}")
+    print(f"[3D_MODEL]   分辨率: {payload.resolution}")
+    print(f"[3D_MODEL]   基底高程: {payload.base_level}")
+    print(f"[3D_MODEL]   层间间隔: {payload.gap}")
 
     for col in [payload.x_col, payload.y_col, payload.thickness_col, payload.seam_col]:
         if col not in df.columns:
             raise HTTPException(status_code=404, detail=f"数据集中缺少列: {col}")
+    
+    # 输出每个选择岩层的数据点数
+    for seam in payload.selected_seams:
+        seam_data = df[df[payload.seam_col].astype(str) == str(seam)]
+        print(f"[3D_MODEL] 岩层 '{seam}': {len(seam_data)} 条记录")
 
     def interpolation_wrapper(x, y, z, xi_flat, yi_flat):
         """智能插值包装函数,使用增强的interpolation模块"""
