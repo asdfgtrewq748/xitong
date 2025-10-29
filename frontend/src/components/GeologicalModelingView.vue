@@ -32,6 +32,20 @@
               </el-radio-group>
             </div>
             
+            <!-- 统一说明 -->
+            <el-alert type="info" :closable="false" show-icon style="margin-bottom: 16px;">
+              <div style="font-size: 12px; line-height: 1.6;">
+                <template v-if="useGlobalData">
+                  <b>全局数据模式：</b>使用已导入的全局钻孔数据进行建模。
+                  <span v-if="hasCoordinatesInGlobalData">数据已包含坐标信息，无需额外上传坐标文件。</span>
+                  <span v-else>需要上传坐标文件进行数据合并。</span>
+                </template>
+                <template v-else>
+                  <b>上传文件模式：</b>上传新的钻孔CSV文件和坐标CSV文件进行建模。两种模式的建模算法和效果完全一致。
+                </template>
+              </div>
+            </el-alert>
+            
             <!-- 钻孔数据选择 -->
             <div v-if="!useGlobalData" class="file-group">
               <div class="file-group__header">
@@ -62,17 +76,29 @@
               </div>
             </div>
             
-            <!-- 坐标文件 (必需) -->
+            <!-- 坐标文件 (条件必需) -->
             <div class="file-group">
               <div class="file-group__header">
-                <h5>坐标文件 <el-tag size="small" type="danger">必需</el-tag></h5>
+                <h5>坐标文件 
+                  <el-tag v-if="useGlobalData && hasCoordinatesInGlobalData" size="small" type="info">可选</el-tag>
+                  <el-tag v-else size="small" type="danger">必需</el-tag>
+                </h5>
                 <el-button type="primary" plain size="small" @click="triggerCoordsSelection">选择文件</el-button>
                 <input ref="coordsInput" class="hidden-input" type="file" accept=".csv" @change="handleCoordsFile" />
               </div>
               <div class="coords-summary">
                 <span v-if="coordsFile">{{ coordsFile.name }} ({{ formatFileSize(coordsFile.size) }})</span>
+                <span v-else-if="useGlobalData && hasCoordinatesInGlobalData" class="info-text">
+                  全局数据已包含坐标信息
+                </span>
                 <span v-else class="muted">未选择文件</span>
               </div>
+              <el-alert v-if="useGlobalData && hasCoordinatesInGlobalData && !coordsFile" 
+                type="success" :closable="false" show-icon style="margin-top: 8px;">
+                <div style="font-size: 11px;">
+                  系统检测到全局数据已包含X、Y坐标信息，无需再上传坐标文件。
+                </div>
+              </el-alert>
             </div>
             
             <el-button type="primary" @click="loadAndMergeData" :loading="isLoading" class="full-width">
@@ -88,6 +114,14 @@
             </el-form>
             <div v-if="availableSeams.length > 0">
               <h5>选择建模岩层 (可多选)</h5>
+              <el-alert type="warning" :closable="false" show-icon style="margin-bottom: 8px;">
+                <div style="font-size: 11px;">
+                  <b>重要提示：</b>岩层将按照列表顺序从下到上堆叠建模。<br/>
+                  • 如果数据包含"序号"列，系统已自动按序号排序<br/>
+                  • 请确保第一个岩层是最底层，最后一个是最顶层<br/>
+                  • 可通过拖拽调整顺序（如果需要）
+                </div>
+              </el-alert>
               <el-select v-model="params.selected_seams" multiple placeholder="选择岩层" style="width: 100%;"><el-option v-for="s in availableSeams" :key="s" :label="s" :value="s"/></el-select>
             </div>
             <el-button type="primary" @click="step = 2" :disabled="!canProceedToModeling" class="full-width">下一步</el-button>
@@ -120,10 +154,10 @@
                   <div style="font-size: 13px; font-weight: 500;">建模顺序说明</div>
                 </template>
                 <div style="font-size: 12px; line-height: 1.6;">
-                  • 岩层按<b>选择顺序</b>从下到上堆叠<br/>
-                  • 第1层底面 = 基底高程<br/>
-                  • 每层顶面 = 底面 + 厚度<br/>
-                  • 下一层底面 = 上一层顶面 + 间隔<br/>
+                  • 岩层按<b>列表顺序从下到上</b>依次堆叠<br/>
+                  • 第1层（列表第一个）：底面 = 基底高程，顶面 = 底面 + 厚度<br/>
+                  • 第2层开始：底面 = 上一层顶面 + 间隔，顶面 = 底面 + 厚度<br/>
+                  • 如有"序号"列，已自动按序号排序（从小到大）<br/>
                   • <span style="color: #e6a23c;">煤层自动显示为黑色</span><br/>
                   • <span style="color: #409eff;">相同名称岩层使用相同颜色</span>
                 </div>
@@ -137,6 +171,14 @@
                 <el-button type="success" @click="generate3DModel" :loading="isLoading" :disabled="params.selected_seams.length === 0" class="full-width">生成 3D 块体模型</el-button>
               </el-col>
             </el-row>
+            
+            <!-- 剖面图按钮 - 显眼位置 -->
+            <div v-if="current3DModel && current3DModel.type !== '2D'">
+              <el-button type="warning" @click="showCrossSectionDialog" class="full-width" style="margin-bottom: 12px;">
+                <el-icon style="margin-right: 4px;"><Grid /></el-icon>
+                查看地质剖面图
+              </el-button>
+            </div>
             
             <!-- 导出按钮 (适用于2D和3D) -->
             <div v-if="current3DModel">
@@ -394,6 +436,76 @@
         <el-button type="primary" @click="confirmExport" :loading="isExporting">导出</el-button>
       </template>
     </el-dialog>
+
+    <!-- 剖面对话框 -->
+    <el-dialog v-model="crossSectionDialogVisible" title="地质剖面图" width="85%" top="5vh">
+      <div class="cross-section-container">
+        <!-- 剖面设置 -->
+        <el-form :inline="true" size="small" style="margin-bottom: 16px;">
+          <el-form-item label="剖面方向">
+            <el-select v-model="crossSection.direction" @change="generateCrossSection" style="width: 120px;">
+              <el-option label="X方向剖面" value="x" />
+              <el-option label="Y方向剖面" value="y" />
+            </el-select>
+          </el-form-item>
+          <el-form-item :label="crossSection.direction === 'x' ? 'X坐标位置' : 'Y坐标位置'">
+            <el-slider 
+              v-model="crossSection.position" 
+              :min="crossSection.range.min" 
+              :max="crossSection.range.max" 
+              :step="crossSection.range.step"
+              @input="generateCrossSection"
+              style="width: 200px; margin: 0 16px;"
+            />
+            <el-input-number 
+              v-model="crossSection.position" 
+              :min="crossSection.range.min" 
+              :max="crossSection.range.max" 
+              :step="crossSection.range.step"
+              @change="generateCrossSection"
+              size="small"
+              style="width: 120px;"
+            />
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" @click="generateCrossSection" :loading="isLoadingCrossSection">
+              生成剖面
+            </el-button>
+          </el-form-item>
+        </el-form>
+        
+        <!-- 剖面图表 -->
+        <div ref="crossSectionChartRef" style="width: 100%; height: 600px; border: 1px solid #e5e7eb; border-radius: 4px;"></div>
+        
+        <!-- 剖面说明 -->
+        <el-alert type="success" :closable="false" style="margin-top: 16px;" show-icon>
+          <template #title>
+            <span style="font-size: 14px; font-weight: bold;">剖面图使用说明</span>
+          </template>
+          <div style="font-size: 12px; line-height: 1.8;">
+            <b>📊 功能说明：</b><br/>
+            • 剖面图以彩色填充显示选定位置的地层垂直分布结构<br/>
+            • <b>X方向剖面</b>：固定X坐标，沿Y轴切割查看地层<br/>
+            • <b>Y方向剖面</b>：固定Y坐标，沿X轴切割查看地层<br/><br/>
+            
+            <b>🎨 视觉元素：</b><br/>
+            • 填充色块：每个岩层的厚度范围，颜色与3D模型一致<br/>
+            • 实线：岩层顶面边界<br/>
+            • 虚线：岩层底面边界<br/><br/>
+            
+            <b>💡 交互提示：</b><br/>
+            • 鼠标悬停查看精确坐标和高程<br/>
+            • 点击图例可显示/隐藏特定岩层<br/>
+            • 拖动底部滑块可局部放大查看<br/>
+            • 鼠标滚轮可缩放视图
+          </div>
+        </el-alert>
+      </div>
+      <template #footer>
+        <el-button @click="crossSectionDialogVisible = false">关闭</el-button>
+        <el-button type="primary" @click="exportCrossSection">导出剖面图</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -412,7 +524,8 @@ import {
   Back, 
   VideoPlay, 
   Camera, 
-  FullScreen
+  FullScreen,
+  Grid
 } from '@element-plus/icons-vue';
 import * as echarts from 'echarts';
 import 'echarts-gl'; // 必须导入 echarts-gl 以支持 3D 图表
@@ -509,6 +622,23 @@ const canProceedToModeling = computed(() =>
   !!(params.x_col && params.y_col && params.thickness_col && params.seam_col && params.selected_seams.length > 0)
 );
 
+// 检查全局数据是否包含坐标信息
+const hasCoordinatesInGlobalData = computed(() => {
+  if (!useGlobalData.value || !globalDataStore.keyStratumColumns || globalDataStore.keyStratumColumns.length === 0) {
+    return false;
+  }
+  
+  const coordColumns = ['X', 'x', 'X坐标', 'x坐标', 'Y', 'y', 'Y坐标', 'y坐标'];
+  const hasX = coordColumns.some(coord => 
+    globalDataStore.keyStratumColumns.some(col => col.includes(coord.includes('X') || coord.includes('x') ? 'x' : 'X'))
+  );
+  const hasY = coordColumns.some(coord => 
+    globalDataStore.keyStratumColumns.some(col => col.includes(coord.includes('Y') || coord.includes('y') ? 'y' : 'Y'))
+  );
+  
+  return hasX && hasY;
+});
+
 // 新增状态
 const current3DModel = ref(null); // 当前生成的3D模型数据
 const modelStats = ref(null); // 模型统计信息
@@ -516,6 +646,21 @@ const layerControlVisible = ref(false); // 图层控制对话框
 const layerVisibility = ref([]); // 图层可见性配置
 const exportDialogVisible = ref(false); // 导出对话框
 const isExporting = ref(false); // 导出状态
+
+// 剖面相关状态
+const crossSectionDialogVisible = ref(false); // 剖面对话框
+const crossSectionChartRef = ref(null); // 剖面图表引用
+let crossSectionChart = null; // 剖面图表实例
+const isLoadingCrossSection = ref(false); // 剖面生成状态
+const crossSection = reactive({
+  direction: 'x', // 剖面方向: 'x' 或 'y'
+  position: 0, // 剖面位置
+  range: {
+    min: 0,
+    max: 100,
+    step: 1
+  }
+});
 
 // 3D视图控制参数
 const viewControl = reactive({
@@ -532,7 +677,8 @@ const renderOptions = reactive({
   shadingMode: 'lambert', // 使用lambert模式更稳定
   lightIntensity: 1.5,
   ambientIntensity: 0.7,
-  shadowQuality: 'medium' // 使用中等质量以平衡性能和效果
+  shadowQuality: 'medium',
+  showSides: true // 是否显示侧面
 });
 
 // 导出选项
@@ -572,13 +718,19 @@ async function loadAndMergeData() {
       ElMessage.warning('全局数据为空，请先在Dashboard导入钻孔数据');
       return;
     }
-    if (!coordsFile.value) {
-      ElMessage.warning('请上传坐标文件');
+    // 检查是否需要坐标文件
+    if (!hasCoordinatesInGlobalData.value && !coordsFile.value) {
+      ElMessage.warning('全局数据不包含坐标信息，请上传坐标文件');
       return;
     }
   } else {
-    if (boreholeFiles.value.length === 0 || !coordsFile.value) {
-      ElMessage.warning('请上传钻孔文件和坐标文件');
+    // 使用上传文件模式
+    if (boreholeFiles.value.length === 0) {
+      ElMessage.warning('请上传钻孔文件');
+      return;
+    }
+    if (!coordsFile.value) {
+      ElMessage.warning('请上传坐标文件');
       return;
     }
   }
@@ -586,6 +738,7 @@ async function loadAndMergeData() {
   isLoading.value = true;
   try {
     const formData = new FormData();
+    let useMergedData = false;
 
     if (useGlobalData.value) {
       // 使用全局数据：将数据转换为CSV并上传
@@ -594,6 +747,29 @@ async function loadAndMergeData() {
 
       if (!columns || columns.length === 0) {
         throw new Error('全局数据列信息缺失');
+      }
+
+      // 检查全局数据是否已包含坐标信息
+      const coordColumns = ['X', 'x', 'X坐标', 'x坐标', 'Y', 'y', 'Y坐标', 'y坐标'];
+      const hasCoordinates = coordColumns.some(coord => 
+        columns.some(col => col.includes(coord))
+      );
+
+      console.log('全局数据列:', columns);
+      console.log('是否包含坐标:', hasCoordinates);
+
+      if (hasCoordinates) {
+        // 数据已包含坐标，使用已合并数据模式
+        useMergedData = true;
+        console.log('使用已合并数据模式（数据已包含坐标）');
+      } else {
+        // 数据不包含坐标，需要坐标文件
+        if (!coordsFile.value) {
+          ElMessage.warning('全局数据不包含坐标信息，请上传坐标文件');
+          isLoading.value = false;
+          return;
+        }
+        console.log('使用传统模式（需要合并坐标文件）');
       }
 
       // 转换为CSV格式
@@ -618,7 +794,13 @@ async function loadAndMergeData() {
       console.log('使用上传文件，文件数:', boreholeFiles.value.length);
     }
 
-    formData.append('coords_file', coordsFile.value);
+    // 添加坐标文件（如果需要）
+    if (!useMergedData && coordsFile.value) {
+      formData.append('coords_file', coordsFile.value);
+    }
+
+    // 添加标志参数
+    formData.append('use_merged_data', useMergedData.toString());
 
     const response = await fetch(`${API_BASE}/modeling/columns`, {
       method: 'POST',
@@ -653,7 +835,8 @@ async function loadAndMergeData() {
       columns.value.text = res.text_columns;
 
       const recordCount = res.record_count || 0;
-      ElMessage.success(`数据合并成功，共 ${recordCount} 条记录`);
+      const dataSource = useGlobalData.value ? '全局数据' : '上传文件';
+      ElMessage.success(`${dataSource}加载成功，共 ${recordCount} 条记录`);
 
       // 智能选择列
       params.x_col = res.numeric_columns.find(c => c.toLowerCase().includes('x')) || res.numeric_columns[0] || '';
@@ -668,7 +851,7 @@ async function loadAndMergeData() {
       step.value = 1;
       chartMessage.value = '请选择列并生成等值线或三维模型。';
     } else {
-      const errorMsg = res.detail || res.message || '数据合并失败';
+      const errorMsg = res.detail || res.message || '数据加载失败';
       ElMessage.error(errorMsg);
       chartMessage.value = errorMsg;
     }
@@ -793,14 +976,25 @@ onUnmounted(() => {
     console.log('[onUnmounted] ✅ 移除resize监听器');
   }
 
-  // 销毁图表实例
+  // 销毁主图表实例
   if (myChart) {
     try {
       myChart.dispose();
       myChart = null;
-      console.log('[onUnmounted] ✅ 销毁图表实例');
+      console.log('[onUnmounted] ✅ 销毁主图表实例');
     } catch (e) {
-      console.warn('[onUnmounted] 销毁图表实例时出错:', e);
+      console.warn('[onUnmounted] 销毁主图表实例时出错:', e);
+    }
+  }
+
+  // 销毁剖面图表实例
+  if (crossSectionChart) {
+    try {
+      crossSectionChart.dispose();
+      crossSectionChart = null;
+      console.log('[onUnmounted] ✅ 销毁剖面图表实例');
+    } catch (e) {
+      console.warn('[onUnmounted] 销毁剖面图表实例时出错:', e);
     }
   }
 
@@ -884,6 +1078,7 @@ async function generateContour() {
     isLoading.value = false;
   }
 }
+/* eslint-disable no-unused-vars */
 async function generate3DModel() {
   // 参数验证
   if (!params.x_col || !params.y_col || !params.thickness_col || !params.seam_col) {
@@ -1030,7 +1225,7 @@ async function generate3DModel() {
         // 添加顶面 - 使用数组格式
         series.push({
           type: 'surface',
-          name: `${model.name}`,
+          name: model.name, // 使用岩层名称，不加后缀
           data: topZFlat.map((z, idx) => {
             const j = idx % model.grid_x.length;
             const i = Math.floor(idx / model.grid_x.length);
@@ -1064,7 +1259,7 @@ async function generate3DModel() {
         // 添加底面
         series.push({
           type: 'surface',
-          name: `${model.name} (底)`,
+          name: model.name, // 使用相同的岩层名称
           data: bottomZFlat.map((z, idx) => {
             const j = idx % model.grid_x.length;
             const i = Math.floor(idx / model.grid_x.length);
@@ -1094,6 +1289,139 @@ async function generate3DModel() {
             }
           }
         });
+
+        // 添加四个侧面以形成真正的块体
+        if (renderOptions.showSides) {
+          // 添加四个侧面以形成真正的块体
+          const xLen = model.grid_x.length;
+          const yLen = model.grid_y.length;
+          
+          // 侧面1: 前侧 (Y最小)
+        const frontSide = [];
+        for (let j = 0; j < xLen; j++) {
+          const x = model.grid_x[j];
+          const y = model.grid_y[0];
+          const topZ = model.top_surface_z[0][j];
+          const bottomZ = model.bottom_surface_z[0][j];
+          frontSide.push([x, y, topZ]);
+          frontSide.push([x, y, bottomZ]);
+        }
+        
+        series.push({
+          type: 'surface',
+          name: model.name, // 使用相同的岩层名称
+          parametric: true,
+          wireframe: {
+            show: renderOptions.showWireframe,
+            lineStyle: {
+              color: 'rgba(0,0,0,0.1)',
+              width: 0.5
+            }
+          },
+          parametricEquation: {
+            u: { min: 0, max: xLen - 1, step: 1 },
+            v: { min: 0, max: 1, step: 1 },
+            x: (u) => model.grid_x[Math.floor(u)],
+            y: () => model.grid_y[0],
+            z: (u, v) => {
+              const j = Math.floor(u);
+              return v === 0 ? model.bottom_surface_z[0][j] : model.top_surface_z[0][j];
+            }
+          },
+          shading: renderOptions.shadingMode,
+          itemStyle: {
+            color: layerColor,
+            opacity: baseOpacity * 0.7
+          }
+        });
+
+        // 侧面2: 后侧 (Y最大)
+        series.push({
+          type: 'surface',
+          name: model.name, // 使用相同的岩层名称
+          parametric: true,
+          wireframe: {
+            show: renderOptions.showWireframe,
+            lineStyle: {
+              color: 'rgba(0,0,0,0.1)',
+              width: 0.5
+            }
+          },
+          parametricEquation: {
+            u: { min: 0, max: xLen - 1, step: 1 },
+            v: { min: 0, max: 1, step: 1 },
+            x: (u) => model.grid_x[Math.floor(u)],
+            y: () => model.grid_y[yLen - 1],
+            z: (u, v) => {
+              const j = Math.floor(u);
+              return v === 0 ? model.bottom_surface_z[yLen - 1][j] : model.top_surface_z[yLen - 1][j];
+            }
+          },
+          shading: renderOptions.shadingMode,
+          itemStyle: {
+            color: layerColor,
+            opacity: baseOpacity * 0.7
+          }
+        });
+
+        // 侧面3: 左侧 (X最小)
+        series.push({
+          type: 'surface',
+          name: model.name, // 使用相同的岩层名称
+          parametric: true,
+          wireframe: {
+            show: renderOptions.showWireframe,
+            lineStyle: {
+              color: 'rgba(0,0,0,0.1)',
+              width: 0.5
+            }
+          },
+          parametricEquation: {
+            u: { min: 0, max: yLen - 1, step: 1 },
+            v: { min: 0, max: 1, step: 1 },
+            x: () => model.grid_x[0],
+            y: (u) => model.grid_y[Math.floor(u)],
+            z: (u, v) => {
+              const i = Math.floor(u);
+              return v === 0 ? model.bottom_surface_z[i][0] : model.top_surface_z[i][0];
+            }
+          },
+          shading: renderOptions.shadingMode,
+          itemStyle: {
+            color: layerColor,
+            opacity: baseOpacity * 0.7
+          }
+        });
+
+        // 侧面4: 右侧 (X最大)
+        series.push({
+          type: 'surface',
+          name: model.name, // 使用相同的岩层名称
+          parametric: true,
+          wireframe: {
+            show: renderOptions.showWireframe,
+            lineStyle: {
+              color: 'rgba(0,0,0,0.1)',
+              width: 0.5
+            }
+          },
+          parametricEquation: {
+            u: { min: 0, max: yLen - 1, step: 1 },
+            v: { min: 0, max: 1, step: 1 },
+            x: () => model.grid_x[xLen - 1],
+            y: (u) => model.grid_y[Math.floor(u)],
+            z: (u, v) => {
+              const i = Math.floor(u);
+              return v === 0 ? model.bottom_surface_z[i][xLen - 1] : model.top_surface_z[i][xLen - 1];
+            }
+          },
+          shading: renderOptions.shadingMode,
+          itemStyle: {
+            color: layerColor,
+            opacity: baseOpacity * 0.7
+          }
+        });
+        } // 结束侧面渲染
       });
 
       if (series.length === 0) {
@@ -1225,12 +1553,10 @@ async function generate3DModel() {
         tooltip: { 
           formatter: (p) => {
             if(p.value && Array.isArray(p.value) && p.value.length >= 3) {
-              const layerName = p.seriesName.replace(/\s*\((顶|底)\)\s*$/, '');
-              const surfaceType = p.seriesName.includes('(底)') ? '底面' : '顶面';
+              const layerName = p.seriesName;
               return `
                 <div style="padding: 8px; font-family: Arial, SimSun;">
                   <div style="font-weight: bold; font-size: 13px; margin-bottom: 6px; color: #1a1a1a;">${layerName}</div>
-                  <div style="font-size: 11px; color: #666; margin-bottom: 4px;">${surfaceType}</div>
                   <div style="font-size: 11px; line-height: 18px; color: #333;">
                     <span style="display: inline-block; width: 60px;">X坐标:</span><b>${p.value[0].toFixed(2)}</b> m<br/>
                     <span style="display: inline-block; width: 60px;">Y坐标:</span><b>${p.value[1].toFixed(2)}</b> m<br/>
@@ -1250,7 +1576,7 @@ async function generate3DModel() {
           }
         },
         legend: { 
-          data: series.filter(s => !s.name.includes('(底)')).map(s => s.name),
+          data: [...new Set(res.models.map(m => m.name))], // 只显示唯一的岩层名称
           orient: 'vertical', 
           right: 15, 
           top: 80,
@@ -1271,6 +1597,10 @@ async function generate3DModel() {
               title: '反选'
             }
           ],
+          selected: res.models.reduce((acc, model) => {
+            acc[model.name] = true; // 默认全部选中
+            return acc;
+          }, {}),
           formatter: (name) => {
             // 在图例中添加图标和格式化名称
             const isCoal = name.includes('煤');
@@ -1558,6 +1888,7 @@ function calculateModelStats(models) {
     layers
   };
 }
+/* eslint-enable no-unused-vars */
 
 // 更新3D视图
 function update3DView() {
@@ -1942,6 +2273,452 @@ async function runComparison() {
   }
 }
 
+// ==================== 剖面功能 ====================
+
+// 显示剖面对话框
+function showCrossSectionDialog() {
+  if (!current3DModel.value || !current3DModel.value.models) {
+    ElMessage.warning('请先生成3D模型');
+    return;
+  }
+  
+  // 初始化剖面范围
+  const models = current3DModel.value.models;
+  if (models.length === 0) {
+    ElMessage.warning('模型数据为空');
+    return;
+  }
+  
+  const firstModel = models[0];
+  if (crossSection.direction === 'x') {
+    // X方向剖面：固定X，沿Y切割
+    crossSection.range.min = Math.min(...firstModel.grid_x);
+    crossSection.range.max = Math.max(...firstModel.grid_x);
+    crossSection.range.step = (crossSection.range.max - crossSection.range.min) / 50;
+    crossSection.position = (crossSection.range.min + crossSection.range.max) / 2;
+  } else {
+    // Y方向剖面：固定Y，沿X切割
+    crossSection.range.min = Math.min(...firstModel.grid_y);
+    crossSection.range.max = Math.max(...firstModel.grid_y);
+    crossSection.range.step = (crossSection.range.max - crossSection.range.min) / 50;
+    crossSection.position = (crossSection.range.min + crossSection.range.max) / 2;
+  }
+  
+  crossSectionDialogVisible.value = true;
+  
+  // 等待对话框打开后再初始化图表
+  nextTick(() => {
+    initCrossSectionChart();
+    generateCrossSection();
+  });
+}
+
+// 初始化剖面图表
+function initCrossSectionChart() {
+  if (!crossSectionChartRef.value) {
+    console.error('[剖面] 图表容器未找到');
+    return;
+  }
+  
+  // 销毁旧图表
+  if (crossSectionChart) {
+    crossSectionChart.dispose();
+    crossSectionChart = null;
+  }
+  
+  // 创建新图表
+  crossSectionChart = echarts.init(crossSectionChartRef.value);
+  console.log('[剖面] 图表初始化成功');
+}
+
+// 生成剖面数据
+function generateCrossSection() {
+  if (!crossSectionChart || !current3DModel.value) {
+    return;
+  }
+  
+  isLoadingCrossSection.value = true;
+  
+  try {
+    const models = current3DModel.value.models;
+    const series = [];
+    
+    models.forEach((model, modelIndex) => {
+      const layerColor = getColorForLayer(model.name);
+      const crossSectionData = extractCrossSectionData(model);
+      
+      if (!crossSectionData || crossSectionData.length === 0) {
+        console.warn(`[剖面] 岩层 ${model.name} 无剖面数据`);
+        return;
+      }
+      
+      // 创建闭合的多边形：顶线 + 底线倒序
+      const topLine = crossSectionData.map(point => [point.position, point.top]);
+      const bottomLine = crossSectionData.map(point => [point.position, point.bottom]).reverse();
+      const polygonData = [...topLine, ...bottomLine, topLine[0]]; // 闭合多边形
+      
+      // 使用custom类型创建填充多边形
+      series.push({
+        name: model.name,
+        type: 'custom',
+        renderItem: (params, api) => {
+          const points = polygonData.map(point => api.coord(point));
+          return {
+            type: 'polygon',
+            shape: {
+              points: points
+            },
+            style: {
+              fill: layerColor,
+              opacity: 0.85, // 提高不透明度，填充更明显
+              stroke: layerColor,
+              lineWidth: 2.5, // 加粗边框
+              shadowBlur: 8, // 添加阴影效果
+              shadowColor: 'rgba(0, 0, 0, 0.2)',
+              shadowOffsetX: 2,
+              shadowOffsetY: 2
+            }
+          };
+        },
+        data: [0], // 只需要一个数据点来触发renderItem
+        z: 10 - modelIndex, // 确保正确的层叠顺序
+        emphasis: {
+          focus: 'series',
+          itemStyle: {
+            opacity: 1.0,
+            shadowBlur: 12,
+            shadowColor: 'rgba(0, 0, 0, 0.4)'
+          }
+        },
+        tooltip: {
+          trigger: 'item',
+          formatter: () => {
+            const thickness = crossSectionData.length > 0 
+              ? (crossSectionData[0].top - crossSectionData[0].bottom).toFixed(2)
+              : 'N/A';
+            return `<b>${model.name}</b><br/>平均厚度: ${thickness} m<br/>点击图例可显示/隐藏`;
+          }
+        }
+      });
+      
+      // 添加顶线用于显示轮廓
+      series.push({
+        name: `${model.name}_outline_top`,
+        type: 'line',
+        data: topLine,
+        lineStyle: {
+          color: layerColor,
+          width: 2.5,
+          shadowBlur: 4,
+          shadowColor: 'rgba(0, 0, 0, 0.3)'
+        },
+        symbol: 'none',
+        showInLegend: false,
+        z: 20,
+        smooth: true, // 平滑曲线
+        tooltip: {
+          trigger: 'axis',
+          formatter: (params) => {
+            const p = params[0];
+            return `<b>${model.name} (顶面)</b><br/>位置: ${p.data[0].toFixed(2)} m<br/>高程: ${p.data[1].toFixed(2)} m`;
+          }
+        }
+      });
+      
+      // 添加底线用于显示轮廓
+      series.push({
+        name: `${model.name}_outline_bottom`,
+        type: 'line',
+        data: crossSectionData.map(point => [point.position, point.bottom]),
+        lineStyle: {
+          color: layerColor,
+          width: 1.5,
+          type: 'dashed',
+          dashOffset: 5
+        },
+        symbol: 'none',
+        showInLegend: false,
+        z: 20,
+        smooth: true, // 平滑曲线
+        tooltip: {
+          trigger: 'axis',
+          formatter: (params) => {
+            const p = params[0];
+            return `<b>${model.name} (底面)</b><br/>位置: ${p.data[0].toFixed(2)} m<br/>高程: ${p.data[1].toFixed(2)} m`;
+          }
+        }
+      });
+    });
+    
+    const option = {
+      title: {
+        text: `地质剖面图 (${crossSection.direction === 'x' ? 'X' : 'Y'} = ${crossSection.position.toFixed(2)} m)`,
+        left: 'center',
+        top: 10,
+        textStyle: {
+          fontSize: 18,
+          fontWeight: 'bold',
+          color: '#333'
+        },
+        subtext: `共 ${models.length} 个岩层`,
+        subtextStyle: {
+          fontSize: 12,
+          color: '#666'
+        }
+      },
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: {
+          type: 'cross',
+          label: {
+            backgroundColor: '#6a7985'
+          }
+        },
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        borderColor: '#ccc',
+        borderWidth: 1,
+        textStyle: {
+          color: '#333'
+        },
+        formatter: (params) => {
+          if (!params || params.length === 0) return '';
+          
+          const position = params[0].data[0];
+          const axisLabel = crossSection.direction === 'x' ? 'Y' : 'X';
+          
+          let result = `<div style="padding: 8px;">`;
+          result += `<b style="font-size: 14px;">${axisLabel}坐标: ${position.toFixed(2)} m</b><br/><br/>`;
+          
+          // 只显示主系列（不包括outline）
+          params.filter(p => !p.seriesName.includes('_outline')).forEach(p => {
+            if (p.data && p.data[1] !== undefined) {
+              const elevation = p.data[1];
+              result += `${p.marker} <b>${p.seriesName}</b>: ${elevation.toFixed(2)} m<br/>`;
+            }
+          });
+          
+          result += `</div>`;
+          return result;
+        }
+      },
+      legend: {
+        data: models.map(m => m.name),
+        top: 50,
+        type: 'scroll',
+        orient: 'horizontal',
+        left: 'center',
+        itemWidth: 30,
+        itemHeight: 14,
+        textStyle: {
+          fontSize: 13,
+          fontWeight: '500'
+        },
+        emphasis: {
+          selectorLabel: {
+            show: true
+          }
+        }
+      },
+      grid: {
+        left: 90,
+        right: 50,
+        bottom: 90,
+        top: 110,
+        containLabel: true,
+        backgroundColor: '#fafafa',
+        borderWidth: 1,
+        borderColor: '#ddd'
+      },
+      xAxis: {
+        type: 'value',
+        name: crossSection.direction === 'x' ? 'Y坐标 (m)' : 'X坐标 (m)',
+        nameLocation: 'middle',
+        nameGap: 40,
+        nameTextStyle: {
+          fontSize: 14,
+          fontWeight: 'bold',
+          color: '#333'
+        },
+        axisLine: {
+          lineStyle: {
+            color: '#666'
+          }
+        },
+        axisLabel: {
+          formatter: '{value}',
+          fontSize: 12
+        },
+        splitLine: {
+          lineStyle: {
+            type: 'dashed',
+            color: '#e0e0e0'
+          }
+        }
+      },
+      yAxis: {
+        type: 'value',
+        name: '高程 (m)',
+        nameLocation: 'middle',
+        nameGap: 55,
+        nameTextStyle: {
+          fontSize: 14,
+          fontWeight: 'bold',
+          color: '#333'
+        },
+        axisLine: {
+          lineStyle: {
+            color: '#666'
+          }
+        },
+        axisLabel: {
+          formatter: '{value}',
+          fontSize: 12
+        },
+        splitLine: {
+          lineStyle: {
+            type: 'dashed',
+            color: '#e0e0e0'
+          }
+        }
+      },
+      series: series,
+      dataZoom: [
+        {
+          type: 'slider',
+          show: true,
+          xAxisIndex: [0],
+          start: 0,
+          end: 100,
+          bottom: 20
+        },
+        {
+          type: 'inside',
+          xAxisIndex: [0],
+          start: 0,
+          end: 100
+        }
+      ]
+    };
+    
+    crossSectionChart.setOption(option, true);
+    console.log('[剖面] 剖面图生成成功');
+    
+  } catch (error) {
+    console.error('[剖面] 生成失败:', error);
+    ElMessage.error('剖面生成失败: ' + error.message);
+  } finally {
+    isLoadingCrossSection.value = false;
+  }
+}
+
+// 提取剖面数据
+function extractCrossSectionData(model) {
+  const data = [];
+  
+  try {
+    if (crossSection.direction === 'x') {
+      // X方向剖面：固定X坐标，提取不同Y位置的数据
+      // 找到最接近目标X的索引
+      const xIndex = findClosestIndex(model.grid_x, crossSection.position);
+      
+      if (xIndex === -1) {
+        console.warn('[剖面] 未找到匹配的X坐标');
+        return data;
+      }
+      
+      // 沿Y方向提取数据
+      model.grid_y.forEach((y, yIndex) => {
+        const topZ = model.top_surface_z[yIndex][xIndex];
+        const bottomZ = model.bottom_surface_z[yIndex][xIndex];
+        
+        if (topZ !== null && topZ !== undefined && 
+            bottomZ !== null && bottomZ !== undefined) {
+          data.push({
+            position: y,
+            top: topZ,
+            bottom: bottomZ
+          });
+        }
+      });
+      
+    } else {
+      // Y方向剖面：固定Y坐标，提取不同X位置的数据
+      const yIndex = findClosestIndex(model.grid_y, crossSection.position);
+      
+      if (yIndex === -1) {
+        console.warn('[剖面] 未找到匹配的Y坐标');
+        return data;
+      }
+      
+      // 沿X方向提取数据
+      model.grid_x.forEach((x, xIndex) => {
+        const topZ = model.top_surface_z[yIndex][xIndex];
+        const bottomZ = model.bottom_surface_z[yIndex][xIndex];
+        
+        if (topZ !== null && topZ !== undefined && 
+            bottomZ !== null && bottomZ !== undefined) {
+          data.push({
+            position: x,
+            top: topZ,
+            bottom: bottomZ
+          });
+        }
+      });
+    }
+    
+    console.log(`[剖面] ${model.name} 提取了 ${data.length} 个数据点`);
+    return data;
+    
+  } catch (error) {
+    console.error('[剖面] 数据提取失败:', error);
+    return data;
+  }
+}
+
+// 查找最接近目标值的索引
+function findClosestIndex(array, target) {
+  if (!array || array.length === 0) return -1;
+  
+  let closestIndex = 0;
+  let minDiff = Math.abs(array[0] - target);
+  
+  for (let i = 1; i < array.length; i++) {
+    const diff = Math.abs(array[i] - target);
+    if (diff < minDiff) {
+      minDiff = diff;
+      closestIndex = i;
+    }
+  }
+  
+  return closestIndex;
+}
+
+// 导出剖面图
+function exportCrossSection() {
+  if (!crossSectionChart) {
+    ElMessage.warning('请先生成剖面图');
+    return;
+  }
+  
+  try {
+    const url = crossSectionChart.getDataURL({
+      type: 'png',
+      pixelRatio: 2,
+      backgroundColor: '#fff'
+    });
+    
+    const direction = crossSection.direction === 'x' ? 'X' : 'Y';
+    const position = crossSection.position.toFixed(2);
+    const filename = `地质剖面_${direction}=${position}.png`;
+    
+    downloadFile(url, filename);
+    ElMessage.success('剖面图导出成功');
+  } catch (error) {
+    console.error('[剖面] 导出失败:', error);
+    ElMessage.error('导出失败: ' + error.message);
+  }
+}
+
 </script>
 
 <style scoped>
@@ -2157,6 +2934,18 @@ async function runComparison() {
   border: 1px solid #e2e8f0;
 }
 .coords-summary .muted { color: #94a3b8; }
+.coords-summary .info-text { 
+  color: #0ea5e9; 
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+}
+.coords-summary .info-text::before {
+  content: '✓';
+  margin-right: 6px;
+  color: #10b981;
+  font-weight: bold;
+}
 
 .full-width { 
   width: 100%; 
@@ -2288,6 +3077,22 @@ h5 { margin: 0; font-size: 14px; color: #1f2937; }
   font-size: 13px;
   font-weight: 500;
   color: #334155;
+}
+
+/* 剖面对话框样式 */
+.cross-section-container {
+  padding: 0;
+}
+
+.cross-section-container .el-form {
+  background: #f8fafc;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.cross-section-container .el-form-item {
+  margin-bottom: 0;
 }
 
 </style>
