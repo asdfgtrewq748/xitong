@@ -74,7 +74,7 @@
       <!-- 快捷键 -->
       <div class="action-section">
         <h4 class="section-title">
-          <el-icon><Keyboard /></el-icon>
+          <el-icon><Setting /></el-icon>
           快捷键
         </h4>
         <div class="shortcut-list">
@@ -140,7 +140,7 @@
 import { ref, computed, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import {
-  Operation, Document, Keyboard, Clock
+  Operation, Document, Setting, Clock
 } from '@element-plus/icons-vue'
 
 const props = defineProps({

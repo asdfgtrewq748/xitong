@@ -42,9 +42,13 @@ class TunnelSupportCalculator:
     def compute_R_equivalent(a_half: float, b_half: float, gamma: float, 
                             depth_H: float, C_MPa: float, phi_deg: float, K: float) -> float:
         """
-        式(5.1)：计算等效圆塑性区半径 R (m)
+        式(5.1)：计算塑性区半径 R (m)
         
         R = r * [((K * γ * H + C * cotφ) * (1 - sinφ)) / (C * cotφ)]^((1 - sinφ) / (2 * sinφ))
+        
+        等效圆半径 r = √(a² + b²)
+        
+        ⚠️ 单位统一：gamma × H 需要从 kPa 转为 MPa
         
         Args:
             a_half: 巷道半宽 (m)
@@ -56,9 +60,11 @@ class TunnelSupportCalculator:
             K: 应力集中系数
             
         Returns:
-            等效圆塑性区半径 R (m)
+            塑性区半径 R (m)
         """
-        r_eq = a_half  # 等效圆半径取巷道半宽
+        # 🔧 修正：等效圆半径为 √(a² + b²)
+        r_eq = math.sqrt(a_half**2 + b_half**2)
+        
         phi = math.radians(phi_deg)
         sin_phi = math.sin(phi)
         
@@ -66,7 +72,12 @@ class TunnelSupportCalculator:
             raise ValueError("内摩擦角不能为0度")
         
         cot_phi = 1 / math.tan(phi)
-        numerator = (K * gamma * depth_H + C_MPa * cot_phi) * (1 - sin_phi)
+        
+        # 🔧 修复：将 gamma * depth_H 从 kPa 转换为 MPa
+        gamma_H_MPa = gamma * depth_H / 1000.0  # kN/m² = kPa → MPa
+        
+        # 现在单位统一为 MPa
+        numerator = (K * gamma_H_MPa + C_MPa * cot_phi) * (1 - sin_phi)
         denominator = C_MPa * cot_phi
         exponent = (1 - sin_phi) / (2 * sin_phi)
         
@@ -74,22 +85,32 @@ class TunnelSupportCalculator:
         return R
     
     @staticmethod
-    def compute_loosening_zones(R: float, a_half: float, b_half: float) -> Dict[str, float]:
+    def compute_loosening_zones(R: float, a_half: float, b_half: float, B: float, H: float, 
+                               phi_deg: float, f_top: float) -> Dict[str, float]:
         """
         式(5.2)-(5.4)：计算松动圈和压力拱高度
         
         Args:
-            R: 等效圆塑性区半径 (m)
+            R: 塑性区半径 (m)
             a_half: 巷道半宽 (m)
             b_half: 巷道半高 (m)
+            B: 巷道宽度 (m)
+            H: 巷道高度 (m)
+            phi_deg: 内摩擦角 (度)
+            f_top: 顶板普氏系数
             
         Returns:
-            包含hct, hcs, hat的字典
+            包含 hct(顶板松动圈), hcs(两帮松动圈), hat(压力拱高度) 的字典
         """
+        phi_rad = math.radians(phi_deg)
+        
+        # (5.4) 压力拱高度：hat = (B/2 + H * tan(45° - φ/2)) / f_top
+        hat = (B / 2 + H * math.tan(math.radians(45) - phi_rad / 2)) / f_top
+        
         return {
             'hct': R - b_half,  # (5.2) 顶板松动圈
-            'hcs': R - a_half,  # (5.3) 帮部松动圈
-            'hat': R - a_half,  # (5.4) 普氏压力拱高度（临时经验式）
+            'hcs': R - a_half,  # (5.3) 两帮松动圈
+            'hat': hat,         # (5.4) 压力拱高度
         }
     
     def compute_design_capacity(self, anchor_type: str = 'anchor') -> float:
@@ -135,7 +156,7 @@ class TunnelSupportCalculator:
         """
         式(5.8)：计算锚索锚固长度
         
-        Lm = Q / (π * R * c0)
+        Lm = Q / (2 * π * R * c0)
         
         Args:
             Q_kN: 设计荷载 (kN)
@@ -149,7 +170,7 @@ class TunnelSupportCalculator:
         R_m = R_mm / 1000.0
         c0_Pa = c0_MPa * 1e6
         
-        Lm = Q_N / (math.pi * R_m * c0_Pa)
+        Lm = Q_N / (2.0 * math.pi * R_m * c0_Pa)
         return Lm
     
     @staticmethod
@@ -242,6 +263,7 @@ class TunnelSupportCalculator:
                 - gamma: 容重 (kN/m³)
                 - C: 粘聚力 (MPa)
                 - phi: 内摩擦角 (度)
+                - f_top: 顶板普氏系数 (默认为2.0)
                 
         Returns:
             完整的计算结果字典
@@ -256,12 +278,13 @@ class TunnelSupportCalculator:
         C = params['C']
         phi = params['phi']
         K = params['K']
+        f_top = params.get('f_top', 2.0)  # 默认值为2.0
         
         # (5.1) 计算等效圆塑性区半径
         R = self.compute_R_equivalent(a_half, b_half, gamma, depth, C, phi, K)
         
         # (5.2)-(5.4) 计算松动圈和压力拱
-        loosening = self.compute_loosening_zones(R, a_half, b_half)
+        loosening = self.compute_loosening_zones(R, a_half, b_half, B, H, phi, f_top)
         hct = loosening['hct']
         hcs = loosening['hcs']
         hat = loosening['hat']

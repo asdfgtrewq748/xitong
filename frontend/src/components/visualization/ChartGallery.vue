@@ -4,7 +4,7 @@
     <el-row :gutter="12">
       <el-col :span="6">
         <el-card shadow="hover" class="sample-card" @click="loadSample('scatter')">
-          <el-icon class="sample-icon"><ScatterChart /></el-icon>
+          <el-icon class="sample-icon"><TrendCharts /></el-icon>
           <div class="sample-title">散点图示例</div>
         </el-card>
       </el-col>
@@ -33,7 +33,7 @@
 <script setup>
 /* eslint-disable no-undef */
 import { ElMessage } from 'element-plus'
-import { ScatterChart, Grid, Histogram, TrendCharts } from '@element-plus/icons-vue'
+import { Grid, Histogram, TrendCharts } from '@element-plus/icons-vue'
 import { useVisualizationStore } from '../../stores/visualizationStore'
 import { parseCSV } from '../../utils/dataAdapter'
 

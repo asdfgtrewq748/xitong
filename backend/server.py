@@ -2336,6 +2336,7 @@ class TunnelSupportInput(BaseModel):
     gamma: float  # 容重 (kN/m³)
     C: float  # 粘聚力 (MPa)
     phi: float  # 内摩擦角 (度)
+    f_top: Optional[float] = 2.0  # 顶板普氏系数 (默认 2.0)
 
 
 class TunnelSupportBatchRequest(BaseModel):
@@ -2352,8 +2353,16 @@ async def calculate_tunnel_support(params: TunnelSupportInput):
     基于《巷道支护理论公式.docx》实现完整计算流程
     """
     try:
+        # 调试：打印接收到的参数
+        params_dict = params.dict()
+        print(f"[DEBUG] 接收到的参数: {params_dict}")
+        print(f"[DEBUG] f_top 值: {params_dict.get('f_top', '未提供')}")
+        
         calculator = TunnelSupportCalculator()
-        result = calculator.calculate_complete(params.dict())
+        result = calculator.calculate_complete(params_dict)
+        
+        # 调试：打印计算结果中的 hat
+        print(f"[DEBUG] 计算结果 hat: {result['basic']['hat']}")
         
         return {
             "status": "success",

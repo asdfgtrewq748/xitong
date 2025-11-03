@@ -189,7 +189,7 @@
           @click="applySuggestion(suggestion)"
         >
           <el-icon class="suggestion-icon">
-            <Lightbulb />
+            <InfoFilled />
           </el-icon>
           <div class="suggestion-content">
             <div class="suggestion-title">{{ suggestion.title }}</div>
@@ -208,7 +208,7 @@
 /* eslint-disable no-undef */
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Lightbulb } from '@element-plus/icons-vue'
+import { InfoFilled } from '@element-plus/icons-vue'
 
 const props = defineProps({
   data: {

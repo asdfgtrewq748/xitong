@@ -51,7 +51,7 @@
 
             <el-sub-menu index="/analysis">
               <template #title>
-                <el-icon><Calculator /></el-icon>
+                <el-icon><Odometer /></el-icon>
                 <span>分析计算</span>
               </template>
               <el-menu-item index="/key-stratum">
@@ -59,7 +59,7 @@
                 <template #title>关键层计算</template>
               </el-menu-item>
               <el-menu-item index="/tunnel-support">
-                <el-icon><Calculator /></el-icon>
+                <el-icon><Odometer /></el-icon>
                 <template #title>巷道支护计算</template>
               </el-menu-item>
               <el-menu-item index="/borehole-analysis">
@@ -136,7 +136,7 @@ import { computed, ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import {
   House, DataLine, Document, Operation, Grid,
-  TrendCharts, Location, Calculator, Menu,
+  TrendCharts, Location, Menu, Odometer,
   Histogram, Box, Bell, Setting, Help, Expand, Fold, Sunny, Moon
 } from '@element-plus/icons-vue';
 
