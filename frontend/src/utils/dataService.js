@@ -1,6 +1,8 @@
+import { getApiBase } from './api'
+
 class DataService {
   constructor() {
-    this.baseURL = process.env.VUE_APP_API_URL || 'http://localhost:8000'
+    this.baseURL = getApiBase()
     this.globalData = {
       boreholeData: [],
       summaryData: [],

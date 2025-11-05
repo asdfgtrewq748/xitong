@@ -1,6 +1,7 @@
 ﻿// Pinia 全局数据存储
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { getApiBase } from '@/utils/api'
 import { normalizeData, validateRecords } from '@/utils/dataNormalizer'
 
 export const useGlobalDataStore = defineStore('globalData', () => {
@@ -220,7 +221,7 @@ export const useGlobalDataStore = defineStore('globalData', () => {
   // ========== 网络与统一导入接口 ==========
   async function importRawFiles(formData, options = {}) {
     try {
-      const baseUrl = options.url || (window.__API_BASE__ || 'http://localhost:8000')
+      const baseUrl = options.url || getApiBase()
       const resp = await fetch(`${baseUrl}/api/raw/import`, {
         method: 'POST',
         body: formData,
@@ -250,7 +251,7 @@ export const useGlobalDataStore = defineStore('globalData', () => {
 
   async function loadFromDatabase(page = 1, pageSize = 10000) {
     try {
-      const baseUrl = window.__API_BASE__ || 'http://localhost:8000'
+      const baseUrl = getApiBase()
       const url = `${baseUrl}/api/database/records?page=${page}&page_size=${pageSize}`
       
       const resp = await fetch(url)
