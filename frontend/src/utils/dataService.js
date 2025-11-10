@@ -17,7 +17,7 @@ class DataService {
     formData.append('file', file)
 
     try {
-      const response = await fetch(`${this.baseURL}/api/upload-csv`, {
+      const response = await fetch(`${this.baseURL}/upload-csv`, {
         method: 'POST',
         body: formData
       })
@@ -34,7 +34,7 @@ class DataService {
   // 获取钻孔数据
   async getBoreholeData() {
     try {
-      const response = await fetch(`${this.baseURL}/api/borehole-data`)
+      const response = await fetch(`${this.baseURL}/borehole-data`)
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
@@ -50,7 +50,7 @@ class DataService {
   // 获取汇总数据
   async getSummaryData() {
     try {
-      const response = await fetch(`${this.baseURL}/api/summary-data`)
+      const response = await fetch(`${this.baseURL}/summary-data`)
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
@@ -66,7 +66,7 @@ class DataService {
   // 获取煤层数据
   async getCoalSeamData() {
     try {
-      const response = await fetch(`${this.baseURL}/api/coal-seam-data`)
+      const response = await fetch(`${this.baseURL}/coal-seam-data`)
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
