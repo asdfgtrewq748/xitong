@@ -169,9 +169,18 @@ async function handleExport(command) {
         break
 
       case 'svg':
-        await exportChartAsSVG(chartInstance, {
-          filename: generateFilename('chart', 'vector')
-        })
+        // 使用组件的 exportChart 方法导出 SVG
+        if (chartComponent.exportChart) {
+          const svgString = chartComponent.exportChart({ type: 'svg' })
+          await exportChartAsSVG(svgString, {
+            filename: generateFilename('chart', 'vector')
+          })
+        } else {
+          // 降级方案：使用实例导出
+          await exportChartAsSVG(chartInstance, {
+            filename: generateFilename('chart', 'vector')
+          })
+        }
         ElMessage.success('导出 SVG 矢量图成功')
         break
 

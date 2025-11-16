@@ -83,10 +83,40 @@
               </el-menu-item>
             </el-sub-menu>
 
-            <el-menu-item index="/visualization">
-              <el-icon><TrendCharts /></el-icon>
-              <template #title>科研绘图工作台</template>
-            </el-menu-item>
+            <el-sub-menu index="/visualization">
+              <template #title>
+                <el-icon><TrendCharts /></el-icon>
+                <span>科研绘图</span>
+              </template>
+              <el-menu-item index="/visualization/scatter">
+                <el-icon><TrendCharts /></el-icon>
+                <template #title>散点图</template>
+              </el-menu-item>
+              <el-menu-item index="/visualization/line">
+                <el-icon><DataLine /></el-icon>
+                <template #title>折线图</template>
+              </el-menu-item>
+              <el-menu-item index="/visualization/bar">
+                <el-icon><Histogram /></el-icon>
+                <template #title>柱状图</template>
+              </el-menu-item>
+              <el-menu-item index="/visualization/heatmap">
+                <el-icon><Grid /></el-icon>
+                <template #title>热力图</template>
+              </el-menu-item>
+              <el-menu-item index="/visualization/surface">
+                <el-icon><Box /></el-icon>
+                <template #title>3D曲面图</template>
+              </el-menu-item>
+              <el-menu-item index="/visualization/box">
+                <el-icon><Box /></el-icon>
+                <template #title>箱线图</template>
+              </el-menu-item>
+              <el-menu-item index="/visualization/histogram">
+                <el-icon><Histogram /></el-icon>
+                <template #title>直方图</template>
+              </el-menu-item>
+            </el-sub-menu>
           </div>
         </el-menu>
       </el-aside>
@@ -109,16 +139,6 @@
               <el-button type="text" class="action-btn" @click="toggleTheme" :title="isDarkMode ? '切换到浅色模式' : '切换到深色模式'">
                 <el-icon><Sunny v-if="isDarkMode" /><Moon v-else /></el-icon>
               </el-button>
-              <el-button type="text" class="action-btn">
-                <el-icon><Bell /></el-icon>
-                <span class="badge">3</span>
-              </el-button>
-              <el-button type="text" class="action-btn">
-                <el-icon><Setting /></el-icon>
-              </el-button>
-              <el-button type="text" class="action-btn">
-                <el-icon><Help /></el-icon>
-              </el-button>
             </div>
           </div>
         </el-header>
@@ -137,7 +157,7 @@ import { useRoute } from 'vue-router';
 import {
   House, DataLine, Document, Operation, Grid,
   TrendCharts, Location, Menu, Odometer,
-  Histogram, Box, Bell, Setting, Help, Expand, Fold, Sunny, Moon
+  Histogram, Box, Expand, Fold, Sunny, Moon
 } from '@element-plus/icons-vue';
 
 const route = useRoute();

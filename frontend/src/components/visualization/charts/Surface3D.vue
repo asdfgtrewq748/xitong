@@ -1,5 +1,5 @@
 <template>
-  <div class="chart-container" ref="chartRef"></div>
+  <div class="chart-container" :style="{ height: height + 'px' }" ref="chartRef"></div>
 </template>
 
 <script setup>
@@ -8,7 +8,11 @@ import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import { ChartWrapper } from '../ChartWrapper'
 import { generateSurfaceOption } from '../../../utils/chartWrapper'
 
-const props = defineProps({ data: { type: Object, required: true }, config: { type: Object, required: true } })
+const props = defineProps({ 
+  data: { type: Object, required: true }, 
+  config: { type: Object, required: true },
+  height: { type: Number, default: 480 }
+})
 const chartRef = ref(null)
 let wrapper = null
 
@@ -26,9 +30,35 @@ function getChartInstance() {
   return wrapper ? wrapper.getInstance() : null
 }
 
+function resize() {
+  if (wrapper) {
+    wrapper.resize()
+  }
+}
+
+function exportChart(options = {}) {
+  if (!wrapper) {
+    throw new Error('图表未初始化')
+  }
+  const instance = wrapper.getInstance()
+  if (!instance) {
+    throw new Error('无法获取图表实例')
+  }
+  
+  const { type = 'png', pixelRatio = 2 } = options
+  
+  return instance.getDataURL({
+    type: type === 'svg' ? 'svg' : 'png',
+    pixelRatio,
+    backgroundColor: props.config?.backgroundColor || '#fff'
+  })
+}
+
 // 暴露方法给父组件
 defineExpose({
-  getChartInstance
+  getChartInstance,
+  resize,
+  exportChart
 })
 
 onMounted(() => {

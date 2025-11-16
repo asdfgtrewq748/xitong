@@ -55,35 +55,31 @@ export function exportChartAsPNG(chartInstance, options = {}) {
 
 /**
  * 导出图表为 SVG 矢量图（高质量）
- * @param {Object} chartInstance - ECharts 实例
+ * @param {Object|String} chartInstanceOrSvg - ECharts 实例或 SVG 字符串
  * @param {Object} options - 导出选项
  */
-export function exportChartAsSVG(chartInstance, options = {}) {
+export function exportChartAsSVG(chartInstanceOrSvg, options = {}) {
   const {
-    filename = 'chart',
-    width = 1200,
-    height = 800,
-    embedFonts = true
+    filename = 'chart'
   } = options
 
   try {
-    let svgStr = chartInstance.renderToSVGString()
-
-    // 优化SVG导出
-    if (embedFonts) {
-      // 添加字体声明和样式优化
-      svgStr = svgStr.replace(
-        '<svg ',
-        '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" ' +
-        'font-family="Arial, sans-serif" font-size="12px" '
-      )
+    let svgStr
+    
+    // 如果传入的是字符串，直接使用
+    if (typeof chartInstanceOrSvg === 'string') {
+      svgStr = chartInstanceOrSvg
+    } else {
+      // 否则尝试调用 renderToSVGString
+      // 注意：这要求 chartInstance 是用 svg renderer 初始化的
+      if (typeof chartInstanceOrSvg.renderToSVGString !== 'function') {
+        throw new Error('图表实例不支持 SVG 导出。请使用 svg renderer 初始化图表。')
+      }
+      svgStr = chartInstanceOrSvg.renderToSVGString()
     }
 
-    // 设置viewBox以适应指定尺寸
-    svgStr = svgStr.replace(
-      '<svg ',
-      `<svg viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" `
-    )
+    // 直接使用 ECharts 生成的 SVG
+    // ECharts 的 svg renderer 已经生成了完整正确的 SVG，包含所有必要的属性
 
     const blob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' })
     saveAs(blob, `${filename}_high_quality.svg`)

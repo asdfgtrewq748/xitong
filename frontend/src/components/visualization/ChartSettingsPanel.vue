@@ -86,7 +86,7 @@
       </el-collapse-item>
     </el-collapse>
     
-    <div class="actions">
+    <div class="actions" style="display: none;">
       <el-button type="primary" @click="handleApply" style="width: 100%">
         <el-icon><Check /></el-icon>
         应用设置
@@ -124,6 +124,27 @@ watch(() => props.config, (newConfig) => {
   localConfig.value = { ...newConfig }
 }, { deep: true })
 
+// 实时更新配置，无需点击应用按钮
+watch(localConfig, (newConfig) => {
+  emit('apply', {
+    config: newConfig,
+    sampling: {
+      enabled: enableSampling.value,
+      maxPoints: maxSamplePoints.value
+    }
+  })
+}, { deep: true })
+
+watch([enableSampling, maxSamplePoints], () => {
+  emit('apply', {
+    config: localConfig.value,
+    sampling: {
+      enabled: enableSampling.value,
+      maxPoints: maxSamplePoints.value
+    }
+  })
+})
+
 function handleApply() {
   emit('apply', {
     config: localConfig.value,
@@ -157,7 +178,6 @@ function handleReset() {
   }
   enableSampling.value = false
   maxSamplePoints.value = 10000
-  emit('apply', { config: localConfig.value, sampling: { enabled: false } })
 }
 </script>
 

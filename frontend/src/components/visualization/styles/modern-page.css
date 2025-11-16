@@ -1,0 +1,293 @@
+/* 现代化科研绘图页面通用样式 */
+
+.chart-page {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #f5f7fa;
+}
+
+/* 页头样式 */
+.page-header {
+  background: white;
+  padding: 16px 24px;
+  border-bottom: 1px solid #e4e7ed;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.page-header.modern {
+  background: transparent;
+  padding: 20px 20px 8px 20px;
+  border-bottom: none;
+}
+
+.page-header h2 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+}
+
+.title-group h2 {
+  font-size: 20px;
+  margin: 0;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.title-group .subtitle {
+  margin: 4px 0 0 0;
+  color: #6b7280;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* 内容区布局 */
+.page-content {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 280px 1fr 320px;
+  gap: 16px;
+  padding: 16px;
+  overflow: hidden;
+}
+
+.page-content.modern {
+  grid-template-columns: 320px 1fr 340px;
+  gap: 18px;
+  padding: 8px 16px 16px 16px;
+}
+
+.sidebar, .data-panel {
+  overflow-y: auto;
+}
+
+.sidebar.modern, .data-panel.modern {
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db #f3f4f6;
+}
+
+/* 卡片面板样式 */
+.panel {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.panel-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: #374151;
+}
+
+/* 紧凑表单样式 */
+.compact-form .el-form-item {
+  margin-bottom: 8px;
+}
+
+.compact-form .el-form-item__label {
+  font-size: 13px;
+  color: #4b5563;
+  padding-bottom: 4px;
+}
+
+/* 图表区域 */
+.chart-area {
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.chart-area.modern {
+  background: transparent;
+  padding: 0;
+}
+
+.chart-toolbar {
+  margin-bottom: 12px;
+}
+
+.chart-container {
+  flex: 1;
+  min-height: 0;
+}
+
+.chart-container.modern {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* 顶部摘要卡片 */
+.top-summary {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.summary-item {
+  background: white;
+  padding: 10px 14px;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.03);
+  border: 1px solid #f3f4f6;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 80px;
+  transition: all 0.2s ease;
+}
+
+.summary-item:hover {
+  box-shadow: 0 2px 4px rgba(16, 24, 40, 0.08);
+  border-color: #e5e7eb;
+}
+
+.summary-item .num {
+  font-weight: 600;
+  font-size: 18px;
+  color: #1f2937;
+  line-height: 1.2;
+}
+
+.summary-item .label {
+  color: #6b7280;
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+/* 图表卡片 */
+.chart-card {
+  background: transparent;
+}
+
+.chart-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+/* 响应式设计 */
+@media (max-width: 1600px) {
+  .page-content.modern {
+    grid-template-columns: 300px 1fr 320px;
+  }
+}
+
+@media (max-width: 1400px) {
+  .page-content {
+    grid-template-columns: 260px 1fr 280px;
+  }
+  
+  .page-content.modern {
+    grid-template-columns: 280px 1fr 300px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .page-content,
+  .page-content.modern {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+  }
+  
+  .sidebar,
+  .data-panel {
+    max-height: 300px;
+  }
+}
+
+/* 滚动条美化 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* 折叠面板优化 */
+.el-collapse {
+  border: none;
+}
+
+.el-collapse-item {
+  margin-bottom: 4px;
+}
+
+.el-collapse-item__header {
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+  padding-left: 0;
+  background-color: transparent;
+  border: none;
+}
+
+.el-collapse-item__wrap {
+  border: none;
+  background-color: transparent;
+}
+
+.el-collapse-item__content {
+  padding: 8px 0 12px 0;
+}
+
+/* 按钮组优化 */
+.el-button-group {
+  display: flex;
+  gap: 4px;
+}
+
+.el-button--small {
+  font-size: 13px;
+  padding: 6px 12px;
+}
+
+/* 卡片优化 */
+.el-card {
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  transition: all 0.2s ease;
+}
+
+.el-card.is-hover-shadow:hover,
+.el-card.el-card--hover:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.el-card__header {
+  padding: 14px 16px;
+  background-color: #fafafa;
+  border-bottom: 1px solid #e5e7eb;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.el-card__body {
+  padding: 16px;
+}

@@ -13,8 +13,15 @@ const GeologicalModelingView = () => import(/* webpackChunkName: "modeling" */ '
 const UpwardMiningFeasibilityView = () => import(/* webpackChunkName: "upward-mining" */ '../components/UpwardMiningFeasibilityView.vue')
 const DataManagementView = () => import(/* webpackChunkName: "data-management" */ '../components/DataManagementView.vue')
 
-// 科研绘图模块 - 统一工作台
-const VisualizationHome = () => import(/* webpackChunkName: "visualization" */ '../components/visualization/ImprovedVisualizationHome.vue')
+// 科研绘图模块 - 导航页和独立图表页面
+const VisualizationHome = () => import(/* webpackChunkName: "visualization-home" */ '../components/visualization/VisualizationHome.vue')
+const ScatterPlotPage = () => import(/* webpackChunkName: "scatter" */ '../components/visualization/pages/ScatterPlotPage.vue')
+const LineChartPage = () => import(/* webpackChunkName: "line" */ '../components/visualization/pages/LineChartPage.vue')
+const BarChartPage = () => import(/* webpackChunkName: "bar" */ '../components/visualization/pages/BarChartPage.vue')
+const HeatMapPage = () => import(/* webpackChunkName: "heatmap" */ '../components/visualization/pages/HeatMapPage.vue')
+const Surface3DPage = () => import(/* webpackChunkName: "surface" */ '../components/visualization/pages/Surface3DPage.vue')
+const BoxPlotPage = () => import(/* webpackChunkName: "box" */ '../components/visualization/pages/BoxPlotPage.vue')
+const HistogramPage = () => import(/* webpackChunkName: "histogram" */ '../components/visualization/pages/HistogramPage.vue')
 const TunnelSupportView = () => import(/* webpackChunkName: "tunnel-support" */ '../components/TunnelSupportView.vue')
 
 const routes = [
@@ -68,9 +75,51 @@ const routes = [
   },
   {
     path: '/visualization',
-    name: 'Visualization',
+    name: 'VisualizationHome',
     component: VisualizationHome,
-    meta: { title: '科研绘图工作台' }
+    meta: { title: '科研绘图' }
+  },
+  {
+    path: '/visualization/scatter',
+    name: 'ScatterPlot',
+    component: ScatterPlotPage,
+    meta: { title: '散点图' }
+  },
+  {
+    path: '/visualization/line',
+    name: 'LineChart',
+    component: LineChartPage,
+    meta: { title: '折线图' }
+  },
+  {
+    path: '/visualization/bar',
+    name: 'BarChart',
+    component: BarChartPage,
+    meta: { title: '柱状图' }
+  },
+  {
+    path: '/visualization/heatmap',
+    name: 'HeatMap',
+    component: HeatMapPage,
+    meta: { title: '热力图' }
+  },
+  {
+    path: '/visualization/surface',
+    name: 'Surface3D',
+    component: Surface3DPage,
+    meta: { title: '3D曲面图' }
+  },
+  {
+    path: '/visualization/box',
+    name: 'BoxPlot',
+    component: BoxPlotPage,
+    meta: { title: '箱线图' }
+  },
+  {
+    path: '/visualization/histogram',
+    name: 'Histogram',
+    component: HistogramPage,
+    meta: { title: '直方图' }
   },
   {
     path: '/data-management',

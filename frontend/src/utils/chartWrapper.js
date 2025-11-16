@@ -120,21 +120,27 @@ export class ChartWrapper {
     this.theme = options.theme || 'light'
     this.options = options
     this.resizeObserver = null
+    this.resizeTimer = null
   }
   
   /**
    * 初始化图表
+   * @param {Object} options - 可选参数，如 { renderer: 'svg' }
    */
-  init() {
+  init(options = {}) {
     if (this.instance) {
       this.dispose()
     }
     
-    this.instance = echarts.init(this.container, this.theme, {
-      renderer: this.options.renderer || 'canvas',
+    // 合并初始化参数，允许动态指定 renderer
+    const initOptions = {
+      renderer: options.renderer || this.options.renderer || 'canvas',
       useDirtyRect: true, // 开启脏矩形优化
-      ...this.options.initOptions
-    })
+      ...this.options.initOptions,
+      ...options
+    }
+    
+    this.instance = echarts.init(this.container, this.theme, initOptions)
     
     // 设置自动 resize
     this.setupAutoResize()
@@ -238,21 +244,38 @@ export class ChartWrapper {
     // 使用 ResizeObserver 监听容器大小变化
     if (window.ResizeObserver) {
       this.resizeObserver = new ResizeObserver(() => {
-        this.resize()
+        this.resizeDebounced()
       })
       this.resizeObserver.observe(this.container)
     } else {
       // 降级到 window resize
-      window.addEventListener('resize', this.resize.bind(this))
+      window.addEventListener('resize', this.resizeDebounced.bind(this))
     }
+  }
+  
+  /**
+   * 防抖的 resize 方法
+   */
+  resizeDebounced() {
+    if (this.resizeTimer) {
+      clearTimeout(this.resizeTimer)
+    }
+    this.resizeTimer = setTimeout(() => {
+      this.resize()
+    }, 100)
   }
   
   /**
    * 手动调整大小
    */
   resize() {
-    if (this.instance) {
-      this.instance.resize()
+    if (this.instance && !this.instance.isDisposed()) {
+      // 使用 requestAnimationFrame 确保在渲染帧之外调用
+      requestAnimationFrame(() => {
+        if (this.instance && !this.instance.isDisposed()) {
+          this.instance.resize()
+        }
+      })
     }
   }
   
@@ -276,6 +299,11 @@ export class ChartWrapper {
    * 销毁图表
    */
   dispose() {
+    if (this.resizeTimer) {
+      clearTimeout(this.resizeTimer)
+      this.resizeTimer = null
+    }
+    
     if (this.resizeObserver) {
       this.resizeObserver.disconnect()
       this.resizeObserver = null
@@ -497,33 +525,33 @@ export const JournalStyles = {
     backgroundColor: '#ffffff'
   },
 
-  // 默认学术风格
+  // 默认学术风格 (用户要求的样式)
   academic: {
     title: {
       fontSize: FontSizes.title,
       fontWeight: 'bold',
-      fontFamily: getAcademicFont().family,
+      fontFamily: 'SimSun, "Times New Roman", serif', // 中文宋体,英文Times New Roman
       color: '#000000'
     },
     axis: {
       fontSize: FontSizes.axis,
-      fontFamily: getAcademicFont().family,
+      fontFamily: 'SimSun, "Times New Roman", serif',
       color: '#000000'
     },
     legend: {
       fontSize: FontSizes.caption,
-      fontFamily: getAcademicFont().family,
+      fontFamily: 'SimSun, "Times New Roman", serif',
       color: '#000000'
     },
     grid: {
-      show: true,
+      show: false, // 删除网格
       lineStyle: {
         color: '#e0e0e0',
-        width: 0.5,
+        width: 0,
         type: 'solid'
       }
     },
-    backgroundColor: '#ffffff'
+    backgroundColor: 'transparent' // 透明背景
   }
 }
 
@@ -535,6 +563,82 @@ export function getJournalStyle(journal = 'academic') {
 }
 
 /**
+ * 应用通用样式配置 (用户自定义优先)
+ * 统一处理网格、背景、字体等设置
+ */
+export function applyCommonStyle(option, config) {
+  const {
+    showGrid = false,
+    backgroundColor = 'transparent',
+    fontFamily = 'SimSun, "Times New Roman", serif'
+  } = config
+
+  // 应用背景色 (用户设置优先)
+  option.backgroundColor = backgroundColor
+
+  // 应用网格设置
+  if (option.grid) {
+    option.grid.show = showGrid
+  }
+  if (option.xAxis) {
+    if (Array.isArray(option.xAxis)) {
+      option.xAxis.forEach(axis => {
+        axis.splitLine = axis.splitLine || {}
+        axis.splitLine.show = showGrid
+      })
+    } else {
+      option.xAxis.splitLine = option.xAxis.splitLine || {}
+      option.xAxis.splitLine.show = showGrid
+    }
+  }
+  if (option.yAxis) {
+    if (Array.isArray(option.yAxis)) {
+      option.yAxis.forEach(axis => {
+        axis.splitLine = axis.splitLine || {}
+        axis.splitLine.show = showGrid
+      })
+    } else {
+      option.yAxis.splitLine = option.yAxis.splitLine || {}
+      option.yAxis.splitLine.show = showGrid
+    }
+  }
+
+  // 应用字体
+  const applyFont = (obj) => {
+    if (obj && obj.textStyle) {
+      obj.textStyle.fontFamily = fontFamily
+    }
+  }
+
+  applyFont(option.title)
+  applyFont(option.legend)
+  if (option.xAxis) {
+    if (Array.isArray(option.xAxis)) {
+      option.xAxis.forEach(axis => {
+        if (axis.axisLabel) axis.axisLabel.fontFamily = fontFamily
+        if (axis.nameTextStyle) axis.nameTextStyle.fontFamily = fontFamily
+      })
+    } else {
+      if (option.xAxis.axisLabel) option.xAxis.axisLabel.fontFamily = fontFamily
+      if (option.xAxis.nameTextStyle) option.xAxis.nameTextStyle.fontFamily = fontFamily
+    }
+  }
+  if (option.yAxis) {
+    if (Array.isArray(option.yAxis)) {
+      option.yAxis.forEach(axis => {
+        if (axis.axisLabel) axis.axisLabel.fontFamily = fontFamily
+        if (axis.nameTextStyle) axis.nameTextStyle.fontFamily = fontFamily
+      })
+    } else {
+      if (option.yAxis.axisLabel) option.yAxis.axisLabel.fontFamily = fontFamily
+      if (option.yAxis.nameTextStyle) option.yAxis.nameTextStyle.fontFamily = fontFamily
+    }
+  }
+
+  return option
+}
+
+/**
  * 生成散点图配置
  */
 export function generateScatterOption(data, config) {
@@ -543,14 +647,34 @@ export function generateScatterOption(data, config) {
     subtitle,
     xAxisLabel,
     yAxisLabel,
-    showLegend,
-    showGrid,
-    colorScheme,
-    pointSize,
-    opacity,
+    showLegend = true,
+    showGrid = false,
+    colorScheme = 'viridis',
+    pointSize = 10,
+    opacity = 0.8,
     journalStyle = 'academic',
     showRegression = false,
-    showErrorBars = false
+    showErrorBars = false,
+    // 新增样式配置
+    axisLineColor = '#333',
+    axisLabelFontSize = 12,
+    axisLineWidth = 1,
+    showAxisLine = true,
+    showAxisTick = true,
+    showGridLines = false,
+    gridLineColor = '#e0e0e0',
+    gridLineWidth = 1,
+    xAxisMin = null,
+    xAxisMax = null,
+    yAxisMin = null,
+    yAxisMax = null,
+    titleFontSize = 18,
+    titleFontWeight = 'bold',
+    legendFontSize = 12,
+    pointShape = 'circle',
+    pointBorderColor = '#fff',
+    pointBorderWidth = 0,
+    fontFamily = 'SimSun, "Times New Roman", serif'
   } = config
 
   const style = getJournalStyle(journalStyle)
@@ -571,36 +695,53 @@ export function generateScatterOption(data, config) {
   
   // 处理分组数据
   const series = []
+  const colors = getColorScheme(colorScheme)
+  
+  console.log('[Scatter] Data type:', data.type, 'Point size:', pointSize, 'Opacity:', opacity)
+  
   if (data.type === 'grouped') {
     if (data.data && typeof data.data === 'object') {
+      let colorIndex = 0
       Object.entries(data.data).forEach(([group, points]) => {
         if (Array.isArray(points) && points.length > 0) {
+          console.log(`[Scatter] Group "${group}" has ${points.length} points`)
           series.push({
             name: group,
             type: 'scatter',
             data: points.map(p => [p.x, p.y]),
             symbolSize: pointSize,
+            symbol: pointShape,
             itemStyle: {
-              opacity
+              opacity,
+              color: colors[colorIndex % colors.length],
+              borderColor: pointBorderColor,
+              borderWidth: pointBorderWidth
             }
           })
+          colorIndex++
         }
       })
     }
   } else {
     if (Array.isArray(data.data) && data.data.length > 0) {
+      console.log(`[Scatter] Simple data with ${data.data.length} points`)
       series.push({
         name: '数据点',
         type: 'scatter',
         data: data.data.map(p => [p.x, p.y]),
         symbolSize: pointSize,
+        symbol: pointShape,
         itemStyle: {
           opacity,
-          color: getColorScheme(colorScheme)[0]
+          color: colors[0],
+          borderColor: pointBorderColor,
+          borderWidth: pointBorderWidth
         }
       })
     }
   }
+  
+  console.log('[Scatter] Generated', series.length, 'series')
   
   // 学术级布局配置
   const option = {
@@ -611,36 +752,50 @@ export function generateScatterOption(data, config) {
       top: '5%',
       textStyle: {
         ...style.title,
-        fontSize: style.title.fontSize
+        fontSize: titleFontSize,
+        fontWeight: titleFontWeight,
+        fontFamily
       },
       subtextStyle: {
         ...style.title,
-        fontSize: style.axis.fontSize,
-        fontWeight: 'normal'
+        fontSize: axisLabelFontSize,
+        fontWeight: 'normal',
+        fontFamily
       }
     },
     backgroundColor: bgColor,
     tooltip: {
       trigger: 'item',
       formatter: (params) => {
-        let tooltip = `<strong>${params.seriesName}</strong><br/>`
-        tooltip += `X: ${params.value[0].toFixed(3)}<br/>`
-        tooltip += `Y: ${params.value[1].toFixed(3)}`
+        if (!params || !params.value || !Array.isArray(params.value)) {
+          return params?.seriesName || '数据点'
+        }
+        let tooltip = `<strong>${params.seriesName || '数据点'}</strong><br/>`
+        if (params.value[0] !== undefined) {
+          tooltip += `X: ${Number(params.value[0]).toFixed(3)}<br/>`
+        }
+        if (params.value[1] !== undefined) {
+          tooltip += `Y: ${Number(params.value[1]).toFixed(3)}`
+        }
         if (params.value[2] !== undefined) {
-          tooltip += `<br/>Value: ${params.value[2].toFixed(3)}`
+          tooltip += `<br/>Value: ${Number(params.value[2]).toFixed(3)}`
         }
         return tooltip
       },
       backgroundColor: 'rgba(255, 255, 255, 0.95)',
       borderColor: '#cccccc',
       borderWidth: 1,
-      textStyle: { fontSize: 11 }
+      textStyle: { fontSize: 11, fontFamily }
     },
     legend: {
       show: showLegend,
       bottom: '5%',
       left: 'center',
-      textStyle: style.legend,
+      textStyle: {
+        ...style.legend,
+        fontSize: legendFontSize,
+        fontFamily
+      },
       itemGap: 20,
       itemWidth: 12,
       itemHeight: 12
@@ -663,60 +818,80 @@ export function generateScatterOption(data, config) {
       name: xAxisLabel,
       nameLocation: 'middle',
       nameGap: 30,
+      min: xAxisMin,
+      max: xAxisMax,
       nameTextStyle: {
         ...style.axis,
-        fontWeight: 'bold'
+        fontSize: axisLabelFontSize,
+        fontWeight: 'bold',
+        fontFamily
       },
       axisLabel: {
         ...style.axis,
+        fontSize: axisLabelFontSize,
+        fontFamily,
         formatter: (value) => value.toPrecision(3),
         margin: 10
       },
       axisLine: {
-        show: true,
+        show: showAxisLine,
         lineStyle: {
-          color: textColor,
-          width: 1
+          color: axisLineColor,
+          width: axisLineWidth
         }
       },
-      tickLine: {
-        show: true,
+      axisTick: {
+        show: showAxisTick,
         length: 5
       },
-      splitLine: style.grid.show ? {
-        show: true,
-        lineStyle: style.grid.lineStyle
-      } : { show: false }
+      splitLine: {
+        show: showGridLines,
+        lineStyle: {
+          color: gridLineColor,
+          width: gridLineWidth,
+          type: 'dashed'
+        }
+      }
     },
     yAxis: {
       type: 'value',
       name: yAxisLabel,
       nameLocation: 'middle',
       nameGap: 40,
+      min: yAxisMin,
+      max: yAxisMax,
       nameTextStyle: {
         ...style.axis,
-        fontWeight: 'bold'
+        fontSize: axisLabelFontSize,
+        fontWeight: 'bold',
+        fontFamily
       },
       axisLabel: {
         ...style.axis,
+        fontSize: axisLabelFontSize,
+        fontFamily,
         formatter: (value) => value.toPrecision(3),
         margin: 10
       },
       axisLine: {
-        show: true,
+        show: showAxisLine,
         lineStyle: {
-          color: textColor,
-          width: 1
+          color: axisLineColor,
+          width: axisLineWidth
         }
       },
-      tickLine: {
-        show: true,
+      axisTick: {
+        show: showAxisTick,
         length: 5
       },
-      splitLine: style.grid.show ? {
-        show: true,
-        lineStyle: style.grid.lineStyle
-      } : { show: false }
+      splitLine: {
+        show: showGridLines,
+        lineStyle: {
+          color: gridLineColor,
+          width: gridLineWidth,
+          type: 'dashed'
+        }
+      }
     },
     series,
     color: getColorScheme(colorScheme)
@@ -762,6 +937,9 @@ export function generateScatterOption(data, config) {
       }]
     }
   }
+
+  // 应用通用样式配置
+  applyCommonStyle(option, config)
 
   return option
 }
@@ -824,7 +1002,7 @@ export function generateLineOption(data, config) {
     }
   }
   
-  return {
+  const option = {
     title: {
       text: title,
       left: 'center',
@@ -861,6 +1039,11 @@ export function generateLineOption(data, config) {
     series,
     color: getColorScheme(colorScheme)
   }
+
+  // 应用通用样式配置
+  applyCommonStyle(option, config)
+
+  return option
 }
 
 /**
@@ -884,7 +1067,7 @@ export function generateHeatmapOption(data, config) {
     }
   }
   
-  return {
+  const option = {
     title: {
       text: title,
       left: 'center',
@@ -938,6 +1121,11 @@ export function generateHeatmapOption(data, config) {
       }
     }]
   }
+
+  // 应用通用样式配置
+  applyCommonStyle(option, config)
+
+  return option
 }
 
 /**
@@ -963,7 +1151,7 @@ export function generateSurfaceOption(data, config) {
     }
   }
 
-  return {
+  const option = {
     title: {
       text: title,
       left: 'center',
@@ -1020,6 +1208,11 @@ export function generateSurfaceOption(data, config) {
       shading: 'color'
     }]
   }
+
+  // 应用通用样式配置
+  applyCommonStyle(option, config)
+
+  return option
 }
 
 /**
@@ -1132,7 +1325,7 @@ export function generateBarOption(data, config) {
     }
   }
 
-  return {
+  const option = {
     title: {
       text: title,
       subtext: subtitle,
@@ -1245,6 +1438,11 @@ export function generateBarOption(data, config) {
     series,
     color: getColorScheme(colorScheme)
   }
+
+  // 应用通用样式配置
+  applyCommonStyle(option, config)
+
+  return option
 }
 
 /**
@@ -1301,7 +1499,7 @@ export function generateBoxPlotOption(data, config) {
   const boxPlotData = validData.map(item => [item.min, item.q1, item.median, item.q3, item.max])
   const categories = validData.map(item => item.group || item.name || '数据组')
 
-  return {
+  const option = {
     title: {
       text: title,
       subtext: subtitle,
@@ -1435,6 +1633,11 @@ export function generateBoxPlotOption(data, config) {
     }],
     color: getColorScheme(colorScheme)
   }
+
+  // 应用通用样式配置
+  applyCommonStyle(option, config)
+
+  return option
 }
 
 /**
@@ -1485,7 +1688,7 @@ export function generateHistogramOption(data, config) {
 
   const total = data.total || validBins.reduce((sum, bin) => sum + bin.count, 0)
 
-  return {
+  const option = {
     title: {
       text: title,
       subtext: subtitle,
@@ -1621,4 +1824,9 @@ export function generateHistogramOption(data, config) {
     }],
     color: getColorScheme(colorScheme)
   }
+
+  // 应用通用样式配置
+  applyCommonStyle(option, config)
+
+  return option
 }
