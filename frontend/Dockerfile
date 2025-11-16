@@ -23,7 +23,19 @@ RUN npm install --legacy-peer-deps --prefer-offline --no-audit
 
 # 第三层：复制源码并构建（代码变化才重新执行）
 COPY . .
+
+# 设置生产环境变量
+ENV NODE_ENV=production
+ENV VUE_APP_API_BASE_URL=/api
+
+# 构建生产版本
 RUN npm run build
+
+# 验证构建结果
+RUN echo "========================================" && \
+    echo "构建结果检查:" && \
+    ls -lh /build/dist/ && \
+    echo "========================================"
 
 # ────────────────────────────────────────────────────────────────────────────
 # 阶段2: 运行阶段 - Nginx服务
@@ -35,6 +47,11 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # 从构建阶段复制dist文件
 COPY --from=builder /build/dist /usr/share/nginx/html
+
+# 创建日志目录并设置权限
+RUN mkdir -p /var/log/nginx && \
+    chown -R nginx:nginx /var/log/nginx && \
+    chown -R nginx:nginx /usr/share/nginx/html
 
 # 健康检查
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=2 \

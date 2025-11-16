@@ -260,11 +260,14 @@ const onImported = ({ rows, columns, datasetId }) => {
     fields.value = columns
     previewData.value = rows
 
-    // 自动映射第一个和第二个数值字段
+    // 自动映射第一个和第二个数值字段，确保不同
     const numFields = columns.filter(c => c.type === 'number')
     if (numFields.length >= 2) {
       config.xField = numFields[0].name
       config.yField = numFields[1].name
+    } else if (numFields.length === 1) {
+      config.xField = columns[0]?.name
+      config.yField = numFields[0].name
     }
 
     updateChart()
@@ -359,19 +362,24 @@ const groupsCount = computed(() => {
 }
 
 .page-header.modern {
-  background: transparent;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
   padding: 20px 20px 8px 20px;
   border-bottom: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .title-group h2 {
   font-size: 20px;
   margin: 0;
+  color: white;
 }
 
 .title-group .subtitle {
   margin: 4px 0 0 0;
-  color: #6b7280;
+  color: rgba(255, 255, 255, 0.85);
   font-size: 13px;
 }
 

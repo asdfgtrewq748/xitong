@@ -185,10 +185,23 @@ async function handleExport(command) {
         break
 
       case 'pdf':
-        await exportChartAsPDF(chartInstance, {
-          filename: generateFilename('chart', 'academic')
-        })
-        ElMessage.success('导出 PDF 学术版成功')
+        {
+          // 尝试获取SVG用于矢量PDF导出
+          let svgString = null
+          try {
+            if (props.chartRef?.exportChart) {
+              svgString = await props.chartRef.exportChart({ type: 'svg' })
+            }
+          } catch (err) {
+            console.warn('无法获取SVG，将使用栅格PDF:', err)
+          }
+          
+          await exportChartAsPDF(svgString || chartInstance, {
+            filename: generateFilename('chart', 'academic'),
+            vectorize: !!svgString // 如果有SVG就使用矢量导出
+          })
+          ElMessage.success(`导出 ${svgString ? '矢量' : '栅格'} PDF 成功`)
+        }
         break
 
       case 'tiff':

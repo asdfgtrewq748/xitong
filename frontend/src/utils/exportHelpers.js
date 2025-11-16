@@ -91,44 +91,93 @@ export function exportChartAsSVG(chartInstanceOrSvg, options = {}) {
 }
 
 /**
- * 导出图表为 PDF（学术出版格式）
- * @param {Object} chartInstance - ECharts 实例
+ * 导出图表为矢量 PDF（学术出版格式）
+ * @param {Object|String} chartInstanceOrSvg - ECharts 实例或 SVG 字符串
  * @param {Object} options - 导出选项
  */
-export async function exportChartAsPDF(chartInstance, options = {}) {
+export async function exportChartAsPDF(chartInstanceOrSvg, options = {}) {
   const {
     filename = 'chart',
     width = 210, // A4 width in mm
     height = 148, // A4 height in mm (landscape)
-    dpi = 300
+    orientation = 'landscape',
+    format = 'a4',
+    vectorize = true // 是否导出矢量PDF
   } = options
 
   try {
-    // 首先导出为高质量PNG
-    const pngDataURL = chartInstance.getDataURL({
-      type: 'png',
-      pixelRatio: dpi / 96, // Convert DPI to pixel ratio
-      backgroundColor: '#ffffff',
-      width: width * dpi / 25.4, // Convert mm to pixels
-      height: height * dpi / 25.4
-    })
-
-    // 使用jsPDF创建PDF（需要安装依赖）
     const { jsPDF } = await import('jspdf')
-    const pdf = new jsPDF({
-      orientation: 'landscape',
-      unit: 'mm',
-      format: 'a4'
-    })
+    
+    if (vectorize) {
+      // 矢量PDF导出：使用SVG转PDF
+      const { svg2pdf } = await import('svg2pdf.js')
+      
+      let svgString
+      // 获取SVG字符串
+      if (typeof chartInstanceOrSvg === 'string') {
+        svgString = chartInstanceOrSvg
+      } else if (typeof chartInstanceOrSvg.renderToSVGString === 'function') {
+        svgString = chartInstanceOrSvg.renderToSVGString()
+      } else {
+        throw new Error('无法获取SVG。请使用svg renderer初始化图表，或传入SVG字符串。')
+      }
 
-    // 将PNG添加到PDF
-    const imgData = pngDataURL.replace('data:image/png;base64,', '')
-    pdf.addImage(imgData, 'PNG', 0, 0, width, height)
+      // 创建SVG DOM元素
+      const parser = new DOMParser()
+      const svgDoc = parser.parseFromString(svgString, 'image/svg+xml')
+      const svgElement = svgDoc.documentElement
 
-    pdf.save(`${filename}_academic.pdf`)
-    return true
+      // 创建PDF文档
+      const pdf = new jsPDF({
+        orientation,
+        unit: 'mm',
+        format
+      })
+
+      // 获取PDF页面尺寸
+      const pdfWidth = pdf.internal.pageSize.getWidth()
+      const pdfHeight = pdf.internal.pageSize.getHeight()
+
+      // 将SVG转换为PDF（矢量格式）
+      await svg2pdf(svgElement, pdf, {
+        x: 0,
+        y: 0,
+        width: pdfWidth,
+        height: pdfHeight
+      })
+
+      pdf.save(`${filename}_vector.pdf`)
+      return true
+    } else {
+      // 栅格PDF导出：使用高质量PNG
+      const dpi = 300
+      const pngDataURL = chartInstanceOrSvg.getDataURL({
+        type: 'png',
+        pixelRatio: dpi / 96,
+        backgroundColor: '#ffffff',
+        width: width * dpi / 25.4,
+        height: height * dpi / 25.4
+      })
+
+      const pdf = new jsPDF({
+        orientation,
+        unit: 'mm',
+        format
+      })
+
+      const imgData = pngDataURL.replace('data:image/png;base64,', '')
+      pdf.addImage(imgData, 'PNG', 0, 0, width, height)
+
+      pdf.save(`${filename}_raster.pdf`)
+      return true
+    }
   } catch (error) {
     console.error('导出 PDF 失败:', error)
+    // 如果矢量导出失败，降级到栅格导出
+    if (vectorize && error.message.includes('SVG')) {
+      console.warn('矢量PDF导出失败，降级到栅格PDF')
+      return exportChartAsPDF(chartInstanceOrSvg, { ...options, vectorize: false })
+    }
     throw error
   }
 }

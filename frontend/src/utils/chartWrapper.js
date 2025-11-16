@@ -949,56 +949,106 @@ export function generateScatterOption(data, config) {
  */
 export function generateLineOption(data, config) {
   const {
-    title,
-    xAxisLabel,
-    yAxisLabel,
-    showLegend,
-    showGrid,
-    colorScheme,
-    lineWidth,
-    opacity
+    title = '折线图',
+    xAxisLabel = 'X轴',
+    yAxisLabel = 'Y轴',
+    showLegend = true,
+    showGrid = false,
+    colorScheme = 'default',
+    backgroundColor = 'transparent',
+    fontFamily = 'SimSun, "Times New Roman", serif',
+    
+    // 线条样式
+    lineWidth = 2,
+    lineType = 'solid',
+    smooth = false,
+    showSymbol = true,
+    symbolSize = 6,
+    showArea = false,
+    areaOpacity = 0.3,
+    
+    // 坐标轴样式
+    axisLineColor = '#333',
+    axisLabelFontSize = 12,
+    axisLineWidth = 1,
+    showAxisLine = true,
+    showAxisTick = true,
+    showGridLines = false,
+    gridLineColor = '#e0e0e0',
+    gridLineWidth = 1,
+    
+    // 字体样式
+    titleFontSize = 18,
+    titleFontWeight = 'bold',
+    legendFontSize = 12
   } = config
 
   const textColor = '#333333'
-  const bgColor = '#ffffff'
   
   // 防御性检查：确保数据结构有效
   if (!data || !data.data) {
     return {
-      title: { text: title || '折线图', left: 'center', textStyle: { color: textColor } },
-      backgroundColor: bgColor,
+      title: { text: title, left: 'center', textStyle: { color: textColor, fontFamily } },
+      backgroundColor,
       xAxis: { type: 'value' },
       yAxis: { type: 'value' },
       series: []
     }
   }
   
+  // 生成系列数据
   const series = []
   if (data.type === 'grouped') {
     if (data.data && typeof data.data === 'object') {
       Object.entries(data.data).forEach(([group, points]) => {
         if (Array.isArray(points) && points.length > 0) {
-          series.push({
+          const seriesItem = {
             name: group,
             type: 'line',
             data: points.map(p => [p.x, p.y]),
-            smooth: true,
-            lineStyle: { width: lineWidth },
-            itemStyle: { opacity }
-          })
+            smooth,
+            showSymbol,
+            symbolSize,
+            lineStyle: {
+              width: lineWidth,
+              type: lineType
+            }
+          }
+          
+          // 添加面积图配置
+          if (showArea) {
+            seriesItem.areaStyle = {
+              opacity: areaOpacity
+            }
+          }
+          
+          series.push(seriesItem)
         }
       })
     }
   } else {
     if (Array.isArray(data.data) && data.data.length > 0) {
-      series.push({
+      const seriesItem = {
         name: '数据',
         type: 'line',
         data: data.data.map(p => [p.x, p.y]),
-        smooth: true,
-        lineStyle: { width: lineWidth },
-        itemStyle: { opacity }
-      })
+        smooth,
+        showSymbol,
+        symbolSize,
+        lineStyle: {
+          width: lineWidth,
+          type: lineType
+        }
+      }
+      
+      // 添加面积图配置
+      if (showArea) {
+        seriesItem.areaStyle = {
+          opacity: areaOpacity
+        }
+      }
+      
+      series.push(seriesItem)
     }
   }
   
@@ -1006,42 +1056,101 @@ export function generateLineOption(data, config) {
     title: {
       text: title,
       left: 'center',
-      textStyle: { color: textColor }
+      textStyle: {
+        color: textColor,
+        fontSize: titleFontSize,
+        fontWeight: titleFontWeight,
+        fontFamily
+      }
     },
-    backgroundColor: bgColor,
+    backgroundColor,
     tooltip: {
-      trigger: 'axis'
+      trigger: 'axis',
+      textStyle: {
+        fontFamily
+      }
     },
     legend: {
       show: showLegend,
       bottom: 10,
-      textStyle: { color: textColor }
+      textStyle: {
+        color: textColor,
+        fontSize: legendFontSize,
+        fontFamily
+      }
     },
     grid: {
       show: showGrid,
       left: '10%',
       right: '10%',
-      bottom: '15%',
+      bottom: showLegend ? '15%' : '10%',
       containLabel: true
     },
     xAxis: {
       type: 'value',
       name: xAxisLabel,
-      nameTextStyle: { color: textColor },
-      axisLabel: { color: textColor }
+      nameTextStyle: {
+        color: textColor,
+        fontSize: axisLabelFontSize,
+        fontFamily
+      },
+      axisLabel: {
+        color: textColor,
+        fontSize: axisLabelFontSize,
+        fontFamily
+      },
+      axisLine: {
+        show: showAxisLine,
+        lineStyle: {
+          color: axisLineColor,
+          width: axisLineWidth
+        }
+      },
+      axisTick: {
+        show: showAxisTick
+      },
+      splitLine: {
+        show: showGridLines,
+        lineStyle: {
+          color: gridLineColor,
+          width: gridLineWidth
+        }
+      }
     },
     yAxis: {
       type: 'value',
       name: yAxisLabel,
-      nameTextStyle: { color: textColor },
-      axisLabel: { color: textColor }
+      nameTextStyle: {
+        color: textColor,
+        fontSize: axisLabelFontSize,
+        fontFamily
+      },
+      axisLabel: {
+        color: textColor,
+        fontSize: axisLabelFontSize,
+        fontFamily
+      },
+      axisLine: {
+        show: showAxisLine,
+        lineStyle: {
+          color: axisLineColor,
+          width: axisLineWidth
+        }
+      },
+      axisTick: {
+        show: showAxisTick
+      },
+      splitLine: {
+        show: showGridLines,
+        lineStyle: {
+          color: gridLineColor,
+          width: gridLineWidth
+        }
+      }
     },
     series,
     color: getColorScheme(colorScheme)
   }
-
-  // 应用通用样式配置
-  applyCommonStyle(option, config)
 
   return option
 }
@@ -1050,7 +1159,19 @@ export function generateLineOption(data, config) {
  * 生成热力图配置
  */
 export function generateHeatmapOption(data, config) {
-  const { title, xAxisLabel, yAxisLabel, colorScheme } = config
+  const { 
+    title, 
+    xAxisLabel, 
+    yAxisLabel, 
+    colorScheme,
+    showValues = true,
+    showGrid = false,
+    showColorBar = true,
+    valueFontSize = 12,
+    titleFontSize = 18,
+    colorRange = 'auto',
+    fontFamily = 'SimSun, "Times New Roman", serif'
+  } = config
 
   const textColor = '#333333'
   const bgColor = '#ffffff'
@@ -1071,15 +1192,22 @@ export function generateHeatmapOption(data, config) {
     title: {
       text: title,
       left: 'center',
-      textStyle: { color: textColor }
+      textStyle: { 
+        color: textColor,
+        fontSize: titleFontSize,
+        fontFamily
+      }
     },
     backgroundColor: bgColor,
     tooltip: {
-      position: 'top'
+      position: 'top',
+      formatter: function(params) {
+        return `${data.xValues[params.value[0]]}<br/>${data.yValues[params.value[1]]}<br/>值: ${params.value[2].toFixed(2)}`
+      }
     },
     grid: {
       left: '10%',
-      right: '15%',
+      right: showColorBar ? '15%' : '10%',
       bottom: '15%',
       containLabel: true
     },
@@ -1087,19 +1215,22 @@ export function generateHeatmapOption(data, config) {
       type: 'category',
       data: data.xValues,
       name: xAxisLabel,
-      nameTextStyle: { color: textColor },
-      axisLabel: { color: textColor }
+      nameTextStyle: { color: textColor, fontFamily },
+      axisLabel: { color: textColor, fontFamily },
+      splitLine: { show: showGrid, lineStyle: { color: '#e0e0e0' } }
     },
     yAxis: {
       type: 'category',
       data: data.yValues,
       name: yAxisLabel,
-      nameTextStyle: { color: textColor },
-      axisLabel: { color: textColor }
+      nameTextStyle: { color: textColor, fontFamily },
+      axisLabel: { color: textColor, fontFamily },
+      splitLine: { show: showGrid, lineStyle: { color: '#e0e0e0' } }
     },
     visualMap: {
-      min: Math.min(...data.data.map(d => d[2])),
-      max: Math.max(...data.data.map(d => d[2])),
+      show: showColorBar,
+      min: colorRange === 'auto' ? Math.min(...data.data.map(d => d[2])) : config.colorMin,
+      max: colorRange === 'auto' ? Math.max(...data.data.map(d => d[2])) : config.colorMax,
       calculable: true,
       orient: 'vertical',
       right: '5%',
@@ -1107,12 +1238,20 @@ export function generateHeatmapOption(data, config) {
       inRange: {
         color: getColorScheme(colorScheme)
       },
-      textStyle: { color: textColor }
+      textStyle: { color: textColor, fontFamily }
     },
     series: [{
       name: '热力值',
       type: 'heatmap',
       data: data.data,
+      label: {
+        show: showValues,
+        fontSize: valueFontSize,
+        fontFamily,
+        formatter: function(params) {
+          return params.value[2].toFixed(1)
+        }
+      },
       emphasis: {
         itemStyle: {
           shadowBlur: 10,
@@ -1132,7 +1271,19 @@ export function generateHeatmapOption(data, config) {
  * 生成三维曲面图配置
  */
 export function generateSurfaceOption(data, config) {
-  const { title, xAxisLabel, yAxisLabel, zAxisLabel, colorScheme } = config
+  const { 
+    title, 
+    xAxisLabel, 
+    yAxisLabel, 
+    zAxisLabel, 
+    colorScheme,
+    viewAngle = 45,
+    pitchAngle = 30,
+    showWireframe = false,
+    grid3D = true,
+    titleFontSize = 18,
+    fontFamily = 'SimSun, "Times New Roman", serif'
+  } = config
 
   const textColor = '#333333'
   const bgColor = '#ffffff'
@@ -1155,10 +1306,21 @@ export function generateSurfaceOption(data, config) {
     title: {
       text: title,
       left: 'center',
-      textStyle: { color: textColor }
+      textStyle: { 
+        color: textColor,
+        fontSize: titleFontSize,
+        fontFamily
+      }
     },
     backgroundColor: bgColor,
-    tooltip: {},
+    tooltip: {
+      formatter: function(params) {
+        if (params.value) {
+          return `X: ${params.value[0].toFixed(2)}<br/>Y: ${params.value[1].toFixed(2)}<br/>Z: ${params.value[2].toFixed(2)}`
+        }
+        return ''
+      }
+    },
     visualMap: {
       show: true,
       dimension: 2,
@@ -1167,33 +1329,44 @@ export function generateSurfaceOption(data, config) {
       inRange: {
         color: getColorScheme(colorScheme)
       },
-      textStyle: { color: textColor }
+      textStyle: { color: textColor, fontFamily }
     },
     xAxis3D: {
       name: xAxisLabel,
       type: 'value',
-      nameTextStyle: { color: textColor },
-      axisLabel: { color: textColor }
+      nameTextStyle: { color: textColor, fontFamily },
+      axisLabel: { color: textColor, fontFamily }
     },
     yAxis3D: {
       name: yAxisLabel,
       type: 'value',
-      nameTextStyle: { color: textColor },
-      axisLabel: { color: textColor }
+      nameTextStyle: { color: textColor, fontFamily },
+      axisLabel: { color: textColor, fontFamily }
     },
     zAxis3D: {
       name: zAxisLabel,
       type: 'value',
-      nameTextStyle: { color: textColor },
-      axisLabel: { color: textColor }
+      nameTextStyle: { color: textColor, fontFamily },
+      axisLabel: { color: textColor, fontFamily }
     },
     grid3D: {
+      show: grid3D,
+      boxWidth: 100,
+      boxHeight: 100,
+      boxDepth: 100,
       viewControl: {
-        projection: 'perspective'
+        projection: 'perspective',
+        alpha: pitchAngle,
+        beta: viewAngle,
+        distance: 200,
+        autoRotate: false,
+        rotateSensitivity: 1,
+        zoomSensitivity: 1
       },
       light: {
         main: {
-          shadow: true
+          shadow: true,
+          intensity: 1.2
         },
         ambient: {
           intensity: 0.4
@@ -1205,7 +1378,14 @@ export function generateSurfaceOption(data, config) {
       data: data.z.map((row, i) =>
         row.map((z, j) => [data.x[j], data.y[i], z])
       ).flat(),
-      shading: 'color'
+      shading: 'color',
+      wireframe: {
+        show: showWireframe,
+        lineStyle: {
+          color: 'rgba(0,0,0,0.3)',
+          width: 1
+        }
+      }
     }]
   }
 
@@ -1228,7 +1408,11 @@ export function generateBarOption(data, config) {
     showGrid,
     colorScheme,
     opacity,
-    journalStyle = 'academic'
+    journalStyle = 'academic',
+    barWidth = 40,
+    showLabel = true,
+    titleFontSize = 18,
+    fontFamily = 'SimSun, "Times New Roman", serif'
   } = config
 
   const style = getJournalStyle(journalStyle)
@@ -1289,6 +1473,13 @@ export function generateBarOption(data, config) {
         series.push({
           name: '数据',
           type: 'bar',
+          barWidth: `${barWidth}%`,
+          label: {
+            show: showLabel,
+            position: 'top',
+            fontSize: 10,
+            fontFamily
+          },
           data: validPoints.map(p => ({
             name: p.x,
             value: p.y
@@ -1333,12 +1524,14 @@ export function generateBarOption(data, config) {
       top: '5%',
       textStyle: {
         ...style.title,
-        fontSize: style.title.fontSize
+        fontSize: titleFontSize,
+        fontFamily
       },
       subtextStyle: {
         ...style.title,
         fontSize: style.axis.fontSize,
-        fontWeight: 'normal'
+        fontWeight: 'normal',
+        fontFamily
       }
     },
     backgroundColor: bgColor,
@@ -1456,7 +1649,10 @@ export function generateBoxPlotOption(data, config) {
     yAxisLabel,
     showGrid,
     colorScheme,
-    journalStyle = 'academic'
+    journalStyle = 'academic',
+    showLegend = true,
+    titleFontSize = 18,
+    fontFamily = 'SimSun, "Times New Roman", serif'
   } = config
 
   const style = getJournalStyle(journalStyle)
@@ -1507,12 +1703,14 @@ export function generateBoxPlotOption(data, config) {
       top: '5%',
       textStyle: {
         ...style.title,
-        fontSize: style.title.fontSize
+        fontSize: titleFontSize,
+        fontFamily
       },
       subtextStyle: {
         ...style.title,
         fontSize: style.axis.fontSize,
-        fontWeight: 'normal'
+        fontWeight: 'normal',
+        fontFamily
       }
     },
     backgroundColor: bgColor,
@@ -1539,10 +1737,10 @@ export function generateBoxPlotOption(data, config) {
       textStyle: { fontSize: 11 }
     },
     legend: {
-      show: validData.length > 1,
+      show: showLegend && validData.length > 1,
       bottom: '5%',
       left: 'center',
-      textStyle: style.legend,
+      textStyle: { ...style.legend, fontFamily },
       itemGap: 20,
       itemWidth: 12,
       itemHeight: 12,
@@ -1652,7 +1850,10 @@ export function generateHistogramOption(data, config) {
     showGrid,
     colorScheme,
     opacity,
-    journalStyle = 'academic'
+    journalStyle = 'academic',
+    showLabel = true,
+    titleFontSize = 18,
+    fontFamily = 'SimSun, "Times New Roman", serif'
   } = config
 
   const style = getJournalStyle(journalStyle)
@@ -1696,12 +1897,14 @@ export function generateHistogramOption(data, config) {
       top: '5%',
       textStyle: {
         ...style.title,
-        fontSize: style.title.fontSize
+        fontSize: titleFontSize,
+        fontFamily
       },
       subtextStyle: {
         ...style.title,
         fontSize: style.axis.fontSize,
-        fontWeight: 'normal'
+        fontWeight: 'normal',
+        fontFamily
       }
     },
     backgroundColor: bgColor,
@@ -1801,6 +2004,13 @@ export function generateHistogramOption(data, config) {
     series: [{
       name: '频数',
       type: 'bar',
+      label: {
+        show: showLabel,
+        position: 'top',
+        fontSize: 10,
+        fontFamily,
+        formatter: '{c}'
+      },
       data: validBins.map(bin => ({
         value: bin.count,
         total: total,
