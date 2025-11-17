@@ -61,7 +61,6 @@
 </template>
 
 <script setup>
-/* global defineProps, defineEmits */
 import { computed, h, onMounted, ref, watch } from 'vue';
 import { ElCheckbox, ElInput, ElMessage, ElMessageBox } from 'element-plus';
 import { Search } from '@element-plus/icons-vue';

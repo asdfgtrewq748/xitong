@@ -22,6 +22,7 @@ const HeatMapPage = () => import(/* webpackChunkName: "heatmap" */ '../component
 const Surface3DPage = () => import(/* webpackChunkName: "surface" */ '../components/visualization/pages/Surface3DPage.vue')
 const BoxPlotPage = () => import(/* webpackChunkName: "box" */ '../components/visualization/pages/BoxPlotPage.vue')
 const HistogramPage = () => import(/* webpackChunkName: "histogram" */ '../components/visualization/pages/HistogramPage.vue')
+const StatisticalAnalysisPage = () => import(/* webpackChunkName: "statistics" */ '../components/visualization/pages/StatisticalAnalysisPage.vue')
 const TunnelSupportView = () => import(/* webpackChunkName: "tunnel-support" */ '../components/TunnelSupportView.vue')
 
 const routes = [
@@ -120,6 +121,12 @@ const routes = [
     name: 'Histogram',
     component: HistogramPage,
     meta: { title: '直方图' }
+  },
+  {
+    path: '/visualization/statistics',
+    name: 'StatisticalAnalysis',
+    component: StatisticalAnalysisPage,
+    meta: { title: '统计分析' }
   },
   {
     path: '/data-management',

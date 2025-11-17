@@ -64,7 +64,6 @@
 </template>
 
 <script setup>
-/* global defineProps */
 import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import * as echarts from 'echarts';

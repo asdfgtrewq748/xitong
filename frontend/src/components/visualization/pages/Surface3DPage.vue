@@ -67,6 +67,11 @@
                     <el-option label="热力" value="hot" />
                     <el-option label="冷色调" value="cool" />
                     <el-option label="地形" value="terrain" />
+                    <el-option label="Jet (Matplotlib)" value="jet" />
+                    <el-option label="Seismic" value="seismic" />
+                    <el-option label="黄橙红" value="YlOrRd" />
+                    <el-option label="红黄蓝" value="RdYlBu" />
+                    <el-option label="光谱" value="Spectral" />
                   </el-select>
                 </el-form-item>
                 <el-form-item>
@@ -76,9 +81,53 @@
                   <el-switch v-model="config.grid3D" active-text="显示3D网格" @change="updateChart" />
                 </el-form-item>
 
+                <el-divider content-position="left">渲染与采样</el-divider>
+                <el-form-item label="平滑 (高斯 σ)">
+                  <el-slider v-model="config.smoothingSigma" :min="0" :max="5" :step="0.1" show-input @change="updateChart" />
+                </el-form-item>
+                <el-form-item label="网格分辨率 (每轴点数)">
+                  <el-slider v-model="config.resolution" :min="20" :max="200" :step="10" show-input @change="updateChart" />
+                  <div style="font-size:12px;color:#909399;margin-top:6px">设置空为使用原始数据分辨率</div>
+                </el-form-item>
+
+                <el-divider content-position="left">色条设置</el-divider>
+                <el-form-item>
+                  <el-switch v-model="config.showColorBar" active-text="显示色条" @change="updateChart" />
+                </el-form-item>
+                <el-form-item label="色条位置">
+                  <el-select v-model="config.colorBarPosition" @change="updateChart">
+                    <el-option label="右侧" value="right" />
+                    <el-option label="左侧" value="left" />
+                    <el-option label="底部" value="bottom" />
+                  </el-select>
+                </el-form-item>
+                <el-form-item label="色条缩放">
+                  <el-slider v-model="config.colorBarShrink" :min="0.3" :max="1" :step="0.1" show-input @change="updateChart" />
+                </el-form-item>
+                <el-form-item label="色条标签">
+                  <el-input v-model="config.colorBarLabel" placeholder="数值" @change="updateChart" />
+                </el-form-item>
+
+                <el-divider content-position="left">导出设置</el-divider>
+                <el-form-item label="导出质量 (pixelRatio)">
+                  <el-slider v-model="config.exportPixelRatio" :min="1" :max="4" :step="0.5" show-input />
+                  <div style="font-size:12px;color:#909399;margin-top:6px">2 对应 DPI 150, 4 对应 DPI 300</div>
+                </el-form-item>
+
                 <el-divider content-position="left">字体设置</el-divider>
                 <el-form-item label="标题字号">
                   <el-slider v-model="config.titleFontSize" :min="12" :max="32" show-input @change="updateChart" />
+                </el-form-item>
+
+                <el-divider content-position="left">视角预设</el-divider>
+                <el-form-item label="快速切换">
+                  <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                    <el-button size="small" @click="applyViewPreset(20, 45)">视角1</el-button>
+                    <el-button size="small" @click="applyViewPreset(30, 60)">视角2</el-button>
+                    <el-button size="small" @click="applyViewPreset(40, 90)">视角3</el-button>
+                    <el-button size="small" @click="applyViewPreset(20, 120)">视角4</el-button>
+                    <el-button size="small" @click="applyViewPreset(60, 45)">视角5</el-button>
+                  </div>
                 </el-form-item>
               </el-form>
             </el-collapse-item>
@@ -123,6 +172,7 @@
               <span>3D曲面视图</span>
               <el-button-group size="small">
                 <el-button @click="resetView"><el-icon><RefreshLeft /></el-icon></el-button>
+                <el-button @click="exportMultiAngles" title="导出多角度 PNG"><el-icon><Document /></el-icon></el-button>
               </el-button-group>
             </div>
           </template>
@@ -166,6 +216,16 @@ const config = reactive({
   pitchAngle: 30,
   showWireframe: false,
   grid3D: true,
+  // 高级渲染参数
+  smoothingSigma: 0,
+  resolution: null,
+  // 色条设置
+  showColorBar: true,
+  colorBarPosition: 'right',
+  colorBarShrink: 0.8,
+  colorBarLabel: '数值',
+  // 导出设置
+  exportPixelRatio: 2,
   backgroundColor: 'transparent',
   fontFamily: 'SimSun, "Times New Roman", serif',
   titleFontSize: 18
@@ -219,6 +279,63 @@ const updateChart = () => {
 const resetView = () => {
   if (chartRef.value?.resize) chartRef.value.resize()
   ElMessage.info('视图已重置')
+}
+
+// 导出多角度图片（默认四个方位）
+const downloadDataUrl = (dataUrl, filename) => {
+  const a = document.createElement('a')
+  a.href = dataUrl
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+}
+
+// 快速应用视角预设
+const applyViewPreset = (pitch, angle) => {
+  config.pitchAngle = pitch
+  config.viewAngle = angle
+  updateChart()
+  ElMessage.success(`已切换到视角: 俯仰=${pitch}°, 方位=${angle}°`)
+}
+
+const exportMultiAngles = async () => {
+  if (!chartRef.value) {
+    ElMessage.error('图表未初始化')
+    return
+  }
+  const instance = chartRef.value.getChartInstance()
+  if (!instance) {
+    ElMessage.error('无法获取图表实例')
+    return
+  }
+
+  // 使用 sanweiyuntu.py 中的 5 个预设角度
+  const angles = [
+    { elev: 20, azim: 45 },
+    { elev: 30, azim: 60 },
+    { elev: 40, azim: 90 },
+    { elev: 20, azim: 120 },
+    { elev: 60, azim: 45 }
+  ]
+  const original = { alpha: config.pitchAngle, beta: config.viewAngle }
+  try {
+    for (let i = 0; i < angles.length; i++) {
+      const { elev, azim } = angles[i]
+      instance.setOption({ grid3D: { viewControl: { alpha: elev, beta: azim } } })
+      // 等待渲染稳定
+      await new Promise(r => setTimeout(r, 300))
+      const dataUrl = chartRef.value.exportChart({ pixelRatio: config.exportPixelRatio })
+      const safeTitle = (config.title || 'surface').replace(/\s+/g, '_')
+      downloadDataUrl(dataUrl, `${safeTitle}_view${i+1}_elev${elev}_azim${azim}.png`)
+    }
+    ElMessage.success('多角度导出完成（5个预设视角）')
+  } catch (e) {
+    ElMessage.error('导出失败: ' + (e?.message || e))
+  } finally {
+    // 恢复视角
+    instance.setOption({ grid3D: { viewControl: { alpha: original.alpha, beta: original.beta } } })
+  }
 }
 
 // 统计计算

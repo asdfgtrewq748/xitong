@@ -116,6 +116,10 @@
                 <el-icon><Histogram /></el-icon>
                 <template #title>直方图</template>
               </el-menu-item>
+              <el-menu-item index="/visualization/statistics">
+                <el-icon><DataAnalysis /></el-icon>
+                <template #title>统计分析</template>
+              </el-menu-item>
             </el-sub-menu>
           </div>
         </el-menu>

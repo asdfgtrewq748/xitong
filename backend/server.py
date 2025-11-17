@@ -26,6 +26,10 @@ from api import calculate_key_strata_details, process_single_borehole_file
 from coal_seam_blocks.modeling import build_block_models
 from db import get_engine, get_records_table, get_session, reset_table_cache
 from tunnel_support import TunnelSupportCalculator, batch_calculate_tunnel_support
+from statistical_analysis import (
+    analyze_descriptive_stats, analyze_correlation, analyze_regression,
+    DescriptiveStatistics, CorrelationAnalysis, RegressionAnalysis, HypothesisTesting
+)
 
 # 性能优化模块
 from performance_config import (
@@ -2463,5 +2467,143 @@ async def get_default_constants():
             "safety_K": "安全系数",
             "m": "锚杆(索)工作状态系数",
             "n": "根数"
+        }
+    }
+
+
+# ============================================================================
+# 统计分析 API 端点
+# ============================================================================
+
+class StatisticalAnalysisRequest(BaseModel):
+    """统计分析请求模型"""
+    data: Dict[str, List[float]]
+    columns: Optional[List[str]] = None
+
+
+class CorrelationRequest(BaseModel):
+    """相关性分析请求模型"""
+    data: Dict[str, List[float]]
+    method: str = 'pearson'  # 'pearson' 或 'spearman'
+    columns: Optional[List[str]] = None
+
+
+class RegressionRequest(BaseModel):
+    """回归分析请求模型"""
+    x: List[float]
+    y: List[float]
+    x_label: Optional[str] = 'X'
+    y_label: Optional[str] = 'Y'
+    regression_type: str = 'linear'  # 'linear' 或 'polynomial'
+    polynomial_degree: int = 2
+
+
+@app.post("/api/statistics/descriptive")
+async def descriptive_statistics(request: StatisticalAnalysisRequest):
+    """
+    描述性统计分析
+    
+    返回每个变量的详细统计指标：均值、中位数、标准差、偏度、峰度等
+    """
+    try:
+        result = analyze_descriptive_stats(request.data)
+        return {
+            "status": "success",
+            "data": result
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"统计分析失败: {str(e)}")
+
+
+@app.post("/api/statistics/correlation")
+async def correlation_analysis(request: CorrelationRequest):
+    """
+    相关性分析
+    
+    计算变量间的相关系数矩阵（Pearson 或 Spearman）
+    返回相关系数矩阵、p值矩阵和显著相关对
+    """
+    try:
+        if request.method not in ['pearson', 'spearman']:
+            raise HTTPException(status_code=400, detail="method 必须是 'pearson' 或 'spearman'")
+        
+        result = analyze_correlation(request.data, method=request.method)
+        return {
+            "status": "success",
+            "data": result
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"相关性分析失败: {str(e)}")
+
+
+@app.post("/api/statistics/regression")
+async def regression_analysis(request: RegressionRequest):
+    """
+    回归分析
+    
+    支持线性回归和多项式回归
+    返回回归方程、R²、RMSE、置信区间、预测区间等
+    """
+    try:
+        if len(request.x) != len(request.y):
+            raise HTTPException(status_code=400, detail="x 和 y 的长度必须相同")
+        
+        if len(request.x) < 3:
+            raise HTTPException(status_code=400, detail="数据点数量不足（至少需要3个点）")
+        
+        result = analyze_regression(
+            request.x, 
+            request.y, 
+            regression_type=request.regression_type,
+            polynomial_degree=request.polynomial_degree
+        )
+        
+        if 'error' in result:
+            raise HTTPException(status_code=400, detail=result['error'])
+        
+        # 添加标签信息
+        result['x_label'] = request.x_label
+        result['y_label'] = request.y_label
+        
+        return {
+            "status": "success",
+            "data": result
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"回归分析失败: {str(e)}")
+
+
+@app.get("/api/statistics/methods")
+async def get_statistical_methods():
+    """
+    获取支持的统计方法列表
+    """
+    return {
+        "status": "success",
+        "methods": {
+            "descriptive": {
+                "name": "描述性统计",
+                "description": "计算均值、中位数、标准差、偏度、峰度等统计指标",
+                "metrics": [
+                    "count", "missing", "mean", "median", "mode", 
+                    "std", "variance", "range", "iqr", "cv",
+                    "min", "max", "q25", "q50", "q75",
+                    "skewness", "kurtosis", "sem", "ci_lower", "ci_upper"
+                ]
+            },
+            "correlation": {
+                "name": "相关性分析",
+                "description": "计算变量间的相关系数矩阵",
+                "methods": ["pearson", "spearman"],
+                "output": ["相关系数矩阵", "p值矩阵", "显著相关对"]
+            },
+            "regression": {
+                "name": "回归分析",
+                "description": "拟合回归模型并进行预测",
+                "types": ["linear", "polynomial"],
+                "output": ["方程", "R²", "RMSE", "置信区间", "预测区间", "残差分析"]
+            }
         }
     }

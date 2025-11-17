@@ -346,6 +346,19 @@ export const ColorSchemes = {
   blue_red: ['#0571b0', '#92c5de', '#f7f7f7', '#f4a582', '#ca0020'],
   green_red: ['#008837', '#a6dba0', '#f7f7f7', '#e2c1a6', '#b2182b'],
 
+  // 基础配色方案
+  rainbow: ['#9400D3', '#4B0082', '#0000FF', '#00FF00', '#FFFF00', '#FF7F00', '#FF0000'],
+  hot: ['#000000', '#330000', '#660000', '#990000', '#CC0000', '#FF0000', '#FF3300', '#FF6600', '#FF9900', '#FFCC00', '#FFFF00', '#FFFFFF'],
+  cool: ['#00FFFF', '#00EEFF', '#00DDFF', '#00CCFF', '#00BBFF', '#00AAFF', '#0099FF', '#0088FF', '#0077FF', '#0066FF', '#0055FF', '#FF00FF'],
+  terrain: ['#333399', '#3366CC', '#0099CC', '#00CC99', '#33CC66', '#66CC33', '#99CC00', '#CCCC00', '#CC9900', '#CC6600', '#CC3300', '#FFFFFF'],
+
+  // Matplotlib 经典配色方案（匹配 sanweiyuntu.py）
+  jet: ['#00007F', '#0000FF', '#007FFF', '#00FFFF', '#7FFF7F', '#FFFF00', '#FF7F00', '#FF0000', '#7F0000'],
+  seismic: ['#00004C', '#0000E6', '#4D4DFF', '#B3B3FF', '#FFFFFF', '#FFB3B3', '#FF4D4D', '#E60000', '#4C0000'],
+  YlOrRd: ['#FFFFCC', '#FFEDA0', '#FED976', '#FEB24C', '#FD8D3C', '#FC4E2A', '#E31A1C', '#BD0026', '#800026'],
+  RdYlBu: ['#A50026', '#D73027', '#F46D43', '#FDAE61', '#FEE090', '#E0F3F8', '#ABD9E9', '#74ADD1', '#4575B4', '#313695'],
+  Spectral: ['#9E0142', '#D53E4F', '#F46D43', '#FDAE61', '#FEE08B', '#E6F598', '#ABDDA4', '#66C2A5', '#3288BD', '#5E4FA2'],
+
   // 灰度系列（黑白印刷友好）
   greys: ['#f7f7f7', '#cccccc', '#969696', '#636363', '#252525'],
   scientific_grey: ['#2b2b2b', '#525252', '#737373', '#969696', '#bdbdbd', '#d9d9d9', '#f7f7f7'],
@@ -944,6 +957,122 @@ export function generateScatterOption(data, config) {
   return option
 }
 
+  /**
+   * 双线性重采样（将原始 z 矩阵从原来的 x/y 网格插值到新的 xNew/yNew 网格）
+   * z: 原始二维数组，z[row][col] 对应 y[row], x[col]
+   */
+  function bilinearResample(z, xOld, yOld, xNew, yNew) {
+    // eslint-disable-next-line no-unused-vars
+    const nx = xOld.length
+    // eslint-disable-next-line no-unused-vars
+    const ny = yOld.length
+    const nxNew = xNew.length
+    const nyNew = yNew.length
+    const out = Array.from({ length: nyNew }, () => Array(nxNew).fill(null))
+
+    // 辅助：查找 xOld 的索引区间
+    const findIdx = (arr, v) => {
+      if (v <= arr[0]) return 0
+      if (v >= arr[arr.length - 1]) return arr.length - 2
+      let lo = 0, hi = arr.length - 1
+      while (lo <= hi) {
+        const mid = Math.floor((lo + hi) / 2)
+        if (arr[mid] <= v) lo = mid + 1
+        else hi = mid - 1
+      }
+      return Math.max(0, lo - 1)
+    }
+
+    for (let i = 0; i < nyNew; i++) {
+      for (let j = 0; j < nxNew; j++) {
+        const xv = xNew[j]
+        const yv = yNew[i]
+        const ix = findIdx(xOld, xv)
+        const iy = findIdx(yOld, yv)
+        const x1 = xOld[ix], x2 = xOld[ix + 1]
+        const y1 = yOld[iy], y2 = yOld[iy + 1]
+        const q11 = (z[iy] && z[iy][ix] != null) ? z[iy][ix] : null
+        const q12 = (z[iy + 1] && z[iy + 1][ix] != null) ? z[iy + 1][ix] : null
+        const q21 = (z[iy] && z[iy][ix + 1] != null) ? z[iy][ix + 1] : null
+        const q22 = (z[iy + 1] && z[iy + 1][ix + 1] != null) ? z[iy + 1][ix + 1] : null
+
+        // 若部分值缺失，优先使用可用邻域值的平均
+        const available = [q11, q12, q21, q22].filter(v => v != null)
+        if (available.length === 0) {
+          out[i][j] = null
+          continue
+        }
+
+        // 标准双线性插值
+        const dx = (x2 - x1) || 1
+        const dy = (y2 - y1) || 1
+        const tx = (xv - x1) / dx
+        const ty = (yv - y1) / dy
+
+        const interp = (a, b, t) => (a == null || b == null) ? (a != null ? a : b) : (a * (1 - t) + b * t)
+
+        const r1 = interp(q11, q21, tx)
+        const r2 = interp(q12, q22, tx)
+        const value = interp(r1, r2, ty)
+        out[i][j] = value == null ? (available.reduce((s, v) => s + v, 0) / available.length) : value
+      }
+    }
+    return out
+  }
+
+  /**
+   * 生成高斯核
+   */
+  function createGaussianKernel(sigma) {
+    const radius = Math.ceil(sigma * 3)
+    const size = radius * 2 + 1
+    const kernel = Array.from({ length: size }, () => Array(size).fill(0))
+    const twoSigma2 = 2 * sigma * sigma
+    let sum = 0
+    for (let y = -radius; y <= radius; y++) {
+      for (let x = -radius; x <= radius; x++) {
+        const v = Math.exp(-(x * x + y * y) / twoSigma2)
+        kernel[y + radius][x + radius] = v
+        sum += v
+      }
+    }
+    // 归一化
+    for (let i = 0; i < size; i++) for (let j = 0; j < size; j++) kernel[i][j] /= sum
+    return { kernel, radius }
+  }
+
+  /**
+   * 对二维矩阵进行高斯平滑卷积
+   */
+  function gaussianBlur2D(z, sigma) {
+    if (!sigma || sigma <= 0) return z
+    const { kernel, radius } = createGaussianKernel(sigma)
+    const h = z.length
+    const w = z[0] ? z[0].length : 0
+    const out = Array.from({ length: h }, () => Array(w).fill(null))
+
+    for (let i = 0; i < h; i++) {
+      for (let j = 0; j < w; j++) {
+        let sum = 0, weight = 0
+        for (let ky = -radius; ky <= radius; ky++) {
+          for (let kx = -radius; kx <= radius; kx++) {
+            const iy = i + ky
+            const jx = j + kx
+            if (iy < 0 || iy >= h || jx < 0 || jx >= w) continue
+            const val = z[iy][jx]
+            if (val == null || isNaN(val)) continue
+            const wgt = kernel[ky + radius][kx + radius]
+            sum += val * wgt
+            weight += wgt
+          }
+        }
+        out[i][j] = weight > 0 ? sum / weight : null
+      }
+    }
+    return out
+  }
+
+
 /**
  * 生成折线图配置
  */
@@ -1281,6 +1410,17 @@ export function generateSurfaceOption(data, config) {
     pitchAngle = 30,
     showWireframe = false,
     grid3D = true,
+    // 渲染与采样
+    smoothingSigma = 0,
+    resolution = null,
+    // 色条设置
+    showColorBar = true,
+    colorBarPosition = 'right',
+    colorBarShrink = 0.8,
+    colorBarLabel = '数值',
+    // 导出设置（pixelRatio在 exportChart 调用时传递，这里仅记录）
+    // eslint-disable-next-line no-unused-vars
+    exportPixelRatio = 2,
     titleFontSize = 18,
     fontFamily = 'SimSun, "Times New Roman", serif'
   } = config
@@ -1322,14 +1462,25 @@ export function generateSurfaceOption(data, config) {
       }
     },
     visualMap: {
-      show: true,
+      show: showColorBar,
       dimension: 2,
       min: Math.min(...data.z.flat().filter(v => v != null)),
       max: Math.max(...data.z.flat().filter(v => v != null)),
       inRange: {
         color: getColorScheme(colorScheme)
       },
-      textStyle: { color: textColor, fontFamily }
+      // 色条位置与样式（模拟 matplotlib colorbar 的 pad, shrink, aspect）
+      orient: colorBarPosition === 'bottom' ? 'horizontal' : 'vertical',
+      left: colorBarPosition === 'left' ? '5%' : (colorBarPosition === 'bottom' ? 'center' : undefined),
+      right: colorBarPosition === 'right' ? '5%' : undefined,
+      bottom: colorBarPosition === 'bottom' ? '5%' : undefined,
+      top: colorBarPosition === 'bottom' ? undefined : 'center',
+      // shrink 映射为 visualMap 的 itemHeight/itemWidth
+      itemHeight: colorBarPosition === 'bottom' ? undefined : `${Math.floor(colorBarShrink * 200)}`,
+      itemWidth: colorBarPosition === 'bottom' ? `${Math.floor(colorBarShrink * 200)}` : undefined,
+      text: [colorBarLabel || '高', '低'],
+      textStyle: { color: textColor, fontFamily, fontSize: 11 },
+      calculable: true
     },
     xAxis3D: {
       name: xAxisLabel,
@@ -1375,9 +1526,47 @@ export function generateSurfaceOption(data, config) {
     },
     series: [{
       type: 'surface',
-      data: data.z.map((row, i) =>
-        row.map((z, j) => [data.x[j], data.y[i], z])
-      ).flat(),
+      data: (() => {
+        // 处理重采样与平滑：如果 resolution 指定，则对 x/y 进行均匀重采样并双线性插值
+        let x = data.x.slice()
+        let y = data.y.slice()
+        let z = data.z.map(r => r.slice())
+
+        // 保证 z 为二维数值矩阵
+        const toNumber = v => (v == null || isNaN(v) ? null : Number(v))
+        z = z.map(row => row.map(toNumber))
+
+        // 重采样
+        if (resolution && Number.isInteger(resolution) && resolution > 2) {
+          const xMin = Math.min(...x)
+          const xMax = Math.max(...x)
+          const yMin = Math.min(...y)
+          const yMax = Math.max(...y)
+          const nx = resolution
+          const ny = resolution
+          const xNew = Array.from({ length: nx }, (_, i) => xMin + (xMax - xMin) * i / (nx - 1))
+          const yNew = Array.from({ length: ny }, (_, i) => yMin + (yMax - yMin) * i / (ny - 1))
+          z = bilinearResample(z, x, y, xNew, yNew)
+          x = xNew
+          y = yNew
+        }
+
+        // 平滑（高斯卷积）
+        if (smoothingSigma && smoothingSigma > 0) {
+          z = gaussianBlur2D(z, smoothingSigma)
+        }
+
+        // 将矩阵转换为 [x,y,z] 三元组数组
+        const triples = []
+        for (let i = 0; i < y.length; i++) {
+          for (let j = 0; j < x.length; j++) {
+            const val = z[i] && z[i][j]
+            if (val == null || isNaN(val)) continue
+            triples.push([x[j], y[i], val])
+          }
+        }
+        return triples
+      })(),
       shading: 'color',
       wireframe: {
         show: showWireframe,
