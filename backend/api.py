@@ -15,6 +15,8 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from key_strata_calculator import calculate_key_strata_details as calculate_key_strata_optimized
 from data_validation import validate_geological_data, GeologicalDataValidator
 from upward_mining_feasibility import UpwardMiningFeasibility, process_borehole_csv_for_feasibility, batch_process_borehole_files, auto_calibrate_coefficients
+from exporters.dxf_exporter import DXFExporter
+from exporters.flac3d_exporter import FLAC3DExporter
 
 # ==============================================================================
 #  核心计算函数 - 使用优化版本
@@ -681,3 +683,123 @@ class Api:
                 }
             ]
         }
+
+    def export_model(self, params: Dict) -> Dict:
+        """
+        导出地质模型到外部格式 (DXF, FLAC3D)
+        
+        Args:
+            params: 包含建模参数和导出选项
+                - export_type: 'dxf' 或 'flac3d'
+                - output_path: (可选) 输出路径
+                - ... (其他建模参数同 generate_block_model_data)
+        """
+        try:
+            # 数据验证
+            if self.merged_df_modeling is None:
+                return {'status': 'error', 'message': '数据未加载,请先选择文件'}
+
+            # 参数验证
+            required_params = ['seam_col', 'x_col', 'y_col', 'thickness_col', 'selected_seams']
+            for param in required_params:
+                if param not in params or not params[param]:
+                    return {'status': 'error', 'message': f'缺少必需参数: {param}'}
+
+            from coal_seam_blocks.modeling import build_block_models
+
+            def interpolation_wrapper(x, y, z, xi_flat, yi_flat):
+                try:
+                    return self._perform_interpolation(
+                        x, y, z, xi_flat, yi_flat,
+                        params.get('method', 'linear').lower()
+                    )
+                except Exception as e:
+                    print(f"[警告] 导出时插值失败: {e}, 使用最近邻方法")
+                    return self._perform_interpolation(
+                        x, y, z, xi_flat, yi_flat, 'nearest'
+                    )
+
+            # 调用建模函数生成数据
+            block_models_objs, skipped, (XI, YI) = build_block_models(
+                merged_df=self.merged_df_modeling,
+                seam_column=params['seam_col'],
+                x_col=params['x_col'],
+                y_col=params['y_col'],
+                thickness_col=params['thickness_col'],
+                selected_seams=params['selected_seams'],
+                method_callable=interpolation_wrapper,
+                resolution=params.get('resolution', 80),
+                base_level=params.get('base_level', 0),
+                gap_value=params.get('gap', 0)
+            )
+
+            if not block_models_objs:
+                return {
+                    'status': 'error',
+                    'message': '未能生成模型数据, 无法导出',
+                    'skipped': skipped
+                }
+
+            # 准备导出数据结构
+            export_data = {"layers": []}
+            for model in block_models_objs:
+                if model.top_surface is None:
+                    continue
+                    
+                export_data["layers"].append({
+                    "name": model.name,
+                    "grid_x": XI,
+                    "grid_y": YI,
+                    "grid_z": model.top_surface,
+                    "grid_z_bottom": model.bottom_surface,
+                    "thickness": model.thickness_grid
+                })
+
+            # 确定导出类型和路径
+            export_type = params.get("export_type", "dxf").lower()
+            output_path = params.get("output_path")
+            
+            if not output_path:
+                import os
+                from datetime import datetime
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                ext = "f3grid" if export_type == "flac3d" else "dxf"
+                
+                user_filename = params.get("filename")
+                if user_filename:
+                    # 移除可能包含的路径，只保留文件名
+                    user_filename = os.path.basename(user_filename)
+                    if not user_filename.lower().endswith(f".{ext}"):
+                        user_filename += f".{ext}"
+                    filename = user_filename
+                else:
+                    filename = f"model_export_{timestamp}.{ext}"
+
+                # 默认保存到 backend/data/output 或当前目录
+                output_dir = os.path.join(os.path.dirname(__file__), "data", "output")
+                if not os.path.exists(output_dir):
+                    os.makedirs(output_dir, exist_ok=True)
+                output_path = os.path.join(output_dir, filename)
+
+            # 执行导出
+            exporter = None
+            if export_type == "dxf":
+                exporter = DXFExporter()
+            elif export_type == "flac3d":
+                exporter = FLAC3DExporter()
+            else:
+                return {'status': 'error', 'message': f'不支持的导出类型: {export_type}'}
+                
+            final_path = exporter.export(export_data, output_path)
+            
+            return {
+                'status': 'success', 
+                'message': f'模型已成功导出到: {final_path}',
+                'file_path': final_path,
+                'skipped_layers': skipped
+            }
+            
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return {'status': 'error', 'message': f'导出过程中发生错误: {str(e)}'}

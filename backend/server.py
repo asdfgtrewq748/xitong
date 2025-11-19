@@ -381,12 +381,27 @@ class BlockModelRequest(BaseModel):
     gap: Optional[float] = 0
 
 
+class ExportRequest(BlockModelRequest):
+    """导出请求，继承自 BlockModelRequest 并增加导出类型和文件名字段"""
+    export_type: str  # 'dxf' or 'flac3d'
+    filename: Optional[str] = None
+
+
 class ComparisonRequest(BaseModel):
     x_col: str
     y_col: str
     z_col: str
     validation_ratio: float = 0.2
     seams: Optional[List[str]] = None
+
+
+class ModelingValidationRequest(BaseModel):
+    """建模可行性验证请求"""
+    x_col: str
+    y_col: str
+    thickness_col: str
+    seam_col: str
+    selected_seams: List[str]
 
 
 app = FastAPI(title="Mining System API", version="0.1.0")
@@ -2607,3 +2622,259 @@ async def get_statistical_methods():
             }
         }
     }
+
+@app.post("/api/modeling/validate")
+async def validate_modeling_endpoint(payload: ModelingValidationRequest):
+    """
+    验证建模可行性：检查数据是否满足建模要求。
+    返回详细的验证结果，包括数据点数、坐标唯一值、各煤层点数等。
+    """
+    try:
+        modeling_state.ensure_loaded()
+    except HTTPException as e:
+        return {
+            "valid": False,
+            "error": e.detail,
+            "details": {}
+        }
+    
+    df = modeling_state.merged_df
+    
+    # 检查列是否存在
+    missing_cols = []
+    for col in [payload.x_col, payload.y_col, payload.thickness_col, payload.seam_col]:
+        if col not in df.columns:
+            missing_cols.append(col)
+    
+    if missing_cols:
+        return {
+            "valid": False,
+            "error": f"数据集中缺少列: {', '.join(missing_cols)}",
+            "details": {
+                "available_columns": list(df.columns)
+            }
+        }
+    
+    # 检查有效数据点
+    required_cols = [payload.x_col, payload.y_col, payload.thickness_col, payload.seam_col]
+    valid_data = df.dropna(subset=required_cols).copy()
+    total_valid_points = len(valid_data)
+    
+    if total_valid_points < 8:
+        return {
+            "valid": False,
+            "error": f"生成块体至少需要8个有效数据点，当前仅有 {total_valid_points} 个",
+            "details": {
+                "total_rows": len(df),
+                "valid_points": total_valid_points,
+                "min_required": 8
+            }
+        }
+    
+    # 检查坐标唯一值
+    valid_data[payload.seam_col] = valid_data[payload.seam_col].astype(str)
+    x_vals = valid_data[payload.x_col].astype(float)
+    y_vals = valid_data[payload.y_col].astype(float)
+    
+    x_unique = x_vals.nunique()
+    y_unique = y_vals.nunique()
+    
+    if x_unique < 2 or y_unique < 2:
+        return {
+            "valid": False,
+            "error": f"X 或 Y 坐标取值过少，无法构建网格（X: {x_unique} 个唯一值, Y: {y_unique} 个唯一值）",
+            "details": {
+                "x_unique": x_unique,
+                "y_unique": y_unique,
+                "min_required": 2
+            }
+        }
+    
+    # 检查各煤层点数
+    seam_stats = {}
+    has_valid_seam = False
+    
+    for seam_name in payload.selected_seams:
+        seam_df = valid_data[valid_data[payload.seam_col] == str(seam_name)]
+        if seam_df.empty:
+            seam_stats[seam_name] = {
+                "points": 0,
+                "valid": False,
+                "message": "无数据点"
+            }
+        else:
+            thickness_points = pd.to_numeric(seam_df[payload.thickness_col], errors='coerce')
+            valid_mask = ~pd.isna(thickness_points)
+            valid_count = valid_mask.sum()
+            
+            if valid_count < 1:
+                seam_stats[seam_name] = {
+                    "points": 0,
+                    "valid": False,
+                    "message": "厚度数据全部无效"
+                }
+            else:
+                seam_stats[seam_name] = {
+                    "points": int(valid_count),
+                    "valid": True,
+                    "message": "可建模"
+                }
+                has_valid_seam = True
+    
+    if not has_valid_seam:
+        return {
+            "valid": False,
+            "error": "所选岩层均无有效数据点",
+            "details": {
+                "total_valid_points": total_valid_points,
+                "seam_stats": seam_stats
+            }
+        }
+    
+    # 全部验证通过
+    return {
+        "valid": True,
+        "message": "数据满足建模要求",
+        "details": {
+            "total_valid_points": total_valid_points,
+            "x_unique": x_unique,
+            "y_unique": y_unique,
+            "seam_stats": seam_stats
+        }
+    }
+
+@app.post("/api/export")
+async def export_model_endpoint(payload: ExportRequest):
+    """
+    通用导出接口：生成 DXF 或 FLAC3D 文件并作为附件返回。
+    前端可以直接 POST JSON 到此接口以下载文件（适用于 web 页面）。
+    """
+    modeling_state.ensure_loaded()
+    df = modeling_state.merged_df
+
+    # 参数验证
+    for col in [payload.x_col, payload.y_col, payload.thickness_col, payload.seam_col]:
+        if col not in df.columns:
+            raise HTTPException(status_code=404, detail=f"数据集中缺少列: {col}")
+
+    # 构造插值包装器
+    def interpolation_wrapper(x, y, z, xi_flat, yi_flat):
+        from interpolation import interpolate
+
+        num_points = len(x)
+        method_key = payload.method.lower()
+        if num_points <= 3:
+            method_key = 'nearest'
+        try:
+            return interpolate(x, y, z, xi_flat, yi_flat, method_key)
+        except Exception:
+            return griddata((x, y), z, (xi_flat, yi_flat), method='nearest')
+
+    # 生成块体模型
+    try:
+        block_models_objs, skipped, (XI, YI) = build_block_models(
+            merged_df=df,
+            seam_column=payload.seam_col,
+            x_col=payload.x_col,
+            y_col=payload.y_col,
+            thickness_col=payload.thickness_col,
+            selected_seams=payload.selected_seams,
+            method_callable=interpolation_wrapper,
+            resolution=payload.resolution or 80,
+            base_level=payload.base_level or 0,
+            gap_value=payload.gap or 0,
+        )
+    except ValueError as e:
+        # 常见的建模输入错误（例如数据点不足、网格不匹配等）用 400 返回，并将原始错误消息暴露给前端
+        # 使用 str(e) 保证消息为可序列化的字符串
+        raise HTTPException(status_code=400, detail=f"建模失败: {str(e)}")
+    except Exception as e:
+        # 其他未预期异常记录到日志并返回 500
+        try:
+            import traceback
+            with open("export_error.log", "a", encoding="utf-8") as f:
+                f.write(f"[{datetime.now()}] Unhandled build_block_models error: {str(e)}\n")
+                traceback.print_exc(file=f)
+        except Exception:
+            pass
+        raise HTTPException(status_code=500, detail=f"建模失败（内部错误）: {str(e)}")
+
+    if not block_models_objs:
+        raise HTTPException(status_code=400, detail="未能生成模型数据, 无法导出")
+
+    export_data = {"layers": []}
+    for model in block_models_objs:
+        if model.top_surface is None:
+            continue
+        export_data["layers"].append({
+            "name": model.name,
+            "grid_x": XI,
+            "grid_y": YI,
+            "grid_z": model.top_surface,
+            "grid_z_bottom": model.bottom_surface,
+            "thickness": model.thickness_grid,
+        })
+
+    # 确定导出器
+    export_type = (payload.export_type or 'dxf').lower()
+    from exporters.dxf_exporter import DXFExporter
+    from exporters.flac3d_exporter import FLAC3DExporter
+    from datetime import datetime
+    import traceback
+
+    if payload.filename:
+        filename = payload.filename
+    else:
+        ext = 'f3grid' if export_type == 'flac3d' else 'dxf'
+        filename = f"model_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{ext}"
+
+    output_dir = APP_ROOT.parent / 'data' / 'output'
+    output_dir.mkdir(parents=True, exist_ok=True)
+    output_path = str(output_dir / filename)
+
+    try:
+        if export_type == 'dxf':
+            exporter = DXFExporter()
+        elif export_type == 'flac3d':
+            exporter = FLAC3DExporter()
+        else:
+            raise HTTPException(status_code=400, detail=f"不支持的导出类型: {export_type}")
+
+        final_path = exporter.export(export_data, output_path)
+    except ImportError as ie:
+        # 记录详细错误
+        try:
+            with open("export_error.log", "a") as f:
+                f.write(f"[{datetime.now()}] ImportError: {str(ie)}\n")
+                traceback.print_exc(file=f)
+        except:
+            pass
+        raise HTTPException(status_code=500, detail=str(ie))
+    except Exception as e:
+        # 记录详细错误
+        try:
+            with open("export_error.log", "a") as f:
+                f.write(f"[{datetime.now()}] Export Error: {str(e)}\n")
+                traceback.print_exc(file=f)
+        except:
+            pass
+        raise HTTPException(status_code=500, detail=f"导出失败: {e}")
+
+    # 返回文件流
+    try:
+        file_like = open(final_path, 'rb')
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"无法读取导出文件: {e}")
+
+    media_type = 'application/octet-stream'
+    if final_path.lower().endswith('.dxf'):
+        media_type = 'application/dxf'
+
+    # 使用 RFC 2231 编码处理中文文件名
+    from urllib.parse import quote
+    filename_encoded = quote(Path(final_path).name)
+    headers = {
+        'Content-Disposition': f'attachment; filename="{filename_encoded}"; filename*=UTF-8\'\'{filename_encoded}'
+    }
+
+    return StreamingResponse(file_like, media_type=media_type, headers=headers)

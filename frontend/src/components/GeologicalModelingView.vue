@@ -68,7 +68,7 @@
                 <h5>钻孔数据来源</h5>
               </div>
               <div class="global-data-summary">
-                <el-icon class="data-icon"><DataAnalysis /></el-icon>
+                <el-icon class="data-icon"><Grid /></el-icon>
                 <div class="data-info">
                   <span class="data-label">全局钻孔数据</span>
                   <span class="data-count">{{ globalDataStore.keyStratumData.length }} 条记录</span>
@@ -407,10 +407,13 @@
       <el-form label-width="100px">
         <el-form-item label="导出格式">
           <el-radio-group v-model="exportOptions.format">
-            <el-radio value="png">PNG 图片</el-radio>
-            <el-radio value="svg">SVG 矢量图</el-radio>
-            <el-radio value="json">JSON 数据</el-radio>
-            <el-radio value="csv">CSV 数据</el-radio>
+            <el-radio label="png">PNG 图片</el-radio>
+            <el-radio label="svg">SVG 矢量图</el-radio>
+            <el-radio label="json">JSON 数据</el-radio>
+            <el-radio label="csv">CSV 数据</el-radio>
+            <el-divider direction="vertical" />
+            <el-radio label="dxf">DXF (CAD/SketchUp)</el-radio>
+            <el-radio label="flac3d">FLAC3D (.dat)</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item v-if="exportOptions.format === 'png' || exportOptions.format === 'svg'" label="图片尺寸">
@@ -511,11 +514,10 @@
 
 <script setup>
 
-import { ref, reactive, computed, onMounted, onUnmounted, nextTick } from 'vue';
+import { ref, reactive, computed, onMounted, onUnmounted, nextTick, toRaw } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { 
   CircleCheckFilled, 
-  DataAnalysis, 
   Close, 
   Download,
   Refresh, 
@@ -962,7 +964,13 @@ onMounted(() => {
     console.error('[onMounted] ❌ echarts-gl 3D支持不可用:', error);
   }
   
-  initChart();
+  // 延迟初始化图表，确保DOM已渲染且有尺寸
+  nextTick(() => {
+    setTimeout(() => {
+      initChart();
+    }, 100);
+  });
+  
   resizeHandler = () => myChart?.resize();
   window.addEventListener('resize', resizeHandler);
 });
@@ -1231,6 +1239,9 @@ async function generate3DModel() {
             const i = Math.floor(idx / model.grid_x.length);
             return [model.grid_x[j], model.grid_y[i], z];
           }),
+          // 显式指定数据形状，消除 dataShape 警告
+          // 注意：ECharts surface 需要 [yCount, xCount] 格式
+          dataShape: [model.grid_y.length, model.grid_x.length],
           wireframe: {
             show: renderOptions.showWireframe,
             lineStyle: {
@@ -1265,6 +1276,8 @@ async function generate3DModel() {
             const i = Math.floor(idx / model.grid_x.length);
             return [model.grid_x[j], model.grid_y[i], z];
           }),
+          // 显式指定数据形状，消除 dataShape 警告
+          dataShape: [model.grid_y.length, model.grid_x.length],
           wireframe: {
             show: renderOptions.showWireframe,
             lineStyle: {
@@ -2108,6 +2121,29 @@ async function confirmExport() {
     return;
   }
 
+  // 对于 DXF 和 FLAC3D 导出，先验证建模可行性
+  if (exportOptions.format === 'dxf' || exportOptions.format === 'flac3d') {
+    try {
+      const validationResult = await validateModeling();
+      if (!validationResult.valid) {
+        ElMessageBox.alert(
+          validationResult.error + (validationResult.details ? `\n\n详细信息：${JSON.stringify(validationResult.details, null, 2)}` : ''),
+          '建模验证失败',
+          {
+            confirmButtonText: '确定',
+            type: 'warning',
+            dangerouslyUseHTMLString: false
+          }
+        );
+        return;
+      }
+    } catch (error) {
+      console.error('建模验证失败:', error);
+      ElMessage.error('无法验证建模可行性: ' + error.message);
+      return;
+    }
+  }
+
   isExporting.value = true;
   try {
     const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
@@ -2126,15 +2162,159 @@ async function confirmExport() {
       case 'csv':
         await exportAsCSV(filename);
         break;
+      case 'dxf':
+      case 'flac3d':
+        await exportToBackend(exportOptions.format, filename);
+        break;
     }
 
-    ElMessage.success(`导出成功: ${filename}`);
+    if (exportOptions.format !== 'dxf' && exportOptions.format !== 'flac3d') {
+       ElMessage.success(`导出成功: ${filename}`);
+    }
     exportDialogVisible.value = false;
   } catch (error) {
     console.error('导出失败:', error);
-    ElMessage.error('导出失败: ' + error.message);
+    // 显示后端返回的详细错误信息
+    const errorMessage = error.response?.data?.detail || error.detail || error.message || '未知错误';
+    ElMessageBox.alert(
+      errorMessage,
+      '导出失败',
+      {
+        confirmButtonText: '确定',
+        type: 'error',
+        dangerouslyUseHTMLString: false
+      }
+    );
   } finally {
     isExporting.value = false;
+  }
+}
+
+// 验证建模可行性
+async function validateModeling() {
+  const validationParams = {
+    x_col: params.x_col,
+    y_col: params.y_col,
+    thickness_col: params.thickness_col,
+    seam_col: params.seam_col,
+    selected_seams: params.selected_seams
+  };
+  
+  try {
+    const response = await fetch(`${API_BASE}/modeling/validate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(validationParams)
+    });
+    
+    if (response.ok) {
+      return await response.json();
+    } else {
+      const errorData = await response.json();
+      return {
+        valid: false,
+        error: errorData.detail || '验证请求失败',
+        details: errorData
+      };
+    }
+  } catch (error) {
+    console.error('建模验证请求失败:', error);
+    return {
+      valid: false,
+      error: '无法连接到验证服务: ' + error.message,
+      details: {}
+    };
+  }
+}
+
+async function exportToBackend(format, filename) {
+  // 准备参数
+  const exportParams = {
+    ...toRaw(params), // 使用 toRaw 获取原始对象
+    export_type: format,
+    filename: filename, // 传递文件名
+  };
+  
+  try {
+    // 优先尝试使用 REST API (适用于浏览器环境)
+    const response = await fetch(`${API_BASE}/export`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(exportParams)
+    });
+
+    if (response.ok) {
+      // 处理文件下载
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      
+      // 尝试从响应头获取文件名
+      const contentDisposition = response.headers.get('Content-Disposition');
+      let downloadFilename = filename;
+      if (contentDisposition) {
+          const filenameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
+          if (filenameMatch && filenameMatch[1]) {
+              downloadFilename = filenameMatch[1];
+          }
+      }
+      
+      // 确保扩展名正确
+      const ext = format === 'flac3d' ? '.f3grid' : '.dxf';
+      if (!downloadFilename.toLowerCase().endsWith(ext)) {
+          downloadFilename += ext;
+      }
+
+      a.download = downloadFilename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      ElMessage.success(`导出成功: ${downloadFilename}`);
+      return;
+    } else {
+      // 如果 API 返回错误，尝试解析错误信息
+      let errorMsg = '导出请求失败';
+      let errorDetail = null;
+      try {
+        const errorData = await response.json();
+        errorMsg = errorData.detail || errorMsg;
+        errorDetail = errorData.detail;
+      } catch (e) { /* ignore */ }
+      
+      // 如果不是 404 (API不存在)，则抛出错误（附带后端详细信息）
+      if (response.status !== 404) {
+        const err = new Error(errorMsg);
+        err.detail = errorDetail;
+        throw err;
+      }
+    }
+  } catch (error) {
+    console.warn('REST API 导出失败，尝试 PyWebView:', error);
+    // 如果有 detail，直接抛出不再尝试 PyWebView
+    if (error.detail) {
+      throw error;
+    }
+    // 继续尝试 PyWebView
+  }
+
+  // 回退到 PyWebView 调用 (适用于桌面客户端环境)
+  if (!window.pywebview || !window.pywebview.api || !window.pywebview.api.export_model) {
+    throw new Error('后端 API 连接失败 (REST API 和 PyWebView 均不可用)');
+  }
+
+  const res = await window.pywebview.api.export_model(exportParams);
+  
+  if (res.status === 'success') {
+    ElMessage.success(res.message);
+  } else {
+    throw new Error(res.message);
   }
 }
 
