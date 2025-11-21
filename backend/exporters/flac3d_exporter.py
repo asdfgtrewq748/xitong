@@ -32,9 +32,15 @@ class FLAC3DExporter(BaseExporter):
         Returns:
             str: 导出文件的路径
         """
+        # 确保输出文件有.f3grid扩展名
+        if not output_path.endswith('.f3grid'):
+            output_path = output_path + '.f3grid'
+        
         layers = data.get("layers", [])
         if not layers:
-            return output_path
+            raise ValueError("没有可导出的地层数据")
+        
+        print(f"[FLAC3D Export] 开始导出 {len(layers)} 个地层到: {output_path}")
             
         # 收集所有节点和单元
         nodes = [] # (id, x, y, z)
@@ -44,7 +50,7 @@ class FLAC3DExporter(BaseExporter):
         next_node_id = 1
         next_zone_id = 1
         
-        for layer in layers:
+        for layer_idx, layer in enumerate(layers):
             layer_name = layer.get("name", "Default")
             # 替换非法字符
             safe_layer_name = "".join(c for c in layer_name if c.isalnum() or c in "_-")
@@ -69,74 +75,89 @@ class FLAC3DExporter(BaseExporter):
                 if thickness is not None:
                     thickness = np.array(thickness)
                     grid_z_bottom = grid_z_top - thickness
+                    print(f"  [Layer {layer_idx + 1}] {safe_layer_name}: 使用厚度计算底面")
                 else:
                     # 无法生成体单元
+                    print(f"  [Layer {layer_idx + 1}] {safe_layer_name}: 跳过(缺少底面或厚度数据)")
                     continue
             else:
                 grid_z_bottom = np.array(grid_z_bottom)
+                print(f"  [Layer {layer_idx + 1}] {safe_layer_name}: 使用底面数据")
             
             rows, cols = grid_z_top.shape
+            print(f"  [Layer {layer_idx + 1}] {safe_layer_name}: 网格尺寸 {rows}x{cols}")
             
+            # 性能优化：预先为所有节点创建唯一ID映射
+            # 使用向量化操作而不是循环
+            layer_zones = 0
+            
+            # 预先检查有效性（避免在循环中重复检查）
+            valid_bottom = ~(np.isnan(grid_x) | np.isnan(grid_y) | np.isnan(grid_z_bottom))
+            valid_top = ~(np.isnan(grid_x) | np.isnan(grid_y) | np.isnan(grid_z_top))
+            
+            # 为底面和顶面创建节点（使用集合去重）
+            for surface_name, grid_z, valid_mask in [
+                ('bottom', grid_z_bottom, valid_bottom),
+                ('top', grid_z_top, valid_top)
+            ]:
+                # 只处理有效的节点
+                valid_indices = np.argwhere(valid_mask)
+                for idx in valid_indices:
+                    r, c = idx
+                    x = float(grid_x[r, c])
+                    y = float(grid_y[r, c])
+                    z = float(grid_z[r, c])
+                    
+                    key = (round(x, 4), round(y, 4), round(z, 4))
+                    if key not in node_map:
+                        node_map[key] = next_node_id
+                        nodes.append((next_node_id, x, y, z))
+                        next_node_id += 1
+            
+            # 快速生成单元（现在所有节点ID都已知）
             for r in range(rows - 1):
                 for c in range(cols - 1):
-                    # 8个顶点
-                    # Top: (r,c), (r,c+1), (r+1,c+1), (r+1,c)
-                    # Bottom: 同上
+                    # 检查这个单元的所有8个节点是否都有效
+                    cell_valid = (
+                        valid_bottom[r, c] and valid_bottom[r, c+1] and 
+                        valid_bottom[r+1, c+1] and valid_bottom[r+1, c] and
+                        valid_top[r, c] and valid_top[r, c+1] and 
+                        valid_top[r+1, c+1] and valid_top[r+1, c]
+                    )
                     
-                    indices = [
-                        (r, c), (r, c+1), (r+1, c+1), (r+1, c)
-                    ]
+                    if not cell_valid:
+                        continue
                     
+                    # 获取8个节点ID（顺序：底面4个 + 顶面4个）
                     cell_nodes = []
-                    valid_cell = True
+                    indices = [(r, c), (r, c+1), (r+1, c+1), (r+1, c)]
                     
-                    # FLAC3D B8 顺序: 
-                    # Bottom: 1, 2, 3, 4 (counter-clockwise looking from top)
-                    # Top: 5, 6, 7, 8 (above 1, 2, 3, 4)
+                    # 底面4个节点
+                    for rr, cc in indices:
+                        x = float(grid_x[rr, cc])
+                        y = float(grid_y[rr, cc])
+                        z = float(grid_z_bottom[rr, cc])
+                        key = (round(x, 4), round(y, 4), round(z, 4))
+                        cell_nodes.append(node_map[key])
                     
-                    # 先底面
+                    # 顶面4个节点
                     for rr, cc in indices:
-                        try:
-                            x = float(grid_x[rr, cc])
-                            y = float(grid_y[rr, cc])
-                            z = float(grid_z_bottom[rr, cc])
-                            if np.isnan(z) or np.isnan(x) or np.isnan(y): 
-                                valid_cell = False; break
-                            
-                            # 简单的坐标 key，保留4位小数以合并节点
-                            key = (round(x, 4), round(y, 4), round(z, 4))
-                            if key not in node_map:
-                                node_map[key] = next_node_id
-                                nodes.append((next_node_id, x, y, z))
-                                next_node_id += 1
-                            cell_nodes.append(node_map[key])
-                        except IndexError:
-                            valid_cell = False; break
-                        
-                    if not valid_cell: continue
-                        
-                    # 后顶面
-                    for rr, cc in indices:
-                        try:
-                            x = float(grid_x[rr, cc])
-                            y = float(grid_y[rr, cc])
-                            z = float(grid_z_top[rr, cc])
-                            if np.isnan(z) or np.isnan(x) or np.isnan(y): 
-                                valid_cell = False; break
-                            
-                            key = (round(x, 4), round(y, 4), round(z, 4))
-                            if key not in node_map:
-                                node_map[key] = next_node_id
-                                nodes.append((next_node_id, x, y, z))
-                                next_node_id += 1
-                            cell_nodes.append(node_map[key])
-                        except IndexError:
-                            valid_cell = False; break
-                        
-                    if not valid_cell: continue
+                        x = float(grid_x[rr, cc])
+                        y = float(grid_y[rr, cc])
+                        z = float(grid_z_top[rr, cc])
+                        key = (round(x, 4), round(y, 4), round(z, 4))
+                        cell_nodes.append(node_map[key])
                     
                     zones.append(('B8', next_zone_id, cell_nodes, safe_layer_name))
                     next_zone_id += 1
+                    layer_zones += 1
+            
+            print(f"  [Layer {layer_idx + 1}] 生成了 {layer_zones} 个体单元 (优化算法)")
+
+        print(f"[FLAC3D Export] 总共生成 {len(nodes)} 个节点, {len(zones)} 个体单元")
+        
+        if len(zones) == 0:
+            raise ValueError("未能生成任何有效的体单元，请检查数据是否包含厚度信息")
 
         # 计算几何中心并归一化坐标
         if nodes:
@@ -146,38 +167,63 @@ class FLAC3DExporter(BaseExporter):
         else:
             centroid = np.array([0.0, 0.0, 0.0])
 
-        # 写入文件
+        # 写入文件（使用缓冲提高性能）
+        print(f"[FLAC3D Export] 开始写入文件...")
+        lines = []
+        
+        # 文件头（使用FLAC3D命令格式）
+        lines.append("; FLAC3D Grid Import Script\n")
+        lines.append(f"; Original Center: X={centroid[0]:.4f}, Y={centroid[1]:.4f}, Z={centroid[2]:.4f}\n")
+        lines.append(f"; Total Gridpoints: {len(nodes)}\n")
+        lines.append(f"; Total Zones: {len(zones)}\n")
+        lines.append("\n")
+        lines.append("model new\n")
+        lines.append("model large-strain off\n")
+        lines.append("\n")
+        
+        # 创建节点映射表（FLAC3D会自动分配ID）
+        print(f"[FLAC3D Export] 开始格式化节点...")
+        lines.append("; Creating gridpoints...\n")
+        node_map = {}  # 原始ID -> FLAC3D顺序ID的映射
+        for idx, (nid, x, y, z) in enumerate(nodes, start=1):
+            nx = x - centroid[0]
+            ny = y - centroid[1]
+            nz = z - centroid[2]
+            lines.append(f"zone gridpoint create position ({nx:.4f},{ny:.4f},{nz:.4f})\n")
+            node_map[nid] = idx
+        
+        print(f"[FLAC3D Export] 节点数据已格式化 ({len(nodes)} 个节点)")
+        
+        lines.append("\n")
+        lines.append("; Creating zones...\n")
+        
+        # 创建单元（使用zone.create命令，映射节点ID）
+        print(f"[FLAC3D Export] 开始格式化单元...")
+        for ztype, zid, nids, group in zones:
+            if len(nids) == 8:
+                # 将原始节点ID映射为FLAC3D的顺序ID
+                mapped_nids = [node_map[nid] for nid in nids]
+                gp_str = " ".join(map(str, mapped_nids))
+                lines.append(f"zone create brick gridpoint {gp_str} group '{group}'\n")
+        
+        print(f"[FLAC3D Export] 单元数据已格式化 ({len(zones)} 个单元)")
+        
+        # 分组信息（作为注释记录）
+        lines.append("\n")
+        lines.append("; Zone Groups Summary\n")
+        groups = {}
+        for ztype, zid, nids, group in zones:
+            if group not in groups:
+                groups[group] = []
+            groups[group].append(zid)
+        
+        for gname, zids in groups.items():
+            lines.append(f"; Group '{gname}': {len(zids)} zones\n")
+        
+        # 一次性写入（比逐行写入快得多）
+        print(f"[FLAC3D Export] 正在写入文件到磁盘...")
         with open(output_path, 'w', encoding='utf-8') as f:
-            f.write("* FLAC3D Grid Data Generated by System\n")
-            f.write(f"* Original Center (Offset): X={centroid[0]:.4f}, Y={centroid[1]:.4f}, Z={centroid[2]:.4f}\n")
-            f.write("* Nodes\n")
-            for nid, x, y, z in nodes:
-                # 减去中心坐标
-                nx = x - centroid[0]
-                ny = y - centroid[1]
-                nz = z - centroid[2]
-                f.write(f"G P {nid} {nx:.4f} {ny:.4f} {nz:.4f}\n")
-            
-            f.write("* Zones\n")
-            for ztype, zid, nids, group in zones:
-                # B8 is Z B8
-                nids_str = " ".join(map(str, nids))
-                f.write(f"Z {ztype} {zid} {nids_str}\n")
-                
-            f.write("* Groups\n")
-            # 整理 Group
-            groups = {}
-            for ztype, zid, nids, group in zones:
-                if group not in groups:
-                    groups[group] = []
-                groups[group].append(zid)
-                
-            for gname, zids in groups.items():
-                f.write(f"Z GROUP \"{gname}\" SLOT 1 \n")
-                # 分块写入 ID，每行最多20个ID
-                chunk_size = 20
-                for i in range(0, len(zids), chunk_size):
-                    chunk = zids[i:i+chunk_size]
-                    f.write("  " + " ".join(map(str, chunk)) + "\n")
-
+            f.writelines(lines)
+        
+        print(f"[FLAC3D Export] 文件已保存: {output_path}")
         return output_path

@@ -1,6 +1,11 @@
 // frontend/src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
 
+// New Views
+import HomeView from '../views/HomeView.vue'
+import DownloadsView from '../views/DownloadsView.vue'
+import SystemView from '../views/SystemView.vue'
+
 // 性能优化：首页立即加载，其他组件懒加载
 import EnhancedDashboardView from '../components/enhanced/EnhancedDashboardView.vue'
 
@@ -28,111 +33,129 @@ const TunnelSupportView = () => import(/* webpackChunkName: "tunnel-support" */ 
 const routes = [
   {
     path: '/',
-    name: 'Dashboard',
-    component: EnhancedDashboardView,
-    meta: { title: '工作台', keepAlive: true }  // 首页缓存
+    name: 'Home',
+    component: HomeView,
+    meta: { title: '首页' }
   },
   {
-    path: '/key-stratum',
-    name: 'KeyStratum',
-    component: KeyStratumView,
-    meta: { title: '关键层计算' }
+    path: '/downloads',
+    name: 'Downloads',
+    component: DownloadsView,
+    meta: { title: '下载中心' }
   },
   {
-    path: '/tunnel-support',
-    name: 'TunnelSupport',
-    component: TunnelSupportView,
-    meta: { title: '巷道支护计算' }
-  },
-  {
-    path: '/borehole-analysis',
-    name: 'BoreholeAnalysis',
-    component: BoreholeAnalysisView,
-    meta: { title: '钻孔数据分析' }
-  },
-  {
-    path: '/csv-formatter',
-    name: 'CsvFormatter',
-    component: CsvFormatterView,
-    meta: { title: 'CSV 格式化工具' }
-  },
-  {
-    path: '/database-viewer',
-    name: 'DatabaseViewer',
-    component: DatabaseViewerView,
-    meta: { title: '数据库管理', keepAlive: true }  // 数据库页面缓存
-  },
-  {
-    path: '/geological-modeling',
-    name: 'GeologicalModeling',
-    component: GeologicalModelingView,
-    meta: { title: '三维地质建模' }
-  },
-  {
-    path: '/upward-mining-feasibility',
-    name: 'UpwardMiningFeasibility',
-    component: UpwardMiningFeasibilityView,
-    meta: { title: '上行开采可行度分析' }
-  },
-  {
-    path: '/visualization',
-    name: 'VisualizationHome',
-    component: VisualizationHome,
-    meta: { title: '科研绘图' }
-  },
-  {
-    path: '/visualization/scatter',
-    name: 'ScatterPlot',
-    component: ScatterPlotPage,
-    meta: { title: '散点图' }
-  },
-  {
-    path: '/visualization/line',
-    name: 'LineChart',
-    component: LineChartPage,
-    meta: { title: '折线图' }
-  },
-  {
-    path: '/visualization/bar',
-    name: 'BarChart',
-    component: BarChartPage,
-    meta: { title: '柱状图' }
-  },
-  {
-    path: '/visualization/heatmap',
-    name: 'HeatMap',
-    component: HeatMapPage,
-    meta: { title: '热力图' }
-  },
-  {
-    path: '/visualization/surface',
-    name: 'Surface3D',
-    component: Surface3DPage,
-    meta: { title: '3D曲面图' }
-  },
-  {
-    path: '/visualization/box',
-    name: 'BoxPlot',
-    component: BoxPlotPage,
-    meta: { title: '箱线图' }
-  },
-  {
-    path: '/visualization/histogram',
-    name: 'Histogram',
-    component: HistogramPage,
-    meta: { title: '直方图' }
-  },
-  {
-    path: '/visualization/statistics',
-    name: 'StatisticalAnalysis',
-    component: StatisticalAnalysisPage,
-    meta: { title: '统计分析' }
-  },
-  {
-    path: '/data-management',
-    name: 'DataManagement',
-    component: DataManagementView,
-    meta: { title: '数据管理中心' }
+    path: '/tools',
+    component: SystemView,
+    children: [
+      {
+        path: '',
+        name: 'Dashboard',
+        component: EnhancedDashboardView,
+        meta: { title: '工作台', keepAlive: true }
+      },
+      {
+        path: 'key-stratum',
+        name: 'KeyStratum',
+        component: KeyStratumView,
+        meta: { title: '关键层计算' }
+      },
+      {
+        path: 'tunnel-support',
+        name: 'TunnelSupport',
+        component: TunnelSupportView,
+        meta: { title: '巷道支护计算' }
+      },
+      {
+        path: 'borehole-analysis',
+        name: 'BoreholeAnalysis',
+        component: BoreholeAnalysisView,
+        meta: { title: '钻孔数据分析' }
+      },
+      {
+        path: 'csv-formatter',
+        name: 'CsvFormatter',
+        component: CsvFormatterView,
+        meta: { title: 'CSV 格式化工具' }
+      },
+      {
+        path: 'database-viewer',
+        name: 'DatabaseViewer',
+        component: DatabaseViewerView,
+        meta: { title: '数据库管理', keepAlive: true }
+      },
+      {
+        path: 'geological-modeling',
+        name: 'GeologicalModeling',
+        component: GeologicalModelingView,
+        meta: { title: '三维地质建模' }
+      },
+      {
+        path: 'upward-mining-feasibility',
+        name: 'UpwardMiningFeasibility',
+        component: UpwardMiningFeasibilityView,
+        meta: { title: '上行开采可行度分析' }
+      },
+      {
+        path: 'visualization',
+        name: 'VisualizationHome',
+        component: VisualizationHome,
+        meta: { title: '科研绘图' }
+      },
+      {
+        path: 'visualization/scatter',
+        name: 'ScatterPlot',
+        component: ScatterPlotPage,
+        meta: { title: '散点图' }
+      },
+      {
+        path: 'visualization/line',
+        name: 'LineChart',
+        component: LineChartPage,
+        meta: { title: '折线图' }
+      },
+      {
+        path: 'visualization/bar',
+        name: 'BarChart',
+        component: BarChartPage,
+        meta: { title: '柱状图' }
+      },
+      {
+        path: 'visualization/heatmap',
+        name: 'HeatMap',
+        component: HeatMapPage,
+        meta: { title: '热力图' }
+      },
+      {
+        path: 'visualization/surface',
+        name: 'Surface3D',
+        component: Surface3DPage,
+        meta: { title: '3D曲面图' }
+      },
+      {
+        path: 'visualization/box',
+        name: 'BoxPlot',
+        component: BoxPlotPage,
+        meta: { title: '箱线图' }
+      },
+      {
+        path: 'visualization/histogram',
+        name: 'Histogram',
+        component: HistogramPage,
+        meta: { title: '直方图' }
+      },
+      {
+        path: 'visualization/statistics',
+        name: 'StatisticalAnalysis',
+        component: StatisticalAnalysisPage,
+        meta: { title: '统计分析' }
+      },
+      {
+        path: 'data-management',
+        name: 'DataManagement',
+        component: DataManagementView,
+        meta: { title: '数据管理中心' }
+      }
+    ]
   }
 ]
 

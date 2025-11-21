@@ -361,17 +361,24 @@ class EnhancedInterpolation:
                 metadata["method_used"] = 'linear'
                 metadata["warning"] = f"未知方法 '{method}',使用线性插值"
 
-            # 处理NaN
-            z_interp = np.nan_to_num(z_interp, nan=0.0, posinf=0.0, neginf=0.0)
+            # ⚠️ 关键修复：NaN和Inf不能转为0，会导致厚度为0！
+            # 解决方案：用已知数据的中位数填充
+            if np.any(~np.isfinite(z_interp)):
+                z_median = float(np.median(z))
+                z_interp = np.where(np.isfinite(z_interp), z_interp, z_median)
+                metadata["filled_invalid"] = int(np.sum(~np.isfinite(z_interp)))
 
             return z_interp, metadata
 
         except Exception as e:
             warnings.warn(f"插值失败: {e}, 使用最近邻回退")
             z_interp = griddata((x, y), z, (xi, yi), method='nearest')
-            z_interp = np.nan_to_num(z_interp, nan=0.0)
+            # ⚠️ 不能用0填充,用中位数
+            fill_value = float(np.median(z)) if len(z) > 0 else 0.0
+            z_interp = np.where(np.isfinite(z_interp), z_interp, fill_value)
             metadata["method_used"] = 'nearest'
             metadata["error"] = str(e)
+            metadata["fill_value"] = fill_value
             return z_interp, metadata
 
 
@@ -510,20 +517,25 @@ def get_interpolator() -> EnhancedInterpolation:
             插值结果
         """
         method = method.lower()
+        print(f"[INTERPOLATION] 🎯 执行插值: method={method}, 数据点={len(x)}, 目标点={len(xi)}")
 
         # 数据验证
         if len(x) < 3:
+            print(f"[INTERPOLATION] ⚠️ 数据点太少 ({len(x)} < 3), 强制使用 nearest")
             warnings.warn(f"数据点太少 ({len(x)} 个)，使用最近邻插值")
             return griddata((x, y), z, (xi, yi), method='nearest')
 
         try:
             # 基础griddata方法
             if method in ['linear', 'nearest']:
+                print(f"[INTERPOLATION] ✅ 使用 scipy.griddata({method})")
                 return griddata((x, y), z, (xi, yi), method=method)
             elif method == 'cubic':
                 if len(x) >= 16:
+                    print(f"[INTERPOLATION] ✅ 使用 scipy.griddata(cubic)")
                     return griddata((x, y), z, (xi, yi), method='cubic')
                 else:
+                    print(f"[INTERPOLATION] ⚠️ 数据点不足 ({len(x)} < 16), cubic降级为linear")
                     warnings.warn(f"数据点不足 ({len(x)} < 16)，从cubic降级为linear")
                     return griddata((x, y), z, (xi, yi), method='linear')
 

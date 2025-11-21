@@ -1,0 +1,17 @@
+; --- 1. 初始化 ---
+model new
+model deterministic on
+model precision 6
+model title "Final Meshing"
+
+; --- 2. 导入 STL ---
+; 这一步已经验证过是成功的
+geometry import 'geological_model_20251121_161831.stl' set 'rock'
+
+; --- 3. (跳过检查) 直接生成网格 ---
+; 如果模型没问题，这行命令会直接跑通
+; 100.0 是最大网格尺寸，如果模型很大，这个数没问题
+zone generate from-geometry maximum-edge 100.0
+
+; --- 4. 如果生成成功，保存一下 ---
+model save 'mesh_done.sav'

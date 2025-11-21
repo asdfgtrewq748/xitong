@@ -1,0 +1,174 @@
+; ==========================================
+; FLAC3D 23层地质模型导入脚本 (去报错最终版)
+; 
+; 关键修正: 
+; 1. 移除了你版本不支持的 'geometry merge' 命令。
+; 2. 保留了 'triangulate' 以修复平面错误。
+; 3. 请确保电脑里的文件名已手动改为英文 (如 01_coal_6.stl)。
+; ==========================================
+
+; --- 1. 初始化 ---
+model new
+model deterministic on
+model title "23-Layer Geological Model"
+
+; --- 2. 定义全局网格尺寸 ---
+fish define mesh_size
+    return 50.0
+end
+
+; ==========================================
+;   开始分层导入
+; ==========================================
+
+; --- Layer 01: 6煤 ---
+; 务必确认文件名为 01_coal_6.stl
+geometry import '01_coal_6.stl' set 'geo_01'
+geometry set 'geo_01' triangulate
+zone generate from-geometry set 'geo_01' maximum-edge @mesh_size
+zone group 'L01_coal_6' range group 'geo_01'
+
+; --- Layer 02: 6-1煤 ---
+geometry import '02_coal_6_1.stl' set 'geo_02'
+geometry set 'geo_02' triangulate
+zone generate from-geometry set 'geo_02' maximum-edge @mesh_size
+zone group 'L02_coal_6_1' range group 'geo_02'
+
+; --- Layer 03: 砂质泥岩 ---
+geometry import '03_sandy_mudstone.stl' set 'geo_03'
+geometry set 'geo_03' triangulate
+zone generate from-geometry set 'geo_03' maximum-edge @mesh_size
+zone group 'L03_sandy_mudstone' range group 'geo_03'
+
+; --- Layer 04: 炭质泥岩 ---
+geometry import '04_mudstone.stl' set 'geo_04'
+geometry set 'geo_04' triangulate
+zone generate from-geometry set 'geo_04' maximum-edge @mesh_size
+zone group 'L04_mudstone' range group 'geo_04'
+
+; --- Layer 05: 高岭质泥岩 ---
+geometry import '05_mudstone.stl' set 'geo_05'
+geometry set 'geo_05' triangulate
+zone generate from-geometry set 'geo_05' maximum-edge @mesh_size
+zone group 'L05_mudstone' range group 'geo_05'
+
+; --- Layer 06: 风化煤 ---
+geometry import '06_coal.stl' set 'geo_06'
+geometry set 'geo_06' triangulate
+zone generate from-geometry set 'geo_06' maximum-edge @mesh_size
+zone group 'L06_coal' range group 'geo_06'
+
+; --- Layer 07: 粉砂岩 ---
+geometry import '07_siltstone.stl' set 'geo_07'
+geometry set 'geo_07' triangulate
+zone generate from-geometry set 'geo_07' maximum-edge @mesh_size
+zone group 'L07_siltstone' range group 'geo_07'
+
+; --- Layer 08: 粗粒砂岩 ---
+geometry import '08_coarse_sandstone.stl' set 'geo_08'
+geometry set 'geo_08' triangulate
+zone generate from-geometry set 'geo_08' maximum-edge @mesh_size
+zone group 'L08_coarse_sandstone' range group 'geo_08'
+
+; --- Layer 09: 细粒砂岩 ---
+geometry import '09_fine_sandstone.stl' set 'geo_09'
+geometry set 'geo_09' triangulate
+zone generate from-geometry set 'geo_09' maximum-edge @mesh_size
+zone group 'L09_fine_sandstone' range group 'geo_09'
+
+; --- Layer 10: 中粒砂岩 ---
+geometry import '10_medium_sandstone.stl' set 'geo_10'
+geometry set 'geo_10' triangulate
+zone generate from-geometry set 'geo_10' maximum-edge @mesh_size
+zone group 'L10_medium_sandstone' range group 'geo_10'
+
+; --- Layer 11: 泥岩 ---
+geometry import '11_mudstone.stl' set 'geo_11'
+geometry set 'geo_11' triangulate
+zone generate from-geometry set 'geo_11' maximum-edge @mesh_size
+zone group 'L11_mudstone' range group 'geo_11'
+
+; --- Layer 12: 含砾粗粒砂岩 ---
+geometry import '12_coarse_sandstone.stl' set 'geo_12'
+geometry set 'geo_12' triangulate
+zone generate from-geometry set 'geo_12' maximum-edge @mesh_size
+zone group 'L12_coarse_sandstone' range group 'geo_12'
+
+; --- Layer 13: 含砾中砂岩 ---
+geometry import '13_medium_sandstone.stl' set 'geo_13'
+geometry set 'geo_13' triangulate
+zone generate from-geometry set 'geo_13' maximum-edge @mesh_size
+zone group 'L13_medium_sandstone' range group 'geo_13'
+
+; --- Layer 14: 煤 ---
+geometry import '14_coal.stl' set 'geo_14'
+geometry set 'geo_14' triangulate
+zone generate from-geometry set 'geo_14' maximum-edge @mesh_size
+zone group 'L14_coal' range group 'geo_14'
+
+; --- Layer 15: 5煤 ---
+geometry import '15_coal_5.stl' set 'geo_15'
+geometry set 'geo_15' triangulate
+zone generate from-geometry set 'geo_15' maximum-edge @mesh_size
+zone group 'L15_coal_5' range group 'geo_15'
+
+; --- Layer 16: 黄土 ---
+geometry import '16_loess.stl' set 'geo_16'
+geometry set 'geo_16' triangulate
+zone generate from-geometry set 'geo_16' maximum-edge @mesh_size
+zone group 'L16_loess' range group 'geo_16'
+
+; --- Layer 17: 高岭岩 ---
+geometry import '17_layer.stl' set 'geo_17'
+geometry set 'geo_17' triangulate
+zone generate from-geometry set 'geo_17' maximum-edge @mesh_size
+zone group 'L17_layer' range group 'geo_17'
+
+; --- Layer 18: 砾岩 ---
+geometry import '18_conglomerate.stl' set 'geo_18'
+geometry set 'geo_18' triangulate
+zone generate from-geometry set 'geo_18' maximum-edge @mesh_size
+zone group 'L18_conglomerate' range group 'geo_18'
+
+; --- Layer 19: 煤线 ---
+geometry import '19_coal.stl' set 'geo_19'
+geometry set 'geo_19' triangulate
+zone generate from-geometry set 'geo_19' maximum-edge @mesh_size
+zone group 'L19_coal' range group 'geo_19'
+
+; --- Layer 20: 含砾粗砂岩 ---
+geometry import '20_coarse_sandstone.stl' set 'geo_20'
+geometry set 'geo_20' triangulate
+zone generate from-geometry set 'geo_20' maximum-edge @mesh_size
+zone group 'L20_coarse_sandstone' range group 'geo_20'
+
+; --- Layer 21: 黄土、断层 ---
+geometry import '21_loess.stl' set 'geo_21'
+geometry set 'geo_21' triangulate
+zone generate from-geometry set 'geo_21' maximum-edge @mesh_size
+zone group 'L21_loess' range group 'geo_21'
+
+; --- Layer 22: 4煤 ---
+geometry import '22_coal_4.stl' set 'geo_22'
+geometry set 'geo_22' triangulate
+zone generate from-geometry set 'geo_22' maximum-edge @mesh_size
+zone group 'L22_coal_4' range group 'geo_22'
+
+; --- Layer 23: 4号风化煤 ---
+geometry import '23_coal_4.stl' set 'geo_23'
+geometry set 'geo_23' triangulate
+zone generate from-geometry set 'geo_23' maximum-edge @mesh_size
+zone group 'L23_coal_4' range group 'geo_23'
+
+
+; ==========================================
+;   3. 全局网格缝合
+; ==========================================
+zone attach by-face
+
+; ==========================================
+;   4. 保存模型
+; ==========================================
+model save 'Mesh_Done.sav'
+
+list zone information

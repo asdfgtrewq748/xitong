@@ -283,9 +283,13 @@ class Api:
             if result is None or (isinstance(result, np.ndarray) and result.size == 0):
                 raise ValueError(f"{method_key}插值返回空结果")
             
-            # 处理NaN值
+            # ⚠️ 处理NaN/Inf值 - 不能转为0,会导致厚度为0!
             if isinstance(result, np.ndarray):
-                result = np.nan_to_num(result, nan=0.0, posinf=0.0, neginf=0.0)
+                invalid_mask = ~np.isfinite(result)
+                if np.any(invalid_mask):
+                    # 用原始数据的中位数填充
+                    fill_value = float(np.median(z_train)) if len(z_train) > 0 else 0.0
+                    result = np.where(np.isfinite(result), result, fill_value)
             
             return result
             
@@ -294,7 +298,10 @@ class Api:
             print(f"[警告] 插值方法 {method_key} 失败: {e}, 回退到最近邻插值")
             try:
                 result = griddata((x_train, y_train), z_train, (x_val, y_val), method='nearest')
-                return np.nan_to_num(result, nan=0.0, posinf=0.0, neginf=0.0)
+                # 用中位数填充无效值
+                fill_value = float(np.median(z_train)) if len(z_train) > 0 else 0.0
+                result = np.where(np.isfinite(result), result, fill_value)
+                return result
             except Exception as fallback_error:
                 print(f"[错误] 最近邻插值也失败: {fallback_error}")
                 # 返回零数组作为最后的回退
@@ -446,22 +453,30 @@ class Api:
                     print(f"[警告] 岩层 {model.name} 的表面数据为空,跳过")
                     continue
 
-                # 转换为列表并处理NaN/Inf值
-                top_surface = np.nan_to_num(model.top_surface, nan=0.0, posinf=0.0, neginf=0.0)
-                bottom_surface = np.nan_to_num(model.bottom_surface, nan=0.0, posinf=0.0, neginf=0.0)
+                # ⚠️ 关键修复：保留NaN，不要转成0！
+                # 原因：建模时各层是从基准面累加的，NaN应该保留让导出器处理
+                # 如果转成0会破坏层序关系，导致层间交错
+                top_surface = model.top_surface.copy()
+                bottom_surface = model.bottom_surface.copy()
+                
+                # 只处理Inf值（保留NaN）
+                top_surface[np.isinf(top_surface)] = np.nan
+                bottom_surface[np.isinf(bottom_surface)] = np.nan
 
                 # 确保数据维度正确
                 if top_surface.shape != XI.shape or bottom_surface.shape != XI.shape:
                     print(f"[警告] 岩层 {model.name} 的表面数据维度不匹配,跳过")
                     continue
 
+                # 转换为列表，NaN会被序列化为null（JSON标准）
+                # 导出器会使用插值填充这些null值
                 models_data.append({
                     'name': str(model.name),
                     'points': int(model.points),
                     'grid_x': grid_x,  # 前端期待的字段名
                     'grid_y': grid_y,  # 前端期待的字段名
-                    'top_surface_z': top_surface.tolist(),  # 前端期待的字段名
-                    'bottom_surface_z': bottom_surface.tolist(),
+                    'top_surface_z': top_surface.tolist(),  # NaN → null（保留缺失信息）
+                    'bottom_surface_z': bottom_surface.tolist(),  # NaN → null
                     'avg_thickness': float(model.avg_thickness) if hasattr(model, 'avg_thickness') else 0.0,
                     'max_thickness': float(model.max_thickness) if hasattr(model, 'max_thickness') else 0.0,
                     'avg_height': float(model.avg_height) if hasattr(model, 'avg_height') else 0.0,

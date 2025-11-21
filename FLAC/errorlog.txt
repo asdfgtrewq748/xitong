@@ -1,0 +1,7 @@
+ 700-126
+Fri November 21 2025 at 15:58:29
+Module: C:\Program Files\Itasca\FLAC3D700\exe64\flac3d700_gui.exe
+GUI Version: 007-126
+Operating system: Microsoft  (build 9200), 64-bit.
+16 processor(s), type 8664.
+

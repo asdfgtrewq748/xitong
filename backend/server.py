@@ -382,9 +382,10 @@ class BlockModelRequest(BaseModel):
 
 
 class ExportRequest(BlockModelRequest):
-    """导出请求，继承自 BlockModelRequest 并增加导出类型和文件名字段"""
+    """导出请求，继承自 BlockModelRequest 并增加导出类型、文件名和导出选项字段"""
     export_type: str  # 'dxf' or 'flac3d'
     filename: Optional[str] = None
+    options: Optional[Dict[str, Any]] = None  # 导出选项（如降采样倍数、体块模式等）
 
 
 class ComparisonRequest(BaseModel):
@@ -610,8 +611,8 @@ async def load_modeling_columns(
 
             # 根据是否使用已合并数据决定处理方式
             if use_merged_data:
-                # 数据已包含坐标信息，直接加载
-                print(f"[DEBUG] 使用已合并数据模式")
+                # 全局数据模式：数据已包含坐标信息和钻孔名，直接加载即可
+                print(f"[DEBUG] ========== 全局数据模式 ==========")
                 
                 # 加载所有钻孔文件并合并
                 from coal_seam_blocks.aggregator import load_borehole_csv, unify_columns
@@ -622,7 +623,15 @@ async def load_modeling_columns(
                     merged_frames.append(df)
                 
                 merged_df = pd.concat(merged_frames, ignore_index=True)
-                print(f"[DEBUG] 已合并数据加载成功，记录数: {len(merged_df)}")
+                print(f"[DEBUG] 全局数据加载成功，记录数: {len(merged_df)}")
+                print(f"[DEBUG] 数据列: {list(merged_df.columns)}")
+                
+                # 检查钻孔名分布
+                if "钻孔名" in merged_df.columns:
+                    unique_boreholes = merged_df["钻孔名"].nunique()
+                    print(f"[DEBUG] 包含 {unique_boreholes} 个不同的钻孔")
+                    sample_boreholes = merged_df["钻孔名"].unique()[:5].tolist()
+                    print(f"[DEBUG] 钻孔名样本: {sample_boreholes}")
                 
                 # 验证数据中是否包含坐标列
                 coord_candidates = ['X', 'x', 'X坐标', 'x坐标', 'Y', 'y', 'Y坐标', 'y坐标']
@@ -655,13 +664,53 @@ async def load_modeling_columns(
 
                 # 聚合数据
                 try:
-                    print(f"[DEBUG] 开始聚合数据，钻孔文件数: {len(borehole_paths)}")
+                    print(f"[DEBUG] 开始聚合数据（传统模式），钻孔文件数: {len(borehole_paths)}")
+                    
+                    # 先加载钻孔数据统计
+                    from coal_seam_blocks.aggregator import load_borehole_csv, unify_columns
+                    total_borehole_records = 0
+                    for path in borehole_paths:
+                        df_temp = load_borehole_csv(path)
+                        total_borehole_records += len(df_temp)
+                    print(f"[DEBUG] 钻孔文件总记录数: {total_borehole_records}")
+                    
+                    # 加载坐标文件统计
+                    coords_temp = load_borehole_csv(str(coords_path))
+                    print(f"[DEBUG] 坐标文件记录数: {len(coords_temp)}")
+                    print(f"[DEBUG] 坐标文件列: {list(coords_temp.columns)}")
+                    
+                    # 执行聚合
                     merged_df, coords_df = aggregate_boreholes(borehole_paths, str(coords_path))
-                    print(f"[DEBUG] 数据聚合成功，记录数: {len(merged_df)}")
+                    print(f"[DEBUG] 数据聚合成功，合并后记录数: {len(merged_df)}")
+                    
+                    # 计算数据损失
+                    if total_borehole_records > len(merged_df):
+                        lost_records = total_borehole_records - len(merged_df)
+                        loss_percent = (lost_records / total_borehole_records) * 100
+                        print(f"[WARNING] inner join 导致数据丢失: {lost_records} 条 ({loss_percent:.1f}%)")
+                        print(f"[WARNING] 这可能是因为钻孔文件和坐标文件的钻孔名不匹配")
+                    
                 except Exception as e:
                     print(f"[ERROR] 数据聚合失败: {e}")
                     raise HTTPException(status_code=400, detail=f"数据聚合失败: {str(e)}")
 
+        # 数据一致性验证和统计
+        print(f"[DEBUG] ========== 数据加载摘要 ==========")
+        print(f"[DEBUG] 数据模式: {'全局数据（已合并）' if use_merged_data else '上传文件（需合并）'}")
+        print(f"[DEBUG] 最终记录数: {len(merged_df)}")
+        print(f"[DEBUG] 最终列数: {len(merged_df.columns)}")
+        
+        # 检查关键列
+        required_cols = ["钻孔名"]
+        missing_cols = [col for col in required_cols if col not in merged_df.columns]
+        if missing_cols:
+            print(f"[WARNING] 数据缺少关键列: {missing_cols}")
+        
+        # 检查钻孔分布（用于对比两种模式）
+        if "钻孔名" in merged_df.columns:
+            unique_boreholes = merged_df["钻孔名"].nunique()
+            print(f"[DEBUG] 最终数据包含 {unique_boreholes} 个不同的钻孔")
+        
         modeling_state.merged_df = merged_df
         modeling_state.coords_df = coords_df
         modeling_state.borehole_file_count = len(borehole_files)
@@ -669,13 +718,13 @@ async def load_modeling_columns(
         modeling_state.numeric_columns = columns_info["numeric"]
         modeling_state.text_columns = columns_info["text"]
         
-        # 详细日志：输出数据摘要用于调试
-        print(f"[DEBUG] ========== 数据加载摘要 ==========")
-        print(f"[DEBUG] 数据模式: {'已合并数据' if use_merged_data else '传统合并'}")
-        print(f"[DEBUG] 总记录数: {len(merged_df)}")
-        print(f"[DEBUG] 数值列: {modeling_state.numeric_columns}")
-        print(f"[DEBUG] 文本列: {modeling_state.text_columns}")
-        print(f"[DEBUG] 列总数: {len(merged_df.columns)}")
+        print(f"[DEBUG] 数值列 ({len(modeling_state.numeric_columns)}): {modeling_state.numeric_columns[:5]}...")
+        print(f"[DEBUG] 文本列 ({len(modeling_state.text_columns)}): {modeling_state.text_columns[:5]}...")
+        print(f"[DEBUG] ====================================")
+        
+        # 如果缺少关键列，给出警告但不阻止
+        if missing_cols:
+            print(f"[WARNING] 数据结构可能不完整，建模结果可能受影响")
         
         # 输出数据样本
         if len(merged_df) > 0:
@@ -878,11 +927,14 @@ async def generate_block_model(payload: BlockModelRequest):
         from interpolation import interpolate
         
         num_points = len(x)
-        method_key = payload.method.lower()
+        original_method = payload.method.lower()
+        method_key = original_method
+        
+        print(f"[INTERP] 🔧 插值调用: 数据点={num_points}, 请求方法={original_method}")
         
         # 数据验证
         if num_points <= 3:
-            print(f"[WARNING] 数据点太少 ({num_points}), 使用最近邻插值")
+            print(f"[INTERP] ⚠️ 数据点太少 ({num_points}), 强制使用 nearest")
             method_key = 'nearest'
         
         # 检查点是否共线或接近共线
@@ -891,30 +943,49 @@ async def generate_block_model(payload: BlockModelRequest):
                 x_range = np.max(x) - np.min(x)
                 y_range = np.max(y) - np.min(y)
                 
+                print(f"[INTERP] 📊 数据分布: X范围={x_range:.2f}m, Y范围={y_range:.2f}m")
+                
                 # 如果点在一条线上(某个方向的范围非常小)
                 if x_range < 1e-6 or y_range < 1e-6:
-                    print(f"[WARNING] 数据点接近共线, 使用最近邻插值")
+                    print(f"[INTERP] ⚠️ 数据点接近共线, 强制使用 nearest")
                     method_key = 'nearest'
-            except Exception:
-                pass
+            except Exception as e:
+                print(f"[INTERP] ⚠️ 数据范围检查失败: {e}")
+        
+        if method_key != original_method:
+            print(f"[INTERP] 🔄 方法已改变: {original_method} → {method_key}")
+        else:
+            print(f"[INTERP] ✅ 使用请求的方法: {method_key}")
         
         # 使用增强的插值模块执行插值
         try:
             result = interpolate(x, y, z, xi_flat, yi_flat, method_key)
             
-            # 处理NaN值
+            # ⚠️ 处理NaN/Inf值 - 不能转为0,会导致厚度为0!
             if isinstance(result, np.ndarray):
-                result = np.nan_to_num(result, nan=0.0, posinf=0.0, neginf=0.0)
+                invalid_mask = ~np.isfinite(result)
+                invalid_count = np.sum(invalid_mask)
+                if invalid_count > 0:
+                    print(f"[INTERP] 🔧 处理了 {invalid_count} 个无效值(NaN/Inf)")
+                    # 用原始数据的中位数填充,而非0
+                    fill_value = float(np.median(z)) if len(z) > 0 else 0.0
+                    result = np.where(np.isfinite(result), result, fill_value)
+                    print(f"[INTERP] 📊 填充值: {fill_value:.2f} (数据中位数)")
             
+            print(f"[INTERP] ✅ 插值完成: 结果形状={result.shape}")
             return result
             
         except Exception as e:
-            print(f"[ERROR] 插值方法 {method_key} 失败: {e}, 回退到最近邻插值")
+            print(f"[INTERP] ❌ 插值失败: {method_key} → {str(e)[:100]}")
+            print(f"[INTERP] 🔄 回退到 nearest")
             try:
                 result = griddata((x, y), z, (xi_flat, yi_flat), method='nearest')
-                return np.nan_to_num(result, nan=0.0, posinf=0.0, neginf=0.0)
+                # 用中位数填充无效值
+                fill_value = float(np.median(z)) if len(z) > 0 else 0.0
+                result = np.where(np.isfinite(result), result, fill_value)
+                return result
             except Exception as fallback_error:
-                print(f"[ERROR] 最近邻插值也失败: {fallback_error}")
+                print(f"[INTERP] ❌ nearest 也失败: {fallback_error}")
                 # 返回零数组作为最后的回退
                 return np.zeros_like(xi_flat)
 
@@ -2765,9 +2836,14 @@ async def export_model_endpoint(payload: ExportRequest):
         method_key = payload.method.lower()
         if num_points <= 3:
             method_key = 'nearest'
+        
+        # 添加日志用于调试
+        print(f"[Export] 使用插值方法: {method_key} (原始请求: {payload.method})")
+        
         try:
             return interpolate(x, y, z, xi_flat, yi_flat, method_key)
-        except Exception:
+        except Exception as e:
+            print(f"[Export] 插值失败,回退到nearest: {e}")
             return griddata((x, y), z, (xi_flat, yi_flat), method='nearest')
 
     # 生成块体模型
@@ -2806,59 +2882,139 @@ async def export_model_endpoint(payload: ExportRequest):
     for model in block_models_objs:
         if model.top_surface is None:
             continue
+        
+        # 确保有完整的底板和厚度数据（FLAC3D 需要）
+        bottom_surface = model.bottom_surface
+        thickness = model.thickness_grid
+        
+        # 如果两者都缺失，使用默认厚度
+        if bottom_surface is None and thickness is None:
+            print(f"[Export] 警告: {model.name} 缺少底板/厚度数据，使用默认厚度 5.0m")
+            thickness = np.full_like(model.top_surface, 5.0)
+            bottom_surface = model.top_surface - thickness
+        elif bottom_surface is None:
+            # 有厚度，计算底板
+            print(f"[Export] {model.name}: 使用厚度计算底板")
+            bottom_surface = model.top_surface - thickness
+        elif thickness is None:
+            # 有底板，计算厚度
+            print(f"[Export] {model.name}: 使用底板计算厚度")
+            thickness = model.top_surface - bottom_surface
+        
         export_data["layers"].append({
             "name": model.name,
             "grid_x": XI,
             "grid_y": YI,
             "grid_z": model.top_surface,
-            "grid_z_bottom": model.bottom_surface,
-            "thickness": model.thickness_grid,
+            "grid_z_bottom": bottom_surface,
+            "thickness": thickness,
         })
 
     # 确定导出器
     export_type = (payload.export_type or 'dxf').lower()
     from exporters.dxf_exporter import DXFExporter
     from exporters.flac3d_exporter import FLAC3DExporter
+    from exporters.stl_exporter import STLExporter
+    from exporters.layered_stl_exporter import LayeredSTLExporter
     from datetime import datetime
     import traceback
 
     if payload.filename:
         filename = payload.filename
+        # 如果文件名包含中文，转换为拼音或英文（避免FLAC3D乱码）
+        if any('\u4e00' <= c <= '\u9fff' for c in filename):
+            # 包含中文，使用英文默认名
+            if export_type == 'flac3d':
+                ext = 'f3grid'
+            elif export_type in ['stl', 'stl_single']:
+                ext = 'stl'
+            elif export_type == 'stl_layered':
+                ext = 'zip'
+            else:
+                ext = 'dxf'
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            filename = f"geological_model_{timestamp}.{ext}"
+            print(f"[Export] 检测到中文文件名，自动转换为: {filename}")
     else:
-        ext = 'f3grid' if export_type == 'flac3d' else 'dxf'
-        filename = f"model_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{ext}"
+        if export_type == 'flac3d':
+            ext = 'f3grid'
+        elif export_type in ['stl', 'stl_single']:
+            ext = 'stl'
+        elif export_type == 'stl_layered':
+            ext = 'zip'
+        else:
+            ext = 'dxf'
+        filename = f"geological_model_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{ext}"
 
     output_dir = APP_ROOT.parent / 'data' / 'output'
     output_dir.mkdir(parents=True, exist_ok=True)
     output_path = str(output_dir / filename)
 
     try:
+        # 提取导出选项
+        export_options = {}
+        if hasattr(payload, 'options') and payload.options:
+            export_options = payload.options
+            print(f"[Export] 使用自定义导出选项: {export_options}")
+        
         if export_type == 'dxf':
             exporter = DXFExporter()
+            print(f"[Export] 开始导出 DXF 格式，输出路径: {output_path}")
+            final_path = exporter.export(export_data, output_path, options=export_options)
         elif export_type == 'flac3d':
             exporter = FLAC3DExporter()
+            print(f"[Export] 开始导出 FLAC3D 格式，输出路径: {output_path}")
+            final_path = exporter.export(export_data, output_path, options=export_options)
+        elif export_type in ['stl', 'stl_single']:
+            # 单文件STL导出（所有地层合并）
+            exporter = STLExporter()
+            print(f"[Export] 开始导出 STL 格式（单文件），输出路径: {output_path}")
+            final_path = exporter.export(export_data, output_path, options=export_options)
+        elif export_type == 'stl_layered':
+            # 分层STL导出（每层一个文件，打包为ZIP）
+            exporter = LayeredSTLExporter()
+            print(f"[Export] 开始导出 STL 格式（分层），输出路径: {output_path}")
+            final_path = exporter.export_layered(export_data, output_path, options=export_options)
         else:
             raise HTTPException(status_code=400, detail=f"不支持的导出类型: {export_type}")
 
-        final_path = exporter.export(export_data, output_path)
+        print(f"[Export] 导出完成: {final_path}")
     except ImportError as ie:
         # 记录详细错误
+        error_msg = str(ie)
+        print(f"[Export Error] ImportError: {error_msg}")
         try:
-            with open("export_error.log", "a") as f:
-                f.write(f"[{datetime.now()}] ImportError: {str(ie)}\n")
+            with open("export_error.log", "a", encoding="utf-8") as f:
+                f.write(f"[{datetime.now()}] ImportError: {error_msg}\n")
                 traceback.print_exc(file=f)
         except:
             pass
-        raise HTTPException(status_code=500, detail=str(ie))
+        raise HTTPException(
+            status_code=500, 
+            detail=f"依赖库缺失: {error_msg}\n\n请在服务器上运行: pip install ezdxf==1.3.0"
+        )
+    except ValueError as ve:
+        # 数据验证错误
+        error_msg = str(ve)
+        print(f"[Export Error] ValueError: {error_msg}")
+        try:
+            with open("export_error.log", "a", encoding="utf-8") as f:
+                f.write(f"[{datetime.now()}] ValueError: {error_msg}\n")
+                traceback.print_exc(file=f)
+        except:
+            pass
+        raise HTTPException(status_code=400, detail=f"数据验证失败: {error_msg}")
     except Exception as e:
         # 记录详细错误
+        error_msg = str(e)
+        print(f"[Export Error] Exception: {error_msg}")
         try:
-            with open("export_error.log", "a") as f:
-                f.write(f"[{datetime.now()}] Export Error: {str(e)}\n")
+            with open("export_error.log", "a", encoding="utf-8") as f:
+                f.write(f"[{datetime.now()}] Export Error: {error_msg}\n")
                 traceback.print_exc(file=f)
         except:
             pass
-        raise HTTPException(status_code=500, detail=f"导出失败: {e}")
+        raise HTTPException(status_code=500, detail=f"导出失败: {error_msg}")
 
     # 返回文件流
     try:

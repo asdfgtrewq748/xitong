@@ -403,8 +403,8 @@
     </el-dialog>
 
     <!-- 导出选项对话框 -->
-    <el-dialog v-model="exportDialogVisible" title="导出模型" width="40%">
-      <el-form label-width="100px">
+    <el-dialog v-model="exportDialogVisible" title="导出模型" width="50%">
+      <el-form label-width="120px">
         <el-form-item label="导出格式">
           <el-radio-group v-model="exportOptions.format">
             <el-radio label="png">PNG 图片</el-radio>
@@ -412,10 +412,201 @@
             <el-radio label="json">JSON 数据</el-radio>
             <el-radio label="csv">CSV 数据</el-radio>
             <el-divider direction="vertical" />
-            <el-radio label="dxf">DXF (CAD/SketchUp)</el-radio>
+            <el-radio label="dxf">DXF (CAD)</el-radio>
             <el-radio label="flac3d">FLAC3D (.dat)</el-radio>
+            <el-radio label="stl_single">STL 单文件</el-radio>
+            <el-radio label="stl_layered">STL 分层</el-radio>
           </el-radio-group>
         </el-form-item>
+        
+        <!-- DXF 专用配置 -->
+        <template v-if="exportOptions.format === 'dxf'">
+          <el-divider content-position="left">DXF 导出配置</el-divider>
+          <el-form-item label="降采样倍数">
+            <el-slider 
+              v-model="exportOptions.downsample_factor" 
+              :min="1" 
+              :max="20" 
+              :step="1"
+              show-input
+              :marks="{1: '无', 5: '标准', 10: '高', 20: '极高'}"
+            />
+            <el-alert 
+              type="info" 
+              :closable="false" 
+              show-icon
+              style="margin-top: 8px;"
+            >
+              降采样可大幅减少面片数量。建议：标准(5x)适合可视化，高(10x)适合FLAC3D计算
+            </el-alert>
+          </el-form-item>
+          
+          <el-form-item label="导出模式">
+            <el-radio-group v-model="exportOptions.export_as_blocks">
+              <el-radio :label="true">
+                <strong>封闭体块模式</strong>
+                <div style="font-size: 12px; color: #909399;">
+                  导出完整的六面体（顶+底+侧），适合FLAC3D数值模拟
+                </div>
+              </el-radio>
+              <el-radio :label="false">
+                <strong>表面模式</strong>
+                <div style="font-size: 12px; color: #909399;">
+                  仅导出地层顶面，适合CAD/SketchUp可视化
+                </div>
+              </el-radio>
+            </el-radio-group>
+          </el-form-item>
+          
+          <el-form-item label="坐标处理">
+            <el-switch 
+              v-model="exportOptions.normalize_coords" 
+              active-text="坐标归一化（推荐）"
+              inactive-text="保留原始坐标"
+            />
+            <el-alert 
+              type="warning" 
+              :closable="false" 
+              show-icon
+              style="margin-top: 8px;"
+            >
+              大地坐标（如X=3940000）会导致FLAC3D精度丢失，强烈建议开启归一化
+            </el-alert>
+          </el-form-item>
+        </template>
+        
+        <!-- STL 分层导出配置 -->
+        <template v-if="exportOptions.format === 'stl_layered'">
+          <el-divider content-position="left">STL 分层导出配置</el-divider>
+          <el-alert 
+            type="success" 
+            :closable="false" 
+            show-icon
+            style="margin-bottom: 16px;"
+          >
+            <template #title>
+              <strong>✨ STL 分层导出 - FLAC3D 网格生成最佳方案</strong>
+            </template>
+            <div style="font-size: 13px; line-height: 1.8;">
+              <b>🎯 核心优势：</b><br/>
+              • <b>消除内部分层面：</b>每个地层导出为独立的STL文件（文件名为英文，如：01_coal_6.stl, 02_sandy_mudstone.stl）<br/>
+              • <b>避免拓扑错误：</b>各层独立导入FLAC3D，不会出现自相交（Self-Intersection）问题<br/>
+              • <b>提升网格质量：</b>FLAC3D可为每层单独生成高质量的四面体或六面体网格<br/>
+              • <b>FLAC3D兼容性：</b>文件名使用英文（FLAC3D对中文支持不好），中英文对照信息在manifest.json中<br/><br/>
+              
+              <b>📦 导出内容（ZIP包）：</b><br/>
+              • <b>多个STL文件：</b>每个地层一个独立的封闭六面体STL模型<br/>
+              • <b>manifest.json：</b>包含所有地层的元数据（名称、厚度、网格尺寸等）<br/>
+              • <b>README.txt：</b>详细的FLAC3D导入操作指南<br/>
+              • <b>import_to_flac3d.fish：</b>FLAC3D自动导入脚本（一键导入所有地层）<br/><br/>
+              
+              <b>🚀 使用流程：</b><br/>
+              1. 点击导出，下载ZIP压缩包<br/>
+              2. 解压ZIP文件到本地目录<br/>
+              3. 在FLAC3D中执行FISH脚本（或按README说明逐层手动导入）<br/>
+              4. 为各层分别生成网格并设置材料参数<br/><br/>
+              
+              <b>⚠️ 与DXF/单文件STL的区别：</b><br/>
+              • <b>DXF导出：</b>适合CAD可视化，但多层模型在FLAC3D中会有内部分层面<br/>
+              • <b>STL单文件：</b>所有地层合并为一个STL，同样存在内部分层面问题<br/>
+              • <b>STL分层导出：</b>完全消除内部面，FLAC3D网格生成零错误 ✅
+            </div>
+          </el-alert>
+          
+          <el-form-item label="降采样倍数">
+            <el-slider 
+              v-model="exportOptions.stl_downsample" 
+              :min="1" 
+              :max="20" 
+              :step="1"
+              show-input
+              :marks="{1: '无', 5: '标准', 10: '高', 20: '极高'}"
+            />
+            <el-alert 
+              type="info" 
+              :closable="false" 
+              show-icon
+              style="margin-top: 8px;"
+            >
+              降采样可减少STL三角面片数量。建议：标准(5x)适合可视化和FLAC3D建模
+            </el-alert>
+          </el-form-item>
+          
+          <el-form-item label="STL格式">
+            <el-radio-group v-model="exportOptions.stl_format">
+              <el-radio label="binary">
+                <strong>二进制格式</strong>
+                <span style="font-size: 12px; color: #909399;">（文件小，加载快，推荐）</span>
+              </el-radio>
+              <el-radio label="ascii">
+                <strong>ASCII格式</strong>
+                <span style="font-size: 12px; color: #909399;">（文本格式，易读但文件大）</span>
+              </el-radio>
+            </el-radio-group>
+          </el-form-item>
+          
+          <el-form-item label="坐标归一化">
+            <el-switch 
+              v-model="exportOptions.stl_normalize" 
+              active-text="开启归一化（推荐）"
+              inactive-text="保留原始坐标"
+            />
+            <el-alert 
+              type="warning" 
+              :closable="false" 
+              show-icon
+              style="margin-top: 8px;"
+            >
+              大地坐标（如X=3940000）会导致FLAC3D精度丢失，强烈建议开启归一化
+            </el-alert>
+          </el-form-item>
+        </template>
+        
+        <!-- STL 单文件导出配置 -->
+        <template v-if="exportOptions.format === 'stl_single'">
+          <el-divider content-position="left">STL 单文件导出配置</el-divider>
+          <el-alert 
+            type="warning" 
+            :closable="false" 
+            show-icon
+            style="margin-bottom: 16px;"
+          >
+            <template #title>
+              <strong>⚠️ 注意：单文件模式包含内部分层面</strong>
+            </template>
+            <div style="font-size: 13px; line-height: 1.6;">
+              单文件STL将所有地层合并为一个模型，<b>会包含内部分层面</b>，可能导致FLAC3D网格生成失败。<br/>
+              <b>推荐使用"STL 分层"模式</b>以避免拓扑问题！
+            </div>
+          </el-alert>
+          
+          <el-form-item label="降采样倍数">
+            <el-slider 
+              v-model="exportOptions.stl_downsample" 
+              :min="1" 
+              :max="20" 
+              :step="1"
+              show-input
+              :marks="{1: '无', 5: '标准', 10: '高', 20: '极高'}"
+            />
+          </el-form-item>
+          
+          <el-form-item label="STL格式">
+            <el-radio-group v-model="exportOptions.stl_format">
+              <el-radio label="binary">二进制（推荐）</el-radio>
+              <el-radio label="ascii">ASCII文本</el-radio>
+            </el-radio-group>
+          </el-form-item>
+          
+          <el-form-item label="坐标归一化">
+            <el-switch 
+              v-model="exportOptions.stl_normalize" 
+              active-text="开启"
+              inactive-text="关闭"
+            />
+          </el-form-item>
+        </template>
+        
         <el-form-item v-if="exportOptions.format === 'png' || exportOptions.format === 'svg'" label="图片尺寸">
           <el-row :gutter="10">
             <el-col :span="11">
@@ -689,7 +880,15 @@ const exportOptions = reactive({
   width: 1920,
   height: 1080,
   quality: 90,
-  filename: '地质模型'
+  filename: '地质模型',
+  // DXF 专用配置
+  downsample_factor: 5,      // 降采样倍数，默认5x
+  export_as_blocks: true,    // 导出为封闭体块，默认true
+  normalize_coords: true,    // 坐标归一化，默认true
+  // STL 专用配置
+  stl_downsample: 5,         // STL降采样倍数，默认5x
+  stl_format: 'binary',      // STL格式：binary或ascii
+  stl_normalize: true        // STL坐标归一化，默认true
 });
 
 function triggerBoreholeSelection() {
@@ -907,12 +1106,22 @@ function initChart() {
     return;
   }
 
-  console.log('[initChart] 图表容器尺寸:', {
+  // 检查容器尺寸，如果为0则延迟初始化
+  const containerSize = {
     width: chartRef.value.offsetWidth,
     height: chartRef.value.offsetHeight,
     clientWidth: chartRef.value.clientWidth,
     clientHeight: chartRef.value.clientHeight
-  });
+  };
+  
+  console.log('[initChart] 图表容器尺寸:', containerSize);
+  
+  // 如果容器尺寸为0，等待100ms后重试
+  if (containerSize.clientWidth === 0 || containerSize.clientHeight === 0) {
+    console.warn('[initChart] 容器尺寸为0，延迟100ms后重试...');
+    setTimeout(initChart, 100);
+    return;
+  }
 
   // 确保容器有有效的尺寸
   if (chartRef.value.offsetWidth === 0 || chartRef.value.offsetHeight === 0) {
@@ -2121,8 +2330,9 @@ async function confirmExport() {
     return;
   }
 
-  // 对于 DXF 和 FLAC3D 导出，先验证建模可行性
-  if (exportOptions.format === 'dxf' || exportOptions.format === 'flac3d') {
+  // 对于 DXF、FLAC3D 和 STL 导出，先验证建模可行性
+  if (exportOptions.format === 'dxf' || exportOptions.format === 'flac3d' || 
+      exportOptions.format === 'stl_single' || exportOptions.format === 'stl_layered') {
     try {
       const validationResult = await validateModeling();
       if (!validationResult.valid) {
@@ -2164,11 +2374,14 @@ async function confirmExport() {
         break;
       case 'dxf':
       case 'flac3d':
+      case 'stl_single':
+      case 'stl_layered':
         await exportToBackend(exportOptions.format, filename);
         break;
     }
 
-    if (exportOptions.format !== 'dxf' && exportOptions.format !== 'flac3d') {
+    if (exportOptions.format !== 'dxf' && exportOptions.format !== 'flac3d' && 
+        exportOptions.format !== 'stl_single' && exportOptions.format !== 'stl_layered') {
        ElMessage.success(`导出成功: ${filename}`);
     }
     exportDialogVisible.value = false;
@@ -2237,6 +2450,24 @@ async function exportToBackend(format, filename) {
     filename: filename, // 传递文件名
   };
   
+  // 如果是DXF格式，添加DXF专用配置
+  if (format === 'dxf') {
+    exportParams.options = {
+      downsample_factor: exportOptions.downsample_factor,
+      export_as_blocks: exportOptions.export_as_blocks,
+      normalize_coords: exportOptions.normalize_coords
+    };
+  }
+  
+  // 如果是STL格式，添加STL专用配置
+  if (format === 'stl_single' || format === 'stl_layered') {
+    exportParams.options = {
+      downsample_factor: exportOptions.stl_downsample,
+      format: exportOptions.stl_format,
+      normalize_coords: exportOptions.stl_normalize
+    };
+  }
+  
   try {
     // 优先尝试使用 REST API (适用于浏览器环境)
     const response = await fetch(`${API_BASE}/export`, {
@@ -2280,18 +2511,22 @@ async function exportToBackend(format, filename) {
       return;
     } else {
       // 如果 API 返回错误，尝试解析错误信息
-      let errorMsg = '导出请求失败';
+      let errorMsg = `导出请求失败 (HTTP ${response.status})`;
       let errorDetail = null;
       try {
         const errorData = await response.json();
         errorMsg = errorData.detail || errorMsg;
-        errorDetail = errorData.detail;
-      } catch (e) { /* ignore */ }
+        errorDetail = errorData;
+        console.error('后端返回错误:', errorData);
+      } catch (e) { 
+        console.error('无法解析错误响应:', e);
+      }
       
       // 如果不是 404 (API不存在)，则抛出错误（附带后端详细信息）
       if (response.status !== 404) {
         const err = new Error(errorMsg);
         err.detail = errorDetail;
+        err.status = response.status;
         throw err;
       }
     }

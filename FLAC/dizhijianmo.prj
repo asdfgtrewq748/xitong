@@ -1,0 +1,1802 @@
+{
+    "Header" : {
+        "Type" : "ITASCA PROJECT FILE" ,
+        "Name" : "flac3d" ,
+        "Version" : 7.0000000e+00 ,
+        "Update" : 126 ,
+        "Binary" : false ,
+        "DateTime" : "2025-11-22T01:32:37" ,
+        "Format" : 0 ,
+        "Dimension" : 3 
+    },
+    "GuiModuleList" : [ 
+        {
+            "Name" : "Terminal" ,
+            "Entry" : {
+                "SaveFile" : "Mesh_Generated_18Layers.sav" ,
+                "Kernel" : {
+                    "LoadCommands" : [  ],
+                    "ModuleList" : {
+                        "Modules" : [  ]
+                    },
+                    "Settings" : {
+                        "UpdateInterval" : 100 ,
+                        "Academic" : false ,
+                        "Demonstration" : true ,
+                        "Unrepeatable" : false ,
+                        "ReadOnly" : false ,
+                        "Mudward" : false 
+                    },
+                    "ProjectRanges" : {
+                        "SelfIndex" : 0 ,
+                        "Contents" : [  ]
+                    }
+                },
+                "SaveFiles" : {
+                    "Files" : [ 
+                        "Mesh_Generated_18Layers.sav" 
+                    ]
+                },
+                "ResultFiles" : {
+                    "Files" : [  ]
+                }
+            }
+        }, 
+        {
+            "Name" : "Block" ,
+            "Entry" : { }
+        }, 
+        {
+            "Name" : "BuildingBlocks" ,
+            "Entry" : {
+                "Copy2FileNum" : 0 ,
+                "PastedFromFileNum" : 0 ,
+                "Views" : [  ]
+            }
+        }, 
+        {
+            "Name" : "CCFD" ,
+            "Entry" : { }
+        }, 
+        {
+            "Name" : "DFN" ,
+            "Entry" : { }
+        }, 
+        {
+            "Name" : "Editor" ,
+            "Entry" : {
+                "DataFiles" : {
+                    "Files" : [ 
+                        "DXFdaoru.dat" 
+                    ]
+                },
+                "LastActive" : "E:/xiangmu/xitong/FLAC/DXFdaoru.dat" ,
+                "OpenFiles" : [ 
+                    "DXFdaoru.dat" 
+                ]
+            }
+        }, 
+        {
+            "Name" : "Extruder" ,
+            "Entry" : {
+                "ControlPanel" : {
+                    "ControlSets" : [ 
+                        {
+                            "Name" : "X2DObjectProperties" ,
+                            "Set" : {
+                                "Index" : 0 ,
+                                "Active" : true 
+                            }
+                        }, 
+                        {
+                            "Name" : "X2DView" ,
+                            "Set" : {
+                                "Index" : 1 ,
+                                "Active" : true 
+                            }
+                        }, 
+                        {
+                            "Name" : "InfoControl" ,
+                            "Set" : {
+                                "Index" : 2 ,
+                                "Active" : true ,
+                                "Hidden" : false 
+                            }
+                        }, 
+                        {
+                            "Name" : "FishGlobals" ,
+                            "Set" : {
+                                "Index" : 3 ,
+                                "Active" : false 
+                            }
+                        }
+                    ],
+                    "TabState" : [ 
+                        {
+                            "Name" : "Extrusion" ,
+                            "TabWidget" : [ 
+                                {
+                                    "States" : [ 
+                                        {
+                                            "First" : "X2DObjectProperties" ,
+                                            "Second" : 4 
+                                        }, 
+                                        {
+                                            "First" : "X2DView" ,
+                                            "Second" : 4 
+                                        }, 
+                                        {
+                                            "First" : "InfoControl" ,
+                                            "Second" : 4 
+                                        }, 
+                                        {
+                                            "First" : "FishGlobals" ,
+                                            "Second" : 3 
+                                        }
+                                    ],
+                                    "Stretch" : 1 
+                                }
+                            ],
+                            "Active" : true 
+                        }, 
+                        {
+                            "Name" : "+" ,
+                            "TabWidget" : [  ],
+                            "Active" : false 
+                        }
+                    ]
+                },
+                "SnapAngleIncrement" : 1.500000000000000e+01 ,
+                "DefaultEdgeType" : "simple" 
+            }
+        }, 
+        {
+            "Name" : "GUIGeometry" ,
+            "Entry" : {
+                "SetList" : {
+                    "Files" : [  ]
+                }
+            }
+        }, 
+        {
+            "Name" : "guigeompane" ,
+            "Entry" : {
+                "Copy2FileNum" : 0 ,
+                "PastedFromFileNum" : 0 ,
+                "VisGeomSets" : [  ]
+            }
+        }, 
+        {
+            "Name" : "GuiPythonModule" ,
+            "Entry" : { }
+        }, 
+        {
+            "Name" : "ItascaModel" ,
+            "Entry" : { }
+        }, 
+        {
+            "Name" : "PFCModule" ,
+            "Entry" : { }
+        }, 
+        {
+            "Name" : "PFCThermalModule" ,
+            "Entry" : { }
+        }, 
+        {
+            "Name" : "Plot" ,
+            "Entry" : {
+                "DefaultPage" : {
+                    "AutoUpdate" : true ,
+                    "Outline" : {
+                        "Active" : true ,
+                        "Enabled" : true ,
+                        "Width" : 2 ,
+                        "Style" : 1 ,
+                        "Color" : "#000000FF" ,
+                        "Bool" : true 
+                    },
+                    "Background" : "#ffffffFF" ,
+                    "Active" : true ,
+                    "Legend" : {
+                        "Active" : true ,
+                        "Placement" : 0 ,
+                        "TargetSize" : {
+                            "Width" : 25 ,
+                            "Height" : 50 
+                        },
+                        "Position" : {
+                            "X" : 66 ,
+                            "Y" : 40 
+                        },
+                        "Title" : {
+                            "Active" : true ,
+                            "Enabled" : true ,
+                            "Size" : 55 ,
+                            "Family" : "Times New Roman" ,
+                            "Style" : 1 ,
+                            "Color" : "#000000FF" ,
+                            "Bool" : true ,
+                            "Text" : "" 
+                        },
+                        "Caption" : {
+                            "Active" : true ,
+                            "Enabled" : true ,
+                            "Size" : 44 ,
+                            "Family" : "Arial" ,
+                            "Style" : 0 ,
+                            "Color" : "#000000FF" ,
+                            "Bool" : true ,
+                            "Text" : "" 
+                        },
+                        "Heading" : {
+                            "Active" : true ,
+                            "Enabled" : true ,
+                            "Size" : 94 ,
+                            "Family" : "Times New Roman" ,
+                            "Style" : 3 ,
+                            "Color" : "#000000FF" ,
+                            "Bool" : true ,
+                            "Text" : "" 
+                        },
+                        "Copyright" : {
+                            "Active" : true ,
+                            "Enabled" : true ,
+                            "Size" : 40 ,
+                            "Family" : "Arial" ,
+                            "Style" : 0 ,
+                            "Color" : "#000000FF" ,
+                            "Bool" : true ,
+                            "Text" : "" 
+                        },
+                        "Step" : {
+                            "Active" : true ,
+                            "Enabled" : true ,
+                            "Size" : 44 ,
+                            "Family" : "Arial" ,
+                            "Style" : 0 ,
+                            "Color" : "#000000FF" ,
+                            "Bool" : false ,
+                            "Text" : "" 
+                        },
+                        "Time" : {
+                            "Active" : true ,
+                            "Enabled" : true ,
+                            "Size" : 44 ,
+                            "Family" : "Arial" ,
+                            "Style" : 0 ,
+                            "Color" : "#000000FF" ,
+                            "Bool" : false ,
+                            "Text" : "" 
+                        },
+                        "Customer" : {
+                            "Active" : true ,
+                            "Enabled" : true ,
+                            "Size" : 44 ,
+                            "Family" : "Arial" ,
+                            "Style" : 0 ,
+                            "Color" : "#000000FF" ,
+                            "Bool" : false ,
+                            "Text" : "" 
+                        },
+                        "View" : {
+                            "Active" : true ,
+                            "Enabled" : true ,
+                            "Size" : 44 ,
+                            "Family" : "Arial" ,
+                            "Style" : 0 ,
+                            "Color" : "#000000FF" ,
+                            "Bool" : false ,
+                            "Text" : "" 
+                        },
+                        "ModelTime" : {
+                            "Active" : true ,
+                            "Enabled" : true ,
+                            "Size" : 44 ,
+                            "Family" : "Arial" ,
+                            "Style" : 0 ,
+                            "Color" : "#000000FF" ,
+                            "Bool" : false ,
+                            "Text" : "" 
+                        },
+                        "ViewDip" : false 
+                    },
+                    "Movie" : false ,
+                    "NextMovieIndex" : 1 ,
+                    "JobTitle" : {
+                        "Active" : true ,
+                        "Enabled" : true ,
+                        "Size" : 12 ,
+                        "Family" : "Arial" ,
+                        "Style" : 0 ,
+                        "Color" : "#000000FF" ,
+                        "Bool" : false ,
+                        "Text" : "" 
+                    },
+                    "ViewTitle" : {
+                        "Active" : true ,
+                        "Enabled" : true ,
+                        "Size" : 12 ,
+                        "Family" : "Arial" ,
+                        "Style" : 0 ,
+                        "Color" : "#000000FF" ,
+                        "Bool" : false ,
+                        "Text" : "Plot Title" 
+                    },
+                    "Target" : true 
+                },
+                "GlobalDefault" : {
+                    "Inter1" : {
+                        "Active" : true ,
+                        "Enabled" : true ,
+                        "Width" : 3 ,
+                        "Style" : 1 ,
+                        "Color" : "#ff0000FF" ,
+                        "Bool" : true 
+                    },
+                    "Inter2" : {
+                        "Active" : true ,
+                        "Enabled" : true ,
+                        "Width" : 2 ,
+                        "Style" : 1 ,
+                        "Color" : "#000000FF" ,
+                        "Bool" : true 
+                    },
+                    "Picking" : true ,
+                    "Sketch" : true ,
+                    "UpdateInterval" : 100 ,
+                    "PrintSize" : {
+                        "Width" : 1650 ,
+                        "Height" : 1238 
+                    },
+                    "MovieInterval" : 1000 ,
+                    "MovieExtension" : "png" ,
+                    "MovieSize" : {
+                        "Width" : 1024 ,
+                        "Height" : 768 
+                    },
+                    "MoviePrefix" : "movie_" ,
+                    "DXFWarning" : true ,
+                    "MaxLabels" : 64 
+                },
+                "Plots" : [ 
+                    {
+                        "View" : {
+                            "Locked" : false ,
+                            "Perspective" : true ,
+                            "EyePosition" : { "x" : -1.611288268903010e+03  , "y" : -2.254936096014143e+03  , "z" : 8.472962883016216e+02 } ,
+                            "ViewCenter" : { "x" : -5.165240478515625e+01  , "y" : -1.645594787597656e+01  , "z" : 1.450592041015625e+02 } ,
+                            "Up" : { "x" : 8.750715751296916e-02  , "y" : 2.421639126210559e-01  , "z" : 9.662810858171974e-01 } ,
+                            "Magnification" : 1.000000000000000e+00 ,
+                            "FirstViewAuto" : false ,
+                            "MinClipPlaneDist" : -1.000000000000000e+10 ,
+                            "MaxClipPlaneDist" : 1.000000000000000e+10 ,
+                            "SpecAsOrientation" : false ,
+                            "OrientationIn" : { "x" : 0.000000000000000e+00  , "y" : 0.000000000000000e+00  , "z" : 0.000000000000000e+00 } ,
+                            "SyncToName" : "" 
+                        },
+                        "Properties" : {
+                            "AutoUpdate" : true ,
+                            "Outline" : {
+                                "Active" : true ,
+                                "Enabled" : true ,
+                                "Width" : 2 ,
+                                "Style" : 1 ,
+                                "Color" : "#000000FF" ,
+                                "Bool" : true 
+                            },
+                            "Background" : "#ffffffFF" ,
+                            "Active" : true ,
+                            "Legend" : {
+                                "Active" : true ,
+                                "Placement" : 0 ,
+                                "TargetSize" : {
+                                    "Width" : 25 ,
+                                    "Height" : 50 
+                                },
+                                "Position" : {
+                                    "X" : 66 ,
+                                    "Y" : 40 
+                                },
+                                "Title" : {
+                                    "Active" : true ,
+                                    "Enabled" : true ,
+                                    "Size" : 55 ,
+                                    "Family" : "Times New Roman" ,
+                                    "Style" : 1 ,
+                                    "Color" : "#000000FF" ,
+                                    "Bool" : true ,
+                                    "Text" : "" 
+                                },
+                                "Caption" : {
+                                    "Active" : true ,
+                                    "Enabled" : true ,
+                                    "Size" : 44 ,
+                                    "Family" : "Arial" ,
+                                    "Style" : 0 ,
+                                    "Color" : "#000000FF" ,
+                                    "Bool" : true ,
+                                    "Text" : "" 
+                                },
+                                "Heading" : {
+                                    "Active" : true ,
+                                    "Enabled" : true ,
+                                    "Size" : 94 ,
+                                    "Family" : "Times New Roman" ,
+                                    "Style" : 3 ,
+                                    "Color" : "#000000FF" ,
+                                    "Bool" : true ,
+                                    "Text" : "" 
+                                },
+                                "Copyright" : {
+                                    "Active" : true ,
+                                    "Enabled" : true ,
+                                    "Size" : 40 ,
+                                    "Family" : "Arial" ,
+                                    "Style" : 0 ,
+                                    "Color" : "#000000FF" ,
+                                    "Bool" : true ,
+                                    "Text" : "" 
+                                },
+                                "Step" : {
+                                    "Active" : true ,
+                                    "Enabled" : true ,
+                                    "Size" : 44 ,
+                                    "Family" : "Arial" ,
+                                    "Style" : 0 ,
+                                    "Color" : "#000000FF" ,
+                                    "Bool" : false ,
+                                    "Text" : "" 
+                                },
+                                "Time" : {
+                                    "Active" : true ,
+                                    "Enabled" : true ,
+                                    "Size" : 44 ,
+                                    "Family" : "Arial" ,
+                                    "Style" : 0 ,
+                                    "Color" : "#000000FF" ,
+                                    "Bool" : false ,
+                                    "Text" : "" 
+                                },
+                                "Customer" : {
+                                    "Active" : true ,
+                                    "Enabled" : true ,
+                                    "Size" : 44 ,
+                                    "Family" : "Arial" ,
+                                    "Style" : 0 ,
+                                    "Color" : "#000000FF" ,
+                                    "Bool" : false ,
+                                    "Text" : "" 
+                                },
+                                "View" : {
+                                    "Active" : true ,
+                                    "Enabled" : true ,
+                                    "Size" : 44 ,
+                                    "Family" : "Arial" ,
+                                    "Style" : 0 ,
+                                    "Color" : "#000000FF" ,
+                                    "Bool" : false ,
+                                    "Text" : "" 
+                                },
+                                "ModelTime" : {
+                                    "Active" : true ,
+                                    "Enabled" : true ,
+                                    "Size" : 44 ,
+                                    "Family" : "Arial" ,
+                                    "Style" : 0 ,
+                                    "Color" : "#000000FF" ,
+                                    "Bool" : false ,
+                                    "Text" : "" 
+                                },
+                                "ViewDip" : false 
+                            },
+                            "Movie" : false ,
+                            "NextMovieIndex" : 1 ,
+                            "JobTitle" : {
+                                "Active" : true ,
+                                "Enabled" : true ,
+                                "Size" : 12 ,
+                                "Family" : "Arial" ,
+                                "Style" : 0 ,
+                                "Color" : "#000000FF" ,
+                                "Bool" : false ,
+                                "Text" : "" 
+                            },
+                            "ViewTitle" : {
+                                "Active" : true ,
+                                "Enabled" : true ,
+                                "Size" : 12 ,
+                                "Family" : "Arial" ,
+                                "Style" : 0 ,
+                                "Color" : "#000000FF" ,
+                                "Bool" : false ,
+                                "Text" : "Plot Title" 
+                            },
+                            "Target" : true 
+                        },
+                        "PlotItems" : [ 
+                            {
+                                "Name" : "zonesurfaces" ,
+                                "Item" : {
+                                    "Active" : true ,
+                                    "Type" : 0 ,
+                                    "PIActive" : true ,
+                                    "ShowCaption" : true ,
+                                    "Title" : {
+                                        "Active" : true ,
+                                        "Enabled" : true ,
+                                        "Size" : 55 ,
+                                        "Family" : "Times New Roman" ,
+                                        "Style" : 1 ,
+                                        "Color" : "#000000FF" ,
+                                        "Bool" : true ,
+                                        "Text" : "" 
+                                    },
+                                    "CutPlaneInfo" : {
+                                        "Active" : false ,
+                                        "On" : true ,
+                                        "Front" : false ,
+                                        "Back" : false ,
+                                        "Caption" : {
+                                            "Active" : true ,
+                                            "Enabled" : true ,
+                                            "Size" : 44 ,
+                                            "Family" : "Arial" ,
+                                            "Style" : 0 ,
+                                            "Color" : "#000000FF" ,
+                                            "Bool" : true ,
+                                            "Text" : "" 
+                                        },
+                                        "TypeName" : "None" ,
+                                        "SyncName" : "" ,
+                                        "Plane" : [  ]
+                                    },
+                                    "ClipBoxInfo" : {
+                                        "Active" : false ,
+                                        "Center" : { "x" : 0.000000000000000e+00  , "y" : 0.000000000000000e+00  , "z" : 0.000000000000000e+00 } ,
+                                        "Dip" : 0.000000000000000e+00 ,
+                                        "DipDir" : 0.000000000000000e+00 ,
+                                        "Roll" : 0.000000000000000e+00 ,
+                                        "Radius" : { "x" : 1.000000000000000e+00  , "y" : 1.000000000000000e+00  , "z" : 1.000000000000000e+00 } ,
+                                        "Axis1Active" : true ,
+                                        "Axis2Active" : true ,
+                                        "Axis3Active" : true 
+                                    },
+                                    "Transparency" : 70 ,
+                                    "TransActive" : false ,
+                                    "TransLocked" : true ,
+                                    "Range" : [ 
+                                        {
+                                            "Active" : true ,
+                                            "RenderModeSpecific" : true ,
+                                            "ExtentModel" : true ,
+                                            "Type" : 1283546101 ,
+                                            "RangePlotItem" : [  ],
+                                            "Range" : [ 
+                                                {
+                                                    "SelfIndex" : 0 ,
+                                                    "ID" : 0 ,
+                                                    "Name" : "" ,
+                                                    "Union" : false ,
+                                                    "Selected" : false ,
+                                                    "Deselected" : false ,
+                                                    "UseHidden" : false ,
+                                                    "Elements" : [  ]
+                                                }
+                                            ]
+                                        }
+                                    ],
+                                    "HideNull" : {
+                                        "Active" : true ,
+                                        "Enabled" : true ,
+                                        "Mechanical" : true ,
+                                        "Thermal" : false ,
+                                        "Fluid" : false ,
+                                        "Legend" : {
+                                            "Active" : true ,
+                                            "Enabled" : true ,
+                                            "Size" : 44 ,
+                                            "Family" : "Arial" ,
+                                            "Style" : 0 ,
+                                            "Color" : "#000000FF" ,
+                                            "Bool" : false ,
+                                            "Text" : "" 
+                                        }
+                                    },
+                                    "Map" : {
+                                        "Active" : true ,
+                                        "Enabled" : true ,
+                                        "Map" : 0 ,
+                                        "Translate" : { "x" : 0.000000000000000e+00  , "y" : 0.000000000000000e+00  , "z" : 0.000000000000000e+00 } ,
+                                        "Scale" : { "x" : 1.000000000000000e+00  , "y" : 1.000000000000000e+00  , "z" : 1.000000000000000e+00 } ,
+                                        "Caption" : {
+                                            "Active" : true ,
+                                            "Enabled" : true ,
+                                            "Size" : 44 ,
+                                            "Family" : "Arial" ,
+                                            "Style" : 0 ,
+                                            "Color" : "#000000FF" ,
+                                            "Bool" : true ,
+                                            "Text" : "" 
+                                        }
+                                    },
+                                    "Deformation" : {
+                                        "Active" : false ,
+                                        "Enabled" : true ,
+                                        "ADActive" : false ,
+                                        "Factor" : 1.000000000000000e+00 ,
+                                        "Caption" : {
+                                            "Active" : true ,
+                                            "Enabled" : true ,
+                                            "Size" : 44 ,
+                                            "Family" : "Arial" ,
+                                            "Style" : 0 ,
+                                            "Color" : "#000000FF" ,
+                                            "Bool" : true ,
+                                            "Text" : "" 
+                                        }
+                                    },
+                                    "NullFacesOnly" : false ,
+                                    "ColorScheme" : 0 ,
+                                    "ColorBy" : {
+                                        "Active" : true ,
+                                        "Enabled" : true ,
+                                        "ExtraIndex" : {
+                                            "Active" : true ,
+                                            "Enabled" : true ,
+                                            "Index" : 0 ,
+                                            "PieceName" : "" ,
+                                            "UsePiece" : false 
+                                        },
+                                        "GroupSlot" : {
+                                            "Active" : true ,
+                                            "Enabled" : true ,
+                                            "Slot" : "Any" ,
+                                            "PieceName" : "" ,
+                                            "UsePiece" : false 
+                                        },
+                                        "ColorName" : "Group" ,
+                                        "Property" : "" ,
+                                        "StateBy" : 0 ,
+                                        "UsesFaceOnly" : false ,
+                                        "UsesFace" : true 
+                                    },
+                                    "DI2Polygons" : [ 
+                                        {
+                                            "Active" : true ,
+                                            "AttPoly" : [  ],
+                                            "CutLine" : [ 
+                                                {
+                                                    "Active" : true ,
+                                                    "AttLine" : [ 
+                                                        {
+                                                            "Active" : true ,
+                                                            "Enabled" : true ,
+                                                            "Width" : 1 ,
+                                                            "Style" : 1 ,
+                                                            "Color" : "#000000FF" ,
+                                                            "Bool" : true 
+                                                        }
+                                                    ]
+                                                }
+                                            ],
+                                            "ColorList" : [ 
+                                                {
+                                                    "Active" : true ,
+                                                    "Enabled" : true ,
+                                                    "Global" : true ,
+                                                    "MapSto" : [ 
+                                                        {
+                                                            "Key" : "Group" ,
+                                                            "Value" : {
+                                                                "Array" : [ 
+                                                                    
+                                                                    {
+                                                                        "Color" : "#00ffffFF" ,
+                                                                        "Alias" : "" ,
+                                                                        "Label" : "Default=L14_coal_5" ,
+                                                                        "Bool" : true ,
+                                                                        "Used2" : true ,
+                                                                        "Default" : false 
+                                                                    }
+                                                                    , 
+                                                                    {
+                                                                        "Color" : "#2e8b56FF" ,
+                                                                        "Alias" : "" ,
+                                                                        "Label" : "None" ,
+                                                                        "Bool" : true ,
+                                                                        "Used2" : false ,
+                                                                        "Default" : false 
+                                                                    }
+                                                                    , 
+                                                                    {
+                                                                        "Color" : "#ff0000FF" ,
+                                                                        "Alias" : "" ,
+                                                                        "Label" : "Default=L01_coal_6" ,
+                                                                        "Bool" : true ,
+                                                                        "Used2" : true ,
+                                                                        "Default" : false 
+                                                                    }
+                                                                    , 
+                                                                    {
+                                                                        "Color" : "#ff00d5FF" ,
+                                                                        "Alias" : "" ,
+                                                                        "Label" : "Default=L02_coal_6_1" ,
+                                                                        "Bool" : true ,
+                                                                        "Used2" : true ,
+                                                                        "Default" : false 
+                                                                    }
+                                                                    , 
+                                                                    {
+                                                                        "Color" : "#ff4000FF" ,
+                                                                        "Alias" : "" ,
+                                                                        "Label" : "Default=L03_sandy_mudstone" ,
+                                                                        "Bool" : true ,
+                                                                        "Used2" : true ,
+                                                                        "Default" : false 
+                                                                    }
+                                                                    , 
+                                                                    {
+                                                                        "Color" : "#0080ffFF" ,
+                                                                        "Alias" : "" ,
+                                                                        "Label" : "Default=L04_mudstone" ,
+                                                                        "Bool" : true ,
+                                                                        "Used2" : true ,
+                                                                        "Default" : false 
+                                                                    }
+                                                                    , 
+                                                                    {
+                                                                        "Color" : "#b7001fFF" ,
+                                                                        "Alias" : "" ,
+                                                                        "Label" : "Default=L05_mudstone" ,
+                                                                        "Bool" : true ,
+                                                                        "Used2" : true ,
+                                                                        "Default" : false 
+                                                                    }
+                                                                    , 
+                                                                    {
+                                                                        "Color" : "#aa00ffFF" ,
+                                                                        "Alias" : "" ,
+                                                                        "Label" : "Default=L06_coal" ,
+                                                                        "Bool" : true ,
+                                                                        "Used2" : true ,
+                                                                        "Default" : false 
+                                                                    }
+                                                                    , 
+                                                                    {
+                                                                        "Color" : "#ff8000FF" ,
+                                                                        "Alias" : "" ,
+                                                                        "Label" : "Default=L07_siltstone" ,
+                                                                        "Bool" : true ,
+                                                                        "Used2" : true ,
+                                                                        "Default" : false 
+                                                                    }
+                                                                    , 
+                                                                    {
+                                                                        "Color" : "#663333FF" ,
+                                                                        "Alias" : "" ,
+                                                                        "Label" : "Default=L08_coarse_sandstone" ,
+                                                                        "Bool" : true ,
+                                                                        "Used2" : true ,
+                                                                        "Default" : false 
+                                                                    }
+                                                                    , 
+                                                                    {
+                                                                        "Color" : "#4f632dFF" ,
+                                                                        "Alias" : "" ,
+                                                                        "Label" : "Default=L09_fine_sandstone" ,
+                                                                        "Bool" : true ,
+                                                                        "Used2" : true ,
+                                                                        "Default" : false 
+                                                                    }
+                                                                    , 
+                                                                    {
+                                                                        "Color" : "#50755eFF" ,
+                                                                        "Alias" : "" ,
+                                                                        "Label" : "Default=L10_medium_sandstone" ,
+                                                                        "Bool" : true ,
+                                                                        "Used2" : true ,
+                                                                        "Default" : false 
+                                                                    }
+                                                                    , 
+                                                                    {
+                                                                        "Color" : "#6666ffFF" ,
+                                                                        "Alias" : "" ,
+                                                                        "Label" : "Default=L11_mudstone" ,
+                                                                        "Bool" : true ,
+                                                                        "Used2" : true ,
+                                                                        "Default" : false 
+                                                                    }
+                                                                    , 
+                                                                    {
+                                                                        "Color" : "#5500ffFF" ,
+                                                                        "Alias" : "" ,
+                                                                        "Label" : "Default=L12_coarse_sandstone" ,
+                                                                        "Bool" : true ,
+                                                                        "Used2" : true ,
+                                                                        "Default" : false 
+                                                                    }
+                                                                    , 
+                                                                    {
+                                                                        "Color" : "#0000ffFF" ,
+                                                                        "Alias" : "" ,
+                                                                        "Label" : "Default=L13_medium_sandstone" ,
+                                                                        "Bool" : true ,
+                                                                        "Used2" : true ,
+                                                                        "Default" : false 
+                                                                    }
+                                                                ],
+                                                                "Index" : false 
+                                                            }
+                                                        }
+                                                    ],
+                                                    "Category" : "Group" ,
+                                                    "CLabel" : {
+                                                        "Active" : true ,
+                                                        "Enabled" : true ,
+                                                        "Size" : 44 ,
+                                                        "Family" : "Arial" ,
+                                                        "Style" : 0 ,
+                                                        "Color" : "#000000FF" ,
+                                                        "Bool" : true ,
+                                                        "Text" : "" 
+                                                    },
+                                                    "Heading" : {
+                                                        "Active" : true ,
+                                                        "Enabled" : true ,
+                                                        "Size" : 44 ,
+                                                        "Family" : "Arial" ,
+                                                        "Style" : 0 ,
+                                                        "Color" : "#000000FF" ,
+                                                        "Bool" : true ,
+                                                        "Text" : "" 
+                                                    }
+                                                }
+                                            ],
+                                            "CountText" : [ 
+                                                {
+                                                    "Active" : true ,
+                                                    "Enabled" : true ,
+                                                    "Size" : 44 ,
+                                                    "Family" : "Arial" ,
+                                                    "Style" : 0 ,
+                                                    "Color" : "#000000FF" ,
+                                                    "Bool" : false ,
+                                                    "Text" : "" 
+                                                }
+                                            ]
+                                        }
+                                    ],
+                                    "Contour" : {
+                                        "Active" : false ,
+                                        "AttPoly" : [  ],
+                                        "CutLine" : [ 
+                                            {
+                                                "Active" : false ,
+                                                "AttLine" : [ 
+                                                    {
+                                                        "Active" : false ,
+                                                        "Enabled" : true ,
+                                                        "Width" : 1 ,
+                                                        "Style" : 1 ,
+                                                        "Color" : "#000000FF" ,
+                                                        "Bool" : true 
+                                                    }
+                                                ]
+                                            }
+                                        ],
+                                        "AttCont" : [ 
+                                            {
+                                                "Active" : false ,
+                                                "Enabled" : true ,
+                                                "Ramp" : 0 ,
+                                                "Minimum" : 1.797693134862316e+308 ,
+                                                "Maximum" : -1.797693134862316e+308 ,
+                                                "Interval" : 0.000000000000000e+00 ,
+                                                "MinAuto" : true ,
+                                                "MaxAuto" : true ,
+                                                "IntAuto" : true ,
+                                                "Reversed" : false ,
+                                                "AboveAuto" : true ,
+                                                "BelowAuto" : true ,
+                                                "Above" : "#ff0000FF" ,
+                                                "Below" : "#0000ffFF" ,
+                                                "MaxCaption" : 20 ,
+                                                "Log" : false ,
+                                                "Caption" : {
+                                                    "Active" : true ,
+                                                    "Enabled" : true ,
+                                                    "Size" : 44 ,
+                                                    "Family" : "Arial" ,
+                                                    "Style" : 0 ,
+                                                    "Color" : "#000000FF" ,
+                                                    "Bool" : true ,
+                                                    "Text" : "" 
+                                                }
+                                            }
+                                        ]
+                                    },
+                                    "Data" : {
+                                        "Active" : false ,
+                                        "Enabled" : true ,
+                                        "Data" : [ 
+                                            {
+                                                "Component" : 3 ,
+                                                "Quantity" : 0 ,
+                                                "Type" : 0 ,
+                                                "Extra" : 1 ,
+                                                "Stress" : false ,
+                                                "Log" : false ,
+                                                "Active" : false ,
+                                                "Keyword" : "displacement" ,
+                                                "GpData" : {
+                                                    "Component" : 3 ,
+                                                    "Quantity" : 0 ,
+                                                    "Type" : 0 ,
+                                                    "Extra" : 1 ,
+                                                    "Stress" : false ,
+                                                    "Log" : false ,
+                                                    "Active" : false ,
+                                                    "Keyword" : "displacement" ,
+                                                    "VelLimit" : 1.000000000000000e-04 
+                                                },
+                                                "ZoneData" : {
+                                                    "Component" : 3 ,
+                                                    "Quantity" : 0 ,
+                                                    "Type" : 0 ,
+                                                    "Extra" : 1 ,
+                                                    "Stress" : false ,
+                                                    "Log" : false ,
+                                                    "Active" : false ,
+                                                    "Keyword" : "" ,
+                                                    "Property" : "" ,
+                                                    "PropType" : 0 
+                                                },
+                                                "ZoneInterp" : {
+                                                    "Active" : false ,
+                                                    "Method" : 0 ,
+                                                    "RadRatio" : 7.500000000000000e-01 ,
+                                                    "Power" : 3.000000000000000e+00 ,
+                                                    "Tolerance" : 1.000000000000000e-07 ,
+                                                    "HideMechNull" : true ,
+                                                    "HideFluidNull" : false ,
+                                                    "HideThermNull" : false 
+                                                },
+                                                "Source" : 1 
+                                            }
+                                        ],
+                                        "Gp" : {
+                                            "Active" : true ,
+                                            "Enabled" : true ,
+                                            "Data" : [ 
+                                                {
+                                                    "Component" : 3 ,
+                                                    "Quantity" : 0 ,
+                                                    "Type" : 0 ,
+                                                    "Extra" : 1 ,
+                                                    "Stress" : false ,
+                                                    "Log" : false ,
+                                                    "Active" : false ,
+                                                    "Keyword" : "displacement" ,
+                                                    "VelLimit" : 1.000000000000000e-04 
+                                                }
+                                            ]
+                                        },
+                                        "Zone" : {
+                                            "Active" : true ,
+                                            "Enabled" : true ,
+                                            "Data" : [ 
+                                                {
+                                                    "Component" : 3 ,
+                                                    "Quantity" : 0 ,
+                                                    "Type" : 0 ,
+                                                    "Extra" : 1 ,
+                                                    "Stress" : false ,
+                                                    "Log" : false ,
+                                                    "Active" : false ,
+                                                    "Keyword" : "" ,
+                                                    "Property" : "" ,
+                                                    "PropType" : 0 
+                                                }
+                                            ]
+                                        },
+                                        "Interpolate" : {
+                                            "Active" : false ,
+                                            "Enabled" : true ,
+                                            "Caption" : {
+                                                "Active" : true ,
+                                                "Enabled" : true ,
+                                                "Size" : 44 ,
+                                                "Family" : "Arial" ,
+                                                "Style" : 0 ,
+                                                "Color" : "#000000FF" ,
+                                                "Bool" : true ,
+                                                "Text" : "" 
+                                            },
+                                            "Method" : 0 ,
+                                            "RadRatio" : 7.500000000000000e-01 ,
+                                            "Power" : 3.000000000000000e+00 ,
+                                            "Tolerance" : 1.000000000000000e-07 
+                                        },
+                                        "Source" : 1 
+                                    },
+                                    "AttPoly" : {
+                                        "Active" : true ,
+                                        "Enabled" : true ,
+                                        "Fill" : true ,
+                                        "Offset1" : 5.0000000e-01 ,
+                                        "Offset2" : 2.0000000e+00 ,
+                                        "Culling" : false ,
+                                        "PolyTrans" : 0 ,
+                                        "WireTrans" : 80 ,
+                                        "Line" : {
+                                            "Active" : true ,
+                                            "Enabled" : true ,
+                                            "Width" : 1 ,
+                                            "Style" : 1 ,
+                                            "Color" : "#000000FF" ,
+                                            "Bool" : true 
+                                        },
+                                        "Lighting" : true 
+                                    },
+                                    "ShowSelected" : false ,
+                                    "ShowSelectedOnly" : false 
+                                }
+                            }, 
+                            {
+                                "Name" : "geometry" ,
+                                "Item" : {
+                                    "Active" : false ,
+                                    "Type" : 0 ,
+                                    "PIActive" : false ,
+                                    "ShowCaption" : true ,
+                                    "Title" : {
+                                        "Active" : true ,
+                                        "Enabled" : true ,
+                                        "Size" : 55 ,
+                                        "Family" : "Times New Roman" ,
+                                        "Style" : 1 ,
+                                        "Color" : "#000000FF" ,
+                                        "Bool" : true ,
+                                        "Text" : "" 
+                                    },
+                                    "CutPlaneInfo" : {
+                                        "Active" : false ,
+                                        "On" : true ,
+                                        "Front" : false ,
+                                        "Back" : false ,
+                                        "Caption" : {
+                                            "Active" : true ,
+                                            "Enabled" : true ,
+                                            "Size" : 44 ,
+                                            "Family" : "Arial" ,
+                                            "Style" : 0 ,
+                                            "Color" : "#000000FF" ,
+                                            "Bool" : true ,
+                                            "Text" : "" 
+                                        },
+                                        "TypeName" : "None" ,
+                                        "SyncName" : "" ,
+                                        "Plane" : [  ]
+                                    },
+                                    "ClipBoxInfo" : {
+                                        "Active" : false ,
+                                        "Center" : { "x" : 0.000000000000000e+00  , "y" : 0.000000000000000e+00  , "z" : 0.000000000000000e+00 } ,
+                                        "Dip" : 0.000000000000000e+00 ,
+                                        "DipDir" : 0.000000000000000e+00 ,
+                                        "Roll" : 0.000000000000000e+00 ,
+                                        "Radius" : { "x" : 1.000000000000000e+00  , "y" : 1.000000000000000e+00  , "z" : 1.000000000000000e+00 } ,
+                                        "Axis1Active" : true ,
+                                        "Axis2Active" : true ,
+                                        "Axis3Active" : true 
+                                    },
+                                    "Transparency" : 70 ,
+                                    "TransActive" : false ,
+                                    "TransLocked" : true ,
+                                    "Range" : [ 
+                                        {
+                                            "Active" : true ,
+                                            "RenderModeSpecific" : true ,
+                                            "ExtentModel" : true ,
+                                            "Type" : 1283546058 ,
+                                            "RangePlotItem" : [  ],
+                                            "Range" : [ 
+                                                {
+                                                    "SelfIndex" : 0 ,
+                                                    "ID" : 0 ,
+                                                    "Name" : "" ,
+                                                    "Union" : false ,
+                                                    "Selected" : false ,
+                                                    "Deselected" : false ,
+                                                    "UseHidden" : false ,
+                                                    "Elements" : [  ]
+                                                }
+                                            ]
+                                        }
+                                    ],
+                                    "Selected" : [ 
+                                        "geo_01" ,
+                                        "geo_02" 
+                                    ],
+                                    "Imported" : [  ],
+                                    "NodeState" : 2 ,
+                                    "EdgeState" : 2 ,
+                                    "PolyOn" : true ,
+                                    "ColorBy2" : "Label" ,
+                                    "Label" : "Set Name" ,
+                                    "Contour2" : "Node Extra" ,
+                                    "ColorMap" : {
+                                        "Active" : true ,
+                                        "Enabled" : true ,
+                                        "Global" : true ,
+                                        "MapSto" : [ 
+                                            {
+                                                "Key" : "Set Name" ,
+                                                "Value" : {
+                                                    "Array" : [ 
+                                                        
+                                                        {
+                                                            "Color" : "#00ffffFF" ,
+                                                            "Alias" : "" ,
+                                                            "Label" : "geo_01" ,
+                                                            "Bool" : true ,
+                                                            "Used2" : true ,
+                                                            "Default" : false 
+                                                        }
+                                                        , 
+                                                        {
+                                                            "Color" : "#2e8b56FF" ,
+                                                            "Alias" : "" ,
+                                                            "Label" : "geo_02" ,
+                                                            "Bool" : true ,
+                                                            "Used2" : true ,
+                                                            "Default" : false 
+                                                        }
+                                                    ],
+                                                    "Index" : false 
+                                                }
+                                            }
+                                        ],
+                                        "Category" : "Set Name" ,
+                                        "CLabel" : {
+                                            "Active" : true ,
+                                            "Enabled" : true ,
+                                            "Size" : 44 ,
+                                            "Family" : "Arial" ,
+                                            "Style" : 0 ,
+                                            "Color" : "#000000FF" ,
+                                            "Bool" : true ,
+                                            "Text" : "" 
+                                        },
+                                        "Heading" : {
+                                            "Active" : true ,
+                                            "Enabled" : true ,
+                                            "Size" : 44 ,
+                                            "Family" : "Arial" ,
+                                            "Style" : 0 ,
+                                            "Color" : "#000000FF" ,
+                                            "Bool" : true ,
+                                            "Text" : "" 
+                                        }
+                                    },
+                                    "Polygons2" : {
+                                        "Active" : true ,
+                                        "Enabled" : true ,
+                                        "Fill" : true ,
+                                        "Offset1" : 5.0000000e-01 ,
+                                        "Offset2" : 2.0000000e+00 ,
+                                        "Culling" : false ,
+                                        "PolyTrans" : 0 ,
+                                        "WireTrans" : 80 ,
+                                        "Line" : {
+                                            "Active" : true ,
+                                            "Enabled" : true ,
+                                            "Width" : 1 ,
+                                            "Style" : 1 ,
+                                            "Color" : "#000000FF" ,
+                                            "Bool" : true 
+                                        },
+                                        "Lighting" : true 
+                                    },
+                                    "Lines2" : {
+                                        "Active" : true ,
+                                        "Enabled" : true ,
+                                        "Width" : 1 ,
+                                        "Style" : 1 ,
+                                        "Color" : "#000000FF" ,
+                                        "Bool" : true 
+                                    },
+                                    "Nodes2" : {
+                                        "Active" : true ,
+                                        "SphereCaption" : {
+                                            "Active" : true ,
+                                            "Enabled" : true ,
+                                            "Size" : 44 ,
+                                            "Family" : "Arial" ,
+                                            "Style" : 0 ,
+                                            "Color" : "#000000FF" ,
+                                            "Bool" : true ,
+                                            "Text" : "" 
+                                        },
+                                        "DContour" : [  ],
+                                        "Scale" : [ 
+                                            {
+                                                "Active" : true ,
+                                                "Enabled" : true ,
+                                                "UsesBool" : false ,
+                                                "UsesScaleAuto" : true ,
+                                                "Target" : 5.000000074505806e-02 ,
+                                                "Scale" : 1.000000000000000e+00 ,
+                                                "ScaleAuto" : true ,
+                                                "Bool" : true 
+                                            }
+                                        ],
+                                        "ColorMap" : [  ],
+                                        "SizeByPixel" : true ,
+                                        "PixelSize" : 2 ,
+                                        "ColorByContour" : false ,
+                                        "Lighting" : true ,
+                                        "CountLimit" : 1000000 ,
+                                        "Count" : {
+                                            "Active" : true ,
+                                            "Enabled" : true ,
+                                            "Size" : 44 ,
+                                            "Family" : "Arial" ,
+                                            "Style" : 0 ,
+                                            "Color" : "#000000FF" ,
+                                            "Bool" : true ,
+                                            "Text" : "" 
+                                        },
+                                        "StrActive" : false ,
+                                        "StrWidth2" : 10 ,
+                                        "StrColor" : "#000000FF" ,
+                                        "Sides" : 6 
+                                    },
+                                    "GroupSlot" : {
+                                        "Active" : false ,
+                                        "Enabled" : true ,
+                                        "Slot" : "Any" ,
+                                        "PieceName" : "" ,
+                                        "UsePiece" : false 
+                                    },
+                                    "ExtraIndex" : {
+                                        "Active" : false ,
+                                        "Enabled" : true ,
+                                        "Index" : 0 ,
+                                        "PieceName" : "" ,
+                                        "UsePiece" : false 
+                                    },
+                                    "AttContour" : {
+                                        "Active" : false ,
+                                        "Enabled" : true ,
+                                        "Ramp" : 0 ,
+                                        "Minimum" : 1.797693134862316e+308 ,
+                                        "Maximum" : 1.797693134862316e+308 ,
+                                        "Interval" : 0.000000000000000e+00 ,
+                                        "MinAuto" : true ,
+                                        "MaxAuto" : true ,
+                                        "IntAuto" : true ,
+                                        "Reversed" : false ,
+                                        "AboveAuto" : true ,
+                                        "BelowAuto" : true ,
+                                        "Above" : "#ff0000FF" ,
+                                        "Below" : "#0000ffFF" ,
+                                        "MaxCaption" : 20 ,
+                                        "Log" : false ,
+                                        "Caption" : {
+                                            "Active" : true ,
+                                            "Enabled" : true ,
+                                            "Size" : 44 ,
+                                            "Family" : "Arial" ,
+                                            "Style" : 0 ,
+                                            "Color" : "#000000FF" ,
+                                            "Bool" : true ,
+                                            "Text" : "" 
+                                        }
+                                    },
+                                    "Map" : {
+                                        "Active" : true ,
+                                        "Enabled" : true ,
+                                        "Map" : 0 ,
+                                        "Translate" : { "x" : 0.000000000000000e+00  , "y" : 0.000000000000000e+00  , "z" : 0.000000000000000e+00 } ,
+                                        "Scale" : { "x" : 1.000000000000000e+00  , "y" : 1.000000000000000e+00  , "z" : 1.000000000000000e+00 } ,
+                                        "Caption" : {
+                                            "Active" : true ,
+                                            "Enabled" : true ,
+                                            "Size" : 44 ,
+                                            "Family" : "Arial" ,
+                                            "Style" : 0 ,
+                                            "Color" : "#000000FF" ,
+                                            "Bool" : true ,
+                                            "Text" : "" 
+                                        }
+                                    },
+                                    "Heading" : {
+                                        "Active" : true ,
+                                        "Enabled" : true ,
+                                        "Size" : 44 ,
+                                        "Family" : "Arial" ,
+                                        "Style" : 0 ,
+                                        "Color" : "#000000FF" ,
+                                        "Bool" : true ,
+                                        "Text" : "" 
+                                    },
+                                    "ImportNotice" : {
+                                        "Active" : true ,
+                                        "Enabled" : true ,
+                                        "Size" : 44 ,
+                                        "Family" : "Arial" ,
+                                        "Style" : 0 ,
+                                        "Color" : "#000000FF" ,
+                                        "Bool" : true ,
+                                        "Text" : "" 
+                                    },
+                                    "Plugins2" : {
+                                        "ZoneField" : {
+                                            "ZoneFieldData" : {
+                                                "Active" : false ,
+                                                "Enabled" : true ,
+                                                "Data" : [ 
+                                                    {
+                                                        "Component" : 3 ,
+                                                        "Quantity" : 0 ,
+                                                        "Type" : 0 ,
+                                                        "Extra" : 1 ,
+                                                        "Stress" : false ,
+                                                        "Log" : false ,
+                                                        "Active" : false ,
+                                                        "Keyword" : "displacement" ,
+                                                        "GpData" : {
+                                                            "Component" : 3 ,
+                                                            "Quantity" : 0 ,
+                                                            "Type" : 0 ,
+                                                            "Extra" : 1 ,
+                                                            "Stress" : false ,
+                                                            "Log" : false ,
+                                                            "Active" : false ,
+                                                            "Keyword" : "displacement" ,
+                                                            "VelLimit" : 1.000000000000000e-04 
+                                                        },
+                                                        "ZoneData" : {
+                                                            "Component" : 3 ,
+                                                            "Quantity" : 0 ,
+                                                            "Type" : 0 ,
+                                                            "Extra" : 1 ,
+                                                            "Stress" : false ,
+                                                            "Log" : false ,
+                                                            "Active" : false ,
+                                                            "Keyword" : "" ,
+                                                            "Property" : "" ,
+                                                            "PropType" : 0 
+                                                        },
+                                                        "ZoneInterp" : {
+                                                            "Active" : false ,
+                                                            "Method" : 0 ,
+                                                            "RadRatio" : 7.500000000000000e-01 ,
+                                                            "Power" : 3.000000000000000e+00 ,
+                                                            "Tolerance" : 1.000000000000000e-07 ,
+                                                            "HideMechNull" : true ,
+                                                            "HideFluidNull" : false ,
+                                                            "HideThermNull" : false 
+                                                        },
+                                                        "Source" : 1 
+                                                    }
+                                                ],
+                                                "Gp" : {
+                                                    "Active" : true ,
+                                                    "Enabled" : true ,
+                                                    "Data" : [ 
+                                                        {
+                                                            "Component" : 3 ,
+                                                            "Quantity" : 0 ,
+                                                            "Type" : 0 ,
+                                                            "Extra" : 1 ,
+                                                            "Stress" : false ,
+                                                            "Log" : false ,
+                                                            "Active" : false ,
+                                                            "Keyword" : "displacement" ,
+                                                            "VelLimit" : 1.000000000000000e-04 
+                                                        }
+                                                    ]
+                                                },
+                                                "Zone" : {
+                                                    "Active" : true ,
+                                                    "Enabled" : true ,
+                                                    "Data" : [ 
+                                                        {
+                                                            "Component" : 3 ,
+                                                            "Quantity" : 0 ,
+                                                            "Type" : 0 ,
+                                                            "Extra" : 1 ,
+                                                            "Stress" : false ,
+                                                            "Log" : false ,
+                                                            "Active" : false ,
+                                                            "Keyword" : "" ,
+                                                            "Property" : "" ,
+                                                            "PropType" : 0 
+                                                        }
+                                                    ]
+                                                },
+                                                "Interpolate" : {
+                                                    "Active" : false ,
+                                                    "Enabled" : true ,
+                                                    "Caption" : {
+                                                        "Active" : true ,
+                                                        "Enabled" : true ,
+                                                        "Size" : 44 ,
+                                                        "Family" : "Arial" ,
+                                                        "Style" : 0 ,
+                                                        "Color" : "#000000FF" ,
+                                                        "Bool" : true ,
+                                                        "Text" : "" 
+                                                    },
+                                                    "Method" : 0 ,
+                                                    "RadRatio" : 7.500000000000000e-01 ,
+                                                    "Power" : 3.000000000000000e+00 ,
+                                                    "Tolerance" : 1.000000000000000e-07 
+                                                },
+                                                "Source" : 1 
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        ],
+                        "ID" : 1 ,
+                        "Name" : "Plot01" 
+                    }
+                ],
+                "Entry" : {
+                    "ControlSets" : [ 
+                        {
+                            "Name" : "FishGlobals" ,
+                            "Set" : {
+                                "Index" : 0 ,
+                                "Active" : false 
+                            }
+                        }, 
+                        {
+                            "Name" : "InfoControl" ,
+                            "Set" : {
+                                "Index" : 1 ,
+                                "Active" : false ,
+                                "Hidden" : false 
+                            }
+                        }, 
+                        {
+                            "Name" : "ItemListControl" ,
+                            "Set" : {
+                                "Index" : 2 ,
+                                "Active" : true ,
+                                "ListCaptionHidden" : false 
+                            }
+                        }, 
+                        {
+                            "Name" : "ViewShiftControl" ,
+                            "Set" : {
+                                "Index" : 3 ,
+                                "Active" : true ,
+                                "Hidden" : false 
+                            }
+                        }, 
+                        {
+                            "Name" : "ViewStatsControl" ,
+                            "Set" : {
+                                "Index" : 4 ,
+                                "Active" : true ,
+                                "InfoCaptionHidden" : false 
+                            }
+                        }
+                    ],
+                    "TabState" : [ 
+                        {
+                            "Name" : "Plot01" ,
+                            "TabWidget" : [ 
+                                {
+                                    "States" : [ 
+                                        {
+                                            "First" : "FishGlobals" ,
+                                            "Second" : 3 
+                                        }, 
+                                        {
+                                            "First" : "InfoControl" ,
+                                            "Second" : 3 
+                                        }, 
+                                        {
+                                            "First" : "ItemListControl" ,
+                                            "Second" : 4 
+                                        }, 
+                                        {
+                                            "First" : "ViewShiftControl" ,
+                                            "Second" : 4 
+                                        }, 
+                                        {
+                                            "First" : "ViewStatsControl" ,
+                                            "Second" : 4 
+                                        }
+                                    ],
+                                    "Stretch" : 1 
+                                }
+                            ],
+                            "Active" : true 
+                        }, 
+                        {
+                            "Name" : "+" ,
+                            "TabWidget" : [  ],
+                            "Active" : false 
+                        }
+                    ]
+                },
+                "Views" : [  ]
+            }
+        }, 
+        {
+            "Name" : "Project" ,
+            "Entry" : {
+                "useResults" : true ,
+                "movieOutDir" : "" ,
+                "movieXRes" : 1920 ,
+                "movieYRes" : 1080 ,
+                "result2Files" : [  ],
+                "save2Files" : [  ],
+                "plots2" : [  ],
+                "datafile" : "" ,
+                "movieIndex" : 1 ,
+                "template" : "%1_%2" 
+            }
+        }, 
+        {
+            "Name" : "RBlock" ,
+            "Entry" : { }
+        }, 
+        {
+            "Name" : "RBlockThermalModule" ,
+            "Entry" : { }
+        }, 
+        {
+            "Name" : "SEL" ,
+            "Entry" : { }
+        }, 
+        {
+            "Name" : "Zone" ,
+            "Entry" : { }
+        }
+    ],
+    "Terminal" : {
+        "MoveLists" : true ,
+        "LineLimit" : 10 
+    },
+    "ColorMap" : {
+        "EMaps" : [ 
+            {
+                "Key" : "Set Name" ,
+                "Value" : [ 
+                    {
+                        "Key" : "geo_01" ,
+                        "Value" : {
+                            "Color" : "#00ffffFF" ,
+                            "Alias" : "" 
+                        }
+                    }, 
+                    {
+                        "Key" : "geo_02" ,
+                        "Value" : {
+                            "Color" : "#2e8b56FF" ,
+                            "Alias" : "" 
+                        }
+                    }, 
+                    {
+                        "Key" : "geo_03" ,
+                        "Value" : {
+                            "Color" : "#ff0000FF" ,
+                            "Alias" : "" 
+                        }
+                    }, 
+                    {
+                        "Key" : "geo_04" ,
+                        "Value" : {
+                            "Color" : "#ff00d5FF" ,
+                            "Alias" : "" 
+                        }
+                    }, 
+                    {
+                        "Key" : "geo_05" ,
+                        "Value" : {
+                            "Color" : "#ff4000FF" ,
+                            "Alias" : "" 
+                        }
+                    }, 
+                    {
+                        "Key" : "geo_06" ,
+                        "Value" : {
+                            "Color" : "#0080ffFF" ,
+                            "Alias" : "" 
+                        }
+                    }, 
+                    {
+                        "Key" : "geo_07" ,
+                        "Value" : {
+                            "Color" : "#b7001fFF" ,
+                            "Alias" : "" 
+                        }
+                    }, 
+                    {
+                        "Key" : "geo_08" ,
+                        "Value" : {
+                            "Color" : "#aa00ffFF" ,
+                            "Alias" : "" 
+                        }
+                    }, 
+                    {
+                        "Key" : "geo_10" ,
+                        "Value" : {
+                            "Color" : "#4f632dFF" ,
+                            "Alias" : "" 
+                        }
+                    }, 
+                    {
+                        "Key" : "geo_08_CM2Mesh" ,
+                        "Value" : {
+                            "Color" : "#ff8000FF" ,
+                            "Alias" : "" 
+                        }
+                    }, 
+                    {
+                        "Key" : "geo_09" ,
+                        "Value" : {
+                            "Color" : "#663333FF" ,
+                            "Alias" : "" 
+                        }
+                    }, 
+                    {
+                        "Key" : "geo_11" ,
+                        "Value" : {
+                            "Color" : "#50755eFF" ,
+                            "Alias" : "" 
+                        }
+                    }, 
+                    {
+                        "Key" : "geo_12" ,
+                        "Value" : {
+                            "Color" : "#6666ffFF" ,
+                            "Alias" : "" 
+                        }
+                    }, 
+                    {
+                        "Key" : "geo_13" ,
+                        "Value" : {
+                            "Color" : "#5500ffFF" ,
+                            "Alias" : "" 
+                        }
+                    }, 
+                    {
+                        "Key" : "geo_14" ,
+                        "Value" : {
+                            "Color" : "#0000ffFF" ,
+                            "Alias" : "" 
+                        }
+                    }
+                ]
+            }, 
+            {
+                "Key" : "Group" ,
+                "Value" : [ 
+                    {
+                        "Key" : "Default=L14_coal_5" ,
+                        "Value" : {
+                            "Color" : "#00ffffFF" ,
+                            "Alias" : "" 
+                        }
+                    }, 
+                    {
+                        "Key" : "None" ,
+                        "Value" : {
+                            "Color" : "#2e8b56FF" ,
+                            "Alias" : "" 
+                        }
+                    }, 
+                    {
+                        "Key" : "Default=L02_coal_6_1" ,
+                        "Value" : {
+                            "Color" : "#ff00d5FF" ,
+                            "Alias" : "" 
+                        }
+                    }, 
+                    {
+                        "Key" : "Default=L06_coal" ,
+                        "Value" : {
+                            "Color" : "#aa00ffFF" ,
+                            "Alias" : "" 
+                        }
+                    }, 
+                    {
+                        "Key" : "Default=L08_coarse_sandstone" ,
+                        "Value" : {
+                            "Color" : "#663333FF" ,
+                            "Alias" : "" 
+                        }
+                    }, 
+                    {
+                        "Key" : "Default=L01_coal_6" ,
+                        "Value" : {
+                            "Color" : "#ff0000FF" ,
+                            "Alias" : "" 
+                        }
+                    }, 
+                    {
+                        "Key" : "Default=L03_sandy_mudstone" ,
+                        "Value" : {
+                            "Color" : "#ff4000FF" ,
+                            "Alias" : "" 
+                        }
+                    }, 
+                    {
+                        "Key" : "Default=L04_mudstone" ,
+                        "Value" : {
+                            "Color" : "#0080ffFF" ,
+                            "Alias" : "" 
+                        }
+                    }, 
+                    {
+                        "Key" : "Default=L05_mudstone" ,
+                        "Value" : {
+                            "Color" : "#b7001fFF" ,
+                            "Alias" : "" 
+                        }
+                    }, 
+                    {
+                        "Key" : "Default=L11_mudstone" ,
+                        "Value" : {
+                            "Color" : "#6666ffFF" ,
+                            "Alias" : "" 
+                        }
+                    }, 
+                    {
+                        "Key" : "Default=L07_siltstone" ,
+                        "Value" : {
+                            "Color" : "#ff8000FF" ,
+                            "Alias" : "" 
+                        }
+                    }, 
+                    {
+                        "Key" : "Default=L09_fine_sandstone" ,
+                        "Value" : {
+                            "Color" : "#4f632dFF" ,
+                            "Alias" : "" 
+                        }
+                    }, 
+                    {
+                        "Key" : "Default=L10_medium_sandstone" ,
+                        "Value" : {
+                            "Color" : "#50755eFF" ,
+                            "Alias" : "" 
+                        }
+                    }, 
+                    {
+                        "Key" : "Default=L12_coarse_sandstone" ,
+                        "Value" : {
+                            "Color" : "#5500ffFF" ,
+                            "Alias" : "" 
+                        }
+                    }, 
+                    {
+                        "Key" : "Default=L13_medium_sandstone" ,
+                        "Value" : {
+                            "Color" : "#0000ffFF" ,
+                            "Alias" : "" 
+                        }
+                    }
+                ]
+            }
+        ]
+    },
+    "Layout" : {
+        "PaneAction" : [ 
+            "Project" ,
+            "Console" ,
+            "IPython Console  " 
+        ],
+        "State" : "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" 
+    },
+    "CPVisible" : true ,
+    "PaneContents" : { }
+}

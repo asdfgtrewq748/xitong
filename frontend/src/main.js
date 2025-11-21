@@ -8,6 +8,9 @@ import pinia from './stores'
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 
+// 引入 Tailwind CSS
+import './assets/tailwind.css'
+
 // 引入全局样式
 import './assets/styles/global.css'
 

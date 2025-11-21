@@ -1,0 +1,170 @@
+{
+  "export_time": "2025-11-21T17:53:23.776715",
+  "total_layers": 23,
+  "format": "binary",
+  "downsample_factor": 5,
+  "coordinate_normalized": true,
+  "layers": [
+    {
+      "index": 0,
+      "name": "6煤",
+      "filename": "01_6煤.stl",
+      "file_size_bytes": 135082,
+      "file_size_mb": 0.13
+    },
+    {
+      "index": 1,
+      "name": "6-1煤",
+      "filename": "02_6-1煤.stl",
+      "file_size_bytes": 135082,
+      "file_size_mb": 0.13
+    },
+    {
+      "index": 2,
+      "name": "砂质泥岩",
+      "filename": "03_砂质泥岩.stl",
+      "file_size_bytes": 135082,
+      "file_size_mb": 0.13
+    },
+    {
+      "index": 3,
+      "name": "炭质泥岩",
+      "filename": "04_炭质泥岩.stl",
+      "file_size_bytes": 135082,
+      "file_size_mb": 0.13
+    },
+    {
+      "index": 4,
+      "name": "高岭质泥岩",
+      "filename": "05_高岭质泥岩.stl",
+      "file_size_bytes": 135082,
+      "file_size_mb": 0.13
+    },
+    {
+      "index": 5,
+      "name": "风化煤",
+      "filename": "06_风化煤.stl",
+      "file_size_bytes": 135082,
+      "file_size_mb": 0.13
+    },
+    {
+      "index": 6,
+      "name": "粉砂岩",
+      "filename": "07_粉砂岩.stl",
+      "file_size_bytes": 135082,
+      "file_size_mb": 0.13
+    },
+    {
+      "index": 7,
+      "name": "粗粒砂岩",
+      "filename": "08_粗粒砂岩.stl",
+      "file_size_bytes": 135082,
+      "file_size_mb": 0.13
+    },
+    {
+      "index": 8,
+      "name": "细粒砂岩",
+      "filename": "09_细粒砂岩.stl",
+      "file_size_bytes": 135082,
+      "file_size_mb": 0.13
+    },
+    {
+      "index": 9,
+      "name": "中粒砂岩",
+      "filename": "10_中粒砂岩.stl",
+      "file_size_bytes": 135082,
+      "file_size_mb": 0.13
+    },
+    {
+      "index": 10,
+      "name": "泥岩",
+      "filename": "11_泥岩.stl",
+      "file_size_bytes": 135082,
+      "file_size_mb": 0.13
+    },
+    {
+      "index": 11,
+      "name": "含砾粗粒砂岩",
+      "filename": "12_含砾粗粒砂岩.stl",
+      "file_size_bytes": 135082,
+      "file_size_mb": 0.13
+    },
+    {
+      "index": 12,
+      "name": "含砾中砂岩",
+      "filename": "13_含砾中砂岩.stl",
+      "file_size_bytes": 135082,
+      "file_size_mb": 0.13
+    },
+    {
+      "index": 13,
+      "name": "煤",
+      "filename": "14_煤.stl",
+      "file_size_bytes": 135082,
+      "file_size_mb": 0.13
+    },
+    {
+      "index": 14,
+      "name": "5煤",
+      "filename": "15_5煤.stl",
+      "file_size_bytes": 135082,
+      "file_size_mb": 0.13
+    },
+    {
+      "index": 15,
+      "name": "黄土",
+      "filename": "16_黄土.stl",
+      "file_size_bytes": 135082,
+      "file_size_mb": 0.13
+    },
+    {
+      "index": 16,
+      "name": "高岭岩",
+      "filename": "17_高岭岩.stl",
+      "file_size_bytes": 135082,
+      "file_size_mb": 0.13
+    },
+    {
+      "index": 17,
+      "name": "砾岩",
+      "filename": "18_砾岩.stl",
+      "file_size_bytes": 135082,
+      "file_size_mb": 0.13
+    },
+    {
+      "index": 18,
+      "name": "煤线",
+      "filename": "19_煤线.stl",
+      "file_size_bytes": 135082,
+      "file_size_mb": 0.13
+    },
+    {
+      "index": 19,
+      "name": "含砾粗砂岩",
+      "filename": "20_含砾粗砂岩.stl",
+      "file_size_bytes": 135082,
+      "file_size_mb": 0.13
+    },
+    {
+      "index": 20,
+      "name": "黄土、断层",
+      "filename": "21_黄土、断层.stl",
+      "file_size_bytes": 135082,
+      "file_size_mb": 0.13
+    },
+    {
+      "index": 21,
+      "name": "4煤",
+      "filename": "22_4煤.stl",
+      "file_size_bytes": 135082,
+      "file_size_mb": 0.13
+    },
+    {
+      "index": 22,
+      "name": "4号风化煤",
+      "filename": "23_4号风化煤.stl",
+      "file_size_bytes": 135082,
+      "file_size_mb": 0.13
+    }
+  ]
+}

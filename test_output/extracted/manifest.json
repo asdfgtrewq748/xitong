@@ -1,0 +1,33 @@
+{
+  "export_time": "2025-11-21T19:11:04.088496",
+  "total_layers": 3,
+  "format": "binary",
+  "downsample_factor": 1,
+  "coordinate_normalized": true,
+  "layers": [
+    {
+      "index": 0,
+      "name": "测试煤层1",
+      "name_english": "coal_seam_1",
+      "filename": "01_coal_seam_1.stl",
+      "file_size_bytes": 7282,
+      "file_size_mb": 0.01
+    },
+    {
+      "index": 1,
+      "name": "测试煤层2",
+      "name_english": "coal_seam_2",
+      "filename": "02_coal_seam_2.stl",
+      "file_size_bytes": 7282,
+      "file_size_mb": 0.01
+    },
+    {
+      "index": 2,
+      "name": "测试煤层3",
+      "name_english": "coal_seam_3",
+      "filename": "03_coal_seam_3.stl",
+      "file_size_bytes": 7282,
+      "file_size_mb": 0.01
+    }
+  ]
+}

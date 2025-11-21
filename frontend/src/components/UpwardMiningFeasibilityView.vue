@@ -6,7 +6,7 @@
         <el-card shadow="hover" class="header-card">
           <div class="header-content">
             <div class="header-title">
-              <h2><el-icon><DataAnalysis /></el-icon> 上行开采可行度分析</h2>
+              <h2><el-icon><TrendCharts /></el-icon> 上行开采可行度分析</h2>
               <p>基于钻孔CSV数据计算上行开采可行度，评估顶板稳定性</p>
             </div>
           </div>
@@ -142,7 +142,7 @@
                 size="large"
                 style="width: 100%; margin-bottom: 12px;"
               >
-                <el-icon><Calculator /></el-icon>
+                <el-icon><DataAnalysis /></el-icon>
                 {{ calculating ? '计算中...' : '批量计算可行度' }}
               </el-button>
 
@@ -438,16 +438,16 @@
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
-  Upload, Delete, Document, Setting, MagicStick, Operation, Calculator,
-  Download, List, TrendCharts, QuestionFilled, DataAnalysis
+  Upload, Delete, Document, Setting, MagicStick, Operation,
+  Download, List, TrendCharts, QuestionFilled
 } from '@element-plus/icons-vue'
 import { api } from '../utils/upwardMiningApi'
 
 export default {
   name: 'UpwardMiningFeasibilityView',
   components: {
-    Upload, Delete, Document, Setting, MagicStick, Operation, Calculator,
-    Download, List, TrendCharts, QuestionFilled, DataAnalysis
+    Upload, Delete, Document, Setting, MagicStick, Operation,
+    Download, List, TrendCharts, QuestionFilled
   },
 
   setup() {
