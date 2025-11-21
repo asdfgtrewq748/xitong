@@ -1,7 +1,0 @@
-; 导入名为 model.dxf 的文件，并将其命名为 'surface1'
-geometry import 'geological_model_20251120_220444.dxf' format dxf set 'surface1'
-; 检查多边形是否闭合，这步对于网格生成至关重要
-geometry polygon check set 'surface1'
-; 基于导入的几何体 'surface1' 生成网格
-; maximum-edge 指定最大网格尺寸
-zone generate from-geometry 'surface1' maximum-edge 2.0
