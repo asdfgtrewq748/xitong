@@ -17,6 +17,7 @@ const DatabaseViewerView = () => import(/* webpackChunkName: "database" */ '../c
 const GeologicalModelingView = () => import(/* webpackChunkName: "modeling" */ '../components/GeologicalModelingView.vue')
 const UpwardMiningFeasibilityView = () => import(/* webpackChunkName: "upward-mining" */ '../components/UpwardMiningFeasibilityView.vue')
 const DataManagementView = () => import(/* webpackChunkName: "data-management" */ '../components/DataManagementView.vue')
+const MiningDesignView = () => import(/* webpackChunkName: "mining-design" */ '../components/MiningDesignView.vue')
 
 // 科研绘图模块 - 导航页和独立图表页面
 const VisualizationHome = () => import(/* webpackChunkName: "visualization-home" */ '../components/visualization/VisualizationHome.vue')
@@ -154,6 +155,12 @@ const routes = [
         name: 'DataManagement',
         component: DataManagementView,
         meta: { title: '数据管理中心' }
+      },
+      {
+        path: 'mining-design',
+        name: 'MiningDesign',
+        component: MiningDesignView,
+        meta: { title: '采掘设计功能' }
       }
     ]
   }

@@ -66,6 +66,17 @@
               </el-menu-item>
             </el-sub-menu>
 
+            <el-sub-menu index="/tools/design">
+              <template #title>
+                <el-icon><Edit /></el-icon>
+                <span>工程设计</span>
+              </template>
+              <el-menu-item index="/tools/mining-design">
+                <el-icon><Edit /></el-icon>
+                <template #title>采掘设计功能</template>
+              </el-menu-item>
+            </el-sub-menu>
+
             <el-sub-menu index="/tools/modeling">
               <template #title>
                 <el-icon><Histogram /></el-icon>
@@ -155,7 +166,7 @@ import { useRoute } from 'vue-router';
 import {
   House, DataLine, Document, Operation, Grid,
   TrendCharts, Location, Menu, Odometer,
-  Histogram, Box, Expand, Fold, Sunny, Moon
+  Histogram, Box, Expand, Fold, Sunny, Moon, Edit
 } from '@element-plus/icons-vue';
 
 const route = useRoute();
