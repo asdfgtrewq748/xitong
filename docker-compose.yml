@@ -25,16 +25,31 @@ services:
     
     restart: unless-stopped
     
+    # 资源限制 (适配2核4G服务器)
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    
     ports:
       - "8000:8000"
     
     environment:
       - PYTHONUNBUFFERED=1
       - TZ=Asia/Shanghai
-      - MAX_UPLOAD_SIZE_MB=50
+      - MAX_UPLOAD_SIZE_MB=30
       - CACHE_ENABLED=true
       - DB_PATH=/app/data/database.db
       - DATA_DIR=/app/data
+      # 2核4G服务器优化配置
+      - MAX_RESOLUTION=100
+      - DATAFRAME_CHUNK_SIZE=3000
+      - CACHE_MAX_SIZE=50
+      - MAX_CONCURRENT_REQUESTS=8
     
     volumes:
       # 关键修改：挂载项目根目录的data文件夹，而不是backend/data
