@@ -833,12 +833,13 @@
         <!-- 剖面设置 -->
         <el-form :inline="true" size="small" style="margin-bottom: 16px;">
           <el-form-item label="剖面方向">
-            <el-select v-model="crossSection.direction" @change="generateCrossSection" style="width: 120px;">
+            <el-select v-model="crossSection.direction" @change="onSectionDirectionChange" style="width: 150px;">
               <el-option label="X方向剖面" value="x" />
               <el-option label="Y方向剖面" value="y" />
+              <el-option label="Z轴水平剖面" value="z" />
             </el-select>
           </el-form-item>
-          <el-form-item :label="crossSection.direction === 'x' ? 'X坐标位置' : 'Y坐标位置'">
+          <el-form-item :label="getSectionPositionLabel()">
             <el-slider 
               v-model="crossSection.position" 
               :min="crossSection.range.min" 
@@ -874,14 +875,29 @@
           </template>
           <div style="font-size: 12px; line-height: 1.8;">
             <b>📊 功能说明：</b><br/>
-            • 剖面图以彩色填充显示选定位置的地层垂直分布结构<br/>
-            • <b>X方向剖面</b>：固定X坐标，沿Y轴切割查看地层<br/>
-            • <b>Y方向剖面</b>：固定Y坐标，沿X轴切割查看地层<br/><br/>
+            <template v-if="crossSection.direction === 'z'">
+              • <b>Z轴水平剖面</b>：固定Z高程，查看该高程的平面岩性分布<br/>
+              • 以热力图/散点图形式展示不同岩性区域<br/>
+              • 图例显示各岩性对应的颜色<br/>
+            </template>
+            <template v-else>
+              • 剖面图以彩色填充显示选定位置的地层垂直分布结构<br/>
+              • <b>X方向剖面</b>：固定X坐标，沿Y轴切割查看地层<br/>
+              • <b>Y方向剖面</b>：固定Y坐标，沿X轴切割查看地层<br/>
+            </template>
+            <br/>
             
             <b>🎨 视觉元素：</b><br/>
-            • 填充色块：每个岩层的厚度范围，颜色与3D模型一致<br/>
-            • 实线：岩层顶面边界<br/>
-            • 虚线：岩层底面边界<br/><br/>
+            <template v-if="crossSection.direction === 'z'">
+              • 彩色区域：不同岩性的分布范围<br/>
+              • 图例：岩性名称与颜色对应关系<br/>
+            </template>
+            <template v-else>
+              • 填充色块：每个岩层的厚度范围，颜色与3D模型一致<br/>
+              • 实线：岩层顶面边界<br/>
+              • 虚线：岩层底面边界<br/>
+            </template>
+            <br/>
             
             <b>💡 交互提示：</b><br/>
             • 鼠标悬停查看精确坐标和高程<br/>
@@ -1042,7 +1058,7 @@ const crossSectionChartRef = ref(null); // 剖面图表引用
 let crossSectionChart = null; // 剖面图表实例
 const isLoadingCrossSection = ref(false); // 剖面生成状态
 const crossSection = reactive({
-  direction: 'x', // 剖面方向: 'x' 或 'y'
+  direction: 'x', // 剖面方向: 'x', 'y' 或 'z'
   position: 0, // 剖面位置
   range: {
     min: 0,
@@ -1050,6 +1066,24 @@ const crossSection = reactive({
     step: 1
   }
 });
+
+// 辅助函数: 获取剖面位置标签
+function getSectionPositionLabel() {
+  if (crossSection.direction === 'x') return 'X坐标位置';
+  if (crossSection.direction === 'y') return 'Y坐标位置';
+  if (crossSection.direction === 'z') return 'Z高程位置';
+  return '位置';
+}
+
+// 剖面方向改变时的处理
+function onSectionDirectionChange() {
+  console.log('[剖面] 切换剖面方向:', crossSection.direction);
+  // 更新范围并生成剖面
+  if (current3DModel.value && current3DModel.value.models) {
+    updateCrossSectionRange();
+  }
+  generateCrossSection();
+}
 
 // 3D视图控制参数
 const viewControl = reactive({
@@ -2926,6 +2960,63 @@ async function runComparison() {
 
 // ==================== 剖面功能 ====================
 
+// 更新剖面范围
+function updateCrossSectionRange() {
+  if (!current3DModel.value || !current3DModel.value.models) {
+    return;
+  }
+  
+  const models = current3DModel.value.models;
+  if (models.length === 0) {
+    return;
+  }
+  
+  const firstModel = models[0];
+  
+  if (crossSection.direction === 'x') {
+    // X方向剖面：固定X，沿Y切割
+    crossSection.range.min = Math.min(...firstModel.grid_x);
+    crossSection.range.max = Math.max(...firstModel.grid_x);
+    crossSection.range.step = (crossSection.range.max - crossSection.range.min) / 50;
+    crossSection.position = (crossSection.range.min + crossSection.range.max) / 2;
+  } else if (crossSection.direction === 'y') {
+    // Y方向剖面：固定Y，沿X切割
+    crossSection.range.min = Math.min(...firstModel.grid_y);
+    crossSection.range.max = Math.max(...firstModel.grid_y);
+    crossSection.range.step = (crossSection.range.max - crossSection.range.min) / 50;
+    crossSection.position = (crossSection.range.min + crossSection.range.max) / 2;
+  } else if (crossSection.direction === 'z') {
+    // Z方向剖面：固定Z高程，查看平面岩性分布
+    // 计算所有模型的 z 范围
+    let allZMin = Infinity;
+    let allZMax = -Infinity;
+    
+    models.forEach(model => {
+      if (model.top_surface_z && model.top_surface_z.length > 0) {
+        const topFlat = model.top_surface_z.flat();
+        const bottomFlat = model.bottom_surface_z ? model.bottom_surface_z.flat() : [];
+        
+        const topMax = Math.max(...topFlat.filter(v => v != null && !isNaN(v)));
+        
+        if (bottomFlat.length > 0) {
+          const bottomMin = Math.min(...bottomFlat.filter(v => v != null && !isNaN(v)));
+          allZMin = Math.min(allZMin, bottomMin);
+        }
+        
+        allZMax = Math.max(allZMax, topMax);
+      }
+    });
+    
+    if (allZMin !== Infinity && allZMax !== -Infinity) {
+      crossSection.range.min = allZMin;
+      crossSection.range.max = allZMax;
+      crossSection.range.step = (allZMax - allZMin) / 50;
+      crossSection.position = (allZMin + allZMax) / 2;
+      console.log(`[剖面] Z轴范围: [${allZMin.toFixed(2)}, ${allZMax.toFixed(2)}]`);
+    }
+  }
+}
+
 // 显示剖面对话框
 function showCrossSectionDialog() {
   if (!current3DModel.value || !current3DModel.value.models) {
@@ -2933,27 +3024,14 @@ function showCrossSectionDialog() {
     return;
   }
   
-  // 初始化剖面范围
   const models = current3DModel.value.models;
   if (models.length === 0) {
     ElMessage.warning('模型数据为空');
     return;
   }
   
-  const firstModel = models[0];
-  if (crossSection.direction === 'x') {
-    // X方向剖面：固定X，沿Y切割
-    crossSection.range.min = Math.min(...firstModel.grid_x);
-    crossSection.range.max = Math.max(...firstModel.grid_x);
-    crossSection.range.step = (crossSection.range.max - crossSection.range.min) / 50;
-    crossSection.position = (crossSection.range.min + crossSection.range.max) / 2;
-  } else {
-    // Y方向剖面：固定Y，沿X切割
-    crossSection.range.min = Math.min(...firstModel.grid_y);
-    crossSection.range.max = Math.max(...firstModel.grid_y);
-    crossSection.range.step = (crossSection.range.max - crossSection.range.min) / 50;
-    crossSection.position = (crossSection.range.min + crossSection.range.max) / 2;
-  }
+  // 初始化剖面范围
+  updateCrossSectionRange();
   
   crossSectionDialogVisible.value = true;
   
@@ -2983,7 +3061,7 @@ function initCrossSectionChart() {
 }
 
 // 生成剖面数据
-function generateCrossSection() {
+async function generateCrossSection() {
   if (!crossSectionChart || !current3DModel.value) {
     return;
   }
@@ -2991,8 +3069,31 @@ function generateCrossSection() {
   isLoadingCrossSection.value = true;
   
   try {
+    // 如果是 z 轴剖面,调用后端 API
+    if (crossSection.direction === 'z') {
+      await generateZSectionFromBackend();
+      return;
+    }
+    
+    // X/Y 方向剖面的原有逻辑
     const models = current3DModel.value.models;
     const series = [];
+    
+    // 收集所有position值以计算坐标范围
+    let allPositions = [];
+    models.forEach((model) => {
+      const crossSectionData = extractCrossSectionData(model);
+      if (crossSectionData && crossSectionData.length > 0) {
+        allPositions = allPositions.concat(crossSectionData.map(d => d.position));
+      }
+    });
+    
+    // 计算相对坐标范围
+    const posMin = allPositions.length > 0 ? Math.min(...allPositions) : 0;
+    const posMax = allPositions.length > 0 ? Math.max(...allPositions) : 1;
+    const posRange = posMax - posMin || 1;
+    
+    console.log(`[剖面] 原始坐标范围: [${posMin.toFixed(2)}, ${posMax.toFixed(2)}], 范围: ${posRange.toFixed(2)}`);
     
     models.forEach((model, modelIndex) => {
       const layerColor = getColorForLayer(model.name);
@@ -3003,9 +3104,9 @@ function generateCrossSection() {
         return;
       }
       
-      // 创建闭合的多边形：顶线 + 底线倒序
-      const topLine = crossSectionData.map(point => [point.position, point.top]);
-      const bottomLine = crossSectionData.map(point => [point.position, point.bottom]).reverse();
+      // 创建闭合的多边形：顶线 + 底线倒序 (使用相对坐标)
+      const topLine = crossSectionData.map(point => [point.position - posMin, point.top]);
+      const bottomLine = crossSectionData.map(point => [point.position - posMin, point.bottom]).reverse();
       const polygonData = [...topLine, ...bottomLine, topLine[0]]; // 闭合多边形
       
       // 使用custom类型创建填充多边形
@@ -3056,7 +3157,7 @@ function generateCrossSection() {
       series.push({
         name: `${model.name}_outline_top`,
         type: 'line',
-        data: topLine,
+        data: crossSectionData.map(point => [point.position - posMin, point.top]),
         lineStyle: {
           color: layerColor,
           width: 2.5,
@@ -3071,7 +3172,8 @@ function generateCrossSection() {
           trigger: 'axis',
           formatter: (params) => {
             const p = params[0];
-            return `<b>${model.name} (顶面)</b><br/>位置: ${p.data[0].toFixed(2)} m<br/>高程: ${p.data[1].toFixed(2)} m`;
+            const posAbs = posMin + p.data[0];  // 转回绝对坐标
+            return `<b>${model.name} (顶面)</b><br/>相对位置: ${p.data[0].toFixed(2)} m<br/>绝对位置: ${posAbs.toFixed(2)} m<br/>高程: ${p.data[1].toFixed(2)} m`;
           }
         }
       });
@@ -3080,7 +3182,7 @@ function generateCrossSection() {
       series.push({
         name: `${model.name}_outline_bottom`,
         type: 'line',
-        data: crossSectionData.map(point => [point.position, point.bottom]),
+        data: crossSectionData.map(point => [point.position - posMin, point.bottom]),
         lineStyle: {
           color: layerColor,
           width: 1.5,
@@ -3095,7 +3197,8 @@ function generateCrossSection() {
           trigger: 'axis',
           formatter: (params) => {
             const p = params[0];
-            return `<b>${model.name} (底面)</b><br/>位置: ${p.data[0].toFixed(2)} m<br/>高程: ${p.data[1].toFixed(2)} m`;
+            const posAbs = posMin + p.data[0];  // 转回绝对坐标
+            return `<b>${model.name} (底面)</b><br/>相对位置: ${p.data[0].toFixed(2)} m<br/>绝对位置: ${posAbs.toFixed(2)} m<br/>高程: ${p.data[1].toFixed(2)} m`;
           }
         }
       });
@@ -3111,7 +3214,7 @@ function generateCrossSection() {
           fontWeight: 'bold',
           color: '#333'
         },
-        subtext: `共 ${models.length} 个岩层`,
+        subtext: `共 ${models.length} 个岩层 | 相对坐标范围: 0 ~ ${posRange.toFixed(2)} m`,
         subtextStyle: {
           fontSize: 12,
           color: '#666'
@@ -3134,11 +3237,13 @@ function generateCrossSection() {
         formatter: (params) => {
           if (!params || params.length === 0) return '';
           
-          const position = params[0].data[0];
+          const positionRel = params[0].data[0];
+          const positionAbs = posMin + positionRel;
           const axisLabel = crossSection.direction === 'x' ? 'Y' : 'X';
           
           let result = `<div style="padding: 8px;">`;
-          result += `<b style="font-size: 14px;">${axisLabel}坐标: ${position.toFixed(2)} m</b><br/><br/>`;
+          result += `<b style="font-size: 14px;">${axisLabel}相对坐标: ${positionRel.toFixed(2)} m</b><br/>`;
+          result += `<b style="font-size: 12px; color: #666;">${axisLabel}绝对坐标: ${positionAbs.toFixed(2)} m</b><br/><br/>`;
           
           // 只显示主系列（不包括outline）
           params.filter(p => !p.seriesName.includes('_outline')).forEach(p => {
@@ -3182,7 +3287,7 @@ function generateCrossSection() {
       },
       xAxis: {
         type: 'value',
-        name: crossSection.direction === 'x' ? 'Y坐标 (m)' : 'X坐标 (m)',
+        name: `${crossSection.direction === 'x' ? 'Y' : 'X'}相对坐标 (m)`,
         nameLocation: 'middle',
         nameGap: 40,
         nameTextStyle: {
@@ -3190,6 +3295,8 @@ function generateCrossSection() {
           fontWeight: 'bold',
           color: '#333'
         },
+        min: 0,
+        max: posRange,
         axisLine: {
           lineStyle: {
             color: '#666'
@@ -3342,6 +3449,190 @@ function findClosestIndex(array, target) {
   }
   
   return closestIndex;
+}
+
+// 生成 Z 轴剖面 (调用后端 API)
+async function generateZSectionFromBackend() {
+  try {
+    console.log(`[Z剖面] 请求 z=${crossSection.position} 的剖面数据`);
+    
+    const response = await fetch(`${API_BASE}/modeling/z_section`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        z_coordinate: crossSection.position
+      })
+    });
+    
+    if (!response.ok) {
+      let errorMsg = '获取 Z 剖面失败';
+      try {
+        const errorData = await response.json();
+        errorMsg = errorData.detail || errorMsg;
+      } catch (e) {
+        // 如果返回的不是JSON,读取纯文本
+        errorMsg = await response.text() || errorMsg;
+      }
+      throw new Error(errorMsg);
+    }
+    
+    const data = await response.json();
+    console.log('[Z剖面] 后端返回数据:', data);
+    
+    if (data.status !== 'success') {
+      throw new Error('后端返回状态异常');
+    }
+    
+    // 渲染 Z 剖面
+    renderZSection(data);
+    
+  } catch (error) {
+    console.error('[Z剖面] 生成失败:', error);
+    ElMessage.error(`Z剖面生成失败: ${error.message}`);
+  } finally {
+    isLoadingCrossSection.value = false;
+  }
+}
+
+// 渲染 Z 轴剖面
+function renderZSection(sectionData) {
+  if (!crossSectionChart) {
+    return;
+  }
+  
+  console.log('[Z剖面] 开始渲染,数据点数:', sectionData.x_coords.length);
+  console.log('[Z剖面] 图例:', sectionData.legend);
+  
+  // 计算坐标范围并归一化
+  const xCoords = sectionData.x_coords;
+  const yCoords = sectionData.y_coords;
+  
+  const xMin = Math.min(...xCoords);
+  const xMax = Math.max(...xCoords);
+  const yMin = Math.min(...yCoords);
+  const yMax = Math.max(...yCoords);
+  
+  const xRange = xMax - xMin || 1;
+  const yRange = yMax - yMin || 1;
+  
+  console.log(`[Z剖面] 原始坐标范围: X[${xMin.toFixed(2)}, ${xMax.toFixed(2)}], Y[${yMin.toFixed(2)}, ${yMax.toFixed(2)}]`);
+  console.log(`[Z剖面] 相对坐标范围: X[0, ${xRange.toFixed(2)}], Y[0, ${yRange.toFixed(2)}]`);
+  
+  // 准备散点数据 (使用相对坐标,最小值点作为原点0)
+  // 每个点 [x_relative, y_relative, lithologyIndex]
+  const scatterData = [];
+  for (let i = 0; i < xCoords.length; i++) {
+    scatterData.push([
+      xCoords[i] - xMin,  // X 相对坐标 (从0开始)
+      yCoords[i] - yMin,  // Y 相对坐标 (从0开始)
+      sectionData.lithology_index[i]
+    ]);
+  }
+  
+  // 构建图例
+  const legendData = sectionData.legend.map(item => item.name);
+  
+  // 构建颜色映射 (按索引)
+  const colorMap = {};
+  sectionData.legend.forEach(item => {
+    colorMap[item.index] = item.color;
+  });
+  
+  // 按岩性分组数据
+  const seriesByLithology = {};
+  sectionData.legend.forEach(item => {
+    seriesByLithology[item.index] = {
+      name: item.name,
+      color: item.color,
+      data: []
+    };
+  });
+  
+  scatterData.forEach(point => {
+    const lithologyIndex = point[2];
+    if (seriesByLithology[lithologyIndex]) {
+      seriesByLithology[lithologyIndex].data.push([point[0], point[1]]);
+    }
+  });
+  
+  // 构建 series
+  const series = Object.values(seriesByLithology).map(group => ({
+    name: group.name,
+    type: 'scatter',
+    symbol: 'rect',  // 使用矩形符号模拟网格
+    symbolSize: 6,   // 适中的符号大小,既密集又清晰
+    itemStyle: {
+      color: group.color,
+      opacity: 0.9  // 高不透明度,填充更饱满
+    },
+    data: group.data,
+    large: true,  // 开启大数据量优化
+    largeThreshold: 5000,  // 大于5000个点开启优化
+    emphasis: {
+      itemStyle: {
+        borderColor: '#333',
+        borderWidth: 1
+      }
+    }
+  }));
+  
+  // 配置 ECharts 选项
+  const option = {
+    title: {
+      text: `Z 轴水平剖面 (Z = ${crossSection.position.toFixed(2)} m)`,
+      left: 'center',
+      top: 10
+    },
+    tooltip: {
+      trigger: 'item',
+      formatter: (params) => {
+        const [xRel, yRel] = params.data;
+        const xAbs = xMin + xRel;  // 绝对坐标
+        const yAbs = yMin + yRel;  // 绝对坐标
+        return `${params.seriesName}<br/>相对坐标 - X: ${xRel.toFixed(2)} m, Y: ${yRel.toFixed(2)} m<br/>绝对坐标 - X: ${xAbs.toFixed(2)} m, Y: ${yAbs.toFixed(2)} m<br/>Z: ${crossSection.position.toFixed(2)} m`;
+      }
+    },
+    legend: {
+      data: legendData,
+      orient: 'vertical',
+      right: 10,
+      top: 60,
+      backgroundColor: '#fff',
+      borderColor: '#ddd',
+      borderWidth: 1,
+      padding: 10,
+      textStyle: {
+        fontSize: 12
+      }
+    },
+    xAxis: {
+      name: 'X 相对坐标 (m)',
+      nameLocation: 'middle',
+      nameGap: 30,
+      type: 'value',
+      min: 0,
+      max: xRange
+    },
+    yAxis: {
+      name: 'Y 相对坐标 (m)',
+      nameLocation: 'middle',
+      nameGap: 40,
+      type: 'value',
+      min: 0,
+      max: yRange
+    },
+    grid: {
+      left: 60,
+      right: 180,
+      top: 60,
+      bottom: 60
+    },
+    animation: false,  // 关闭动画提升性能
+    series: series
+  };
+  
+  crossSectionChart.setOption(option, true);
+  console.log('[Z剖面] 渲染完成');
 }
 
 // 导出剖面图

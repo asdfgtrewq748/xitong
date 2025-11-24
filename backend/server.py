@@ -67,10 +67,19 @@ class ModelingState:
         self.text_columns: List[str] = []
         self.last_selected_seam_column: Optional[str] = None
         self.borehole_file_count: int = 0
+        # 新增: 存储最近一次建模的结果
+        self.last_block_models = None
+        self.last_grid_x = None
+        self.last_grid_y = None
 
     def ensure_loaded(self) -> None:
         if self.merged_df is None:
             raise HTTPException(status_code=400, detail="请先上传并合并钻孔与坐标数据")
+    
+    def ensure_models_ready(self):
+        """确保已经生成了块体模型"""
+        if self.last_block_models is None or self.last_grid_x is None or self.last_grid_y is None:
+            raise HTTPException(status_code=400, detail="请先调用 /api/modeling/block_model 生成3D模型")
 
 
 modeling_state = ModelingState()
@@ -393,6 +402,12 @@ class ModelingValidationRequest(BaseModel):
     thickness_col: str
     seam_col: str
     selected_seams: List[str]
+
+
+class ZSectionRequest(BaseModel):
+    """Z轴剖面请求"""
+    z_coordinate: float  # 剖面的 z 坐标
+    # 注意: 需要先调用 block_model API 生成模型,结果存储在 modeling_state 中
 
 
 app = FastAPI(title="Mining System API", version="0.1.0")
@@ -993,6 +1008,12 @@ async def generate_block_model(payload: BlockModelRequest):
             base_level=float(payload.base_level or 0.0),
             gap_value=float(payload.gap or 0.0),
         )
+        
+        # 保存建模结果到 modeling_state (用于后续 z 剖面提取)
+        modeling_state.last_block_models = block_models
+        modeling_state.last_grid_x = XI[0, :].flatten()  # 提取一维 x 坐标
+        modeling_state.last_grid_y = YI[:, 0].flatten()  # 提取一维 y 坐标
+        
         print(f"[DEBUG] 块体建模完成: 成功 {len(block_models)} 个, 跳过 {len(skipped)} 个")
         print(f"[DEBUG] 网格尺寸: XI.shape={XI.shape}, YI.shape={YI.shape}")
         if skipped:
@@ -1050,6 +1071,69 @@ async def generate_block_model(payload: BlockModelRequest):
         "models": models_payload,
         "skipped": skipped,
     }
+
+
+@app.post("/api/modeling/z_section")
+async def extract_z_section(payload: ZSectionRequest):
+    """
+    提取 z 轴剖面
+    
+    根据指定的 z 坐标,从已建立的 3D 地质模型中提取水平剖面,
+    识别每个网格点所属的岩性,并返回用于可视化的数据
+    """
+    from z_section_slicer import extract_z_section, get_z_range_from_models
+    
+    # 确保已经生成了模型
+    modeling_state.ensure_models_ready()
+    
+    block_models = modeling_state.last_block_models
+    grid_x = modeling_state.last_grid_x
+    grid_y = modeling_state.last_grid_y
+    
+    print(f"\n[Z剖面API] ========== 提取 Z 剖面 ==========")
+    print(f"[Z剖面API] Z坐标: {payload.z_coordinate}")
+    print(f"[Z剖面API] 模型数量: {len(block_models)}")
+    print(f"[Z剖面API] 网格尺寸: X={len(grid_x)}, Y={len(grid_y)}")
+    
+    # 首先获取模型的 z 范围
+    z_min, z_max = get_z_range_from_models(block_models)
+    print(f"[Z剖面API] 模型 Z 范围: [{z_min:.2f}, {z_max:.2f}]")
+    
+    try:
+        # 提取剖面 (不降采样,保持完整网格密度)
+        section_data = extract_z_section(
+            block_models=block_models,
+            grid_x=grid_x,
+            grid_y=grid_y,
+            z_coordinate=payload.z_coordinate,
+            sampling_step=1  # 不降采样,使用完整数据
+        )
+        
+        print(f"[Z剖面API] ✅ 剖面提取成功")
+        print(f"[Z剖面API] 数据点数: {len(section_data['x_coords'])}")
+        print(f"[Z剖面API] 图例数: {len(section_data['legend'])}")
+        
+        # 确保返回正确的JSON格式
+        result = {
+            "status": "success",
+            "z_coordinate": section_data['z_coordinate'],
+            "x_coords": section_data['x_coords'],
+            "y_coords": section_data['y_coords'],
+            "lithology": section_data['lithology'],
+            "lithology_index": section_data['lithology_index'],
+            "z_values": section_data['z_values'],
+            "legend": section_data['legend'],
+            "z_range": section_data['z_range'],
+            "grid_shape": section_data['grid_shape']
+        }
+        
+        return result
+        
+    except Exception as exc:
+        print(f"[Z剖面API] ❌ 剖面提取失败: {exc}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(exc))
 
 
 @app.post("/api/modeling/comparison")

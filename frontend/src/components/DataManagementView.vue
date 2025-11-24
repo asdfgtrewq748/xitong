@@ -1,350 +1,222 @@
 <template>
-  <div class="data-management-container">
-    <el-card class="page-header">
-      <template #header>
-        <div class="header-content">
-          <h2>📊 数据管理中心</h2>
-          <p>导入、管理和分析全局钻孔数据</p>
-        </div>
-      </template>
-    </el-card>
-
-    <!-- 数据统计卡片 -->
-    <div class="stats-cards">
-      <el-card class="stat-card">
-        <div class="stat-content">
-          <div class="stat-icon drill-icon">🔍</div>
-          <div class="stat-info">
-            <h3>{{ statistics.boreholeCount }}</h3>
-            <p>钻孔数据</p>
+  <div class="page-container">
+    <!-- 顶部导航栏 -->
+    <header class="dashboard-header">
+      <div class="header-content">
+        <div class="brand">
+          <div class="logo-icon">📊</div>
+          <div>
+            <h1>数据管理中心</h1>
+            <p class="subtitle">地质数据全生命周期管理平台</p>
           </div>
         </div>
-      </el-card>
-
-      <el-card class="stat-card">
-        <div class="stat-content">
-          <div class="stat-icon coal-icon">⛏️</div>
-          <div class="stat-info">
-            <h3>{{ statistics.coalSeamCount }}</h3>
-            <p>煤层层数据</p>
-          </div>
-        </div>
-      </el-card>
-
-      <el-card class="stat-card">
-        <div class="stat-content">
-          <div class="stat-icon mine-icon">🏭</div>
-          <div class="stat-info">
-            <h3>{{ statistics.uniqueMines }}</h3>
-            <p>矿井数量</p>
-          </div>
-        </div>
-      </el-card>
-
-      <el-card class="stat-card">
-        <div class="stat-content">
-          <div class="stat-icon total-icon">📈</div>
-          <div class="stat-info">
-            <h3>{{ statistics.totalRecords }}</h3>
-            <p>总数据量</p>
-          </div>
-        </div>
-      </el-card>
-    </div>
-
-    <!-- 数据导入区域 -->
-    <el-card class="upload-card">
-      <template #header>
-        <span>📤 数据导入</span>
-      </template>
-
-      <div class="upload-section">
-        <div class="upload-methods">
-          <el-upload
-            ref="uploadRef"
-            class="upload-area"
-            drag
-            multiple
-            :auto-upload="false"
-            :on-change="handleFileChange"
-            :on-remove="handleFileRemove"
-            :file-list="fileList"
-            accept=".csv"
-            :limit="100"
-          >
-            <el-icon class="el-icon--upload"><upload-filled /></el-icon>
-            <div class="upload-text">
-              <em>点击或拖拽CSV文件到此区域（支持批量上传）</em>
-              <p>支持同时选择多个CSV文件，如BK-1.csv、BK-2.csv等</p>
-            </div>
-            <template #tip>
-              <div class="el-upload__tip">
-                支持批量上传多个CSV文件，单个文件不超过10MB
-              </div>
-            </template>
-          </el-upload>
-
-          <div class="upload-info" v-if="fileList.length > 0">
-            <el-alert
-              :title="`已选择 ${fileList.length} 个文件`"
-              type="info"
-              :closable="false"
-              show-icon
-            />
-          </div>
-
-          <div class="quick-actions">
-            <el-button
-              type="primary"
-              icon="upload"
-              @click="batchImportFiles"
-              :loading="loading"
-              :disabled="fileList.length === 0"
-            >
-              开始导入 ({{ fileList.length }} 个文件)
-            </el-button>
-            <el-button
-              type="success"
-              icon="refresh"
-              @click="refreshData"
-              :loading="loading"
-            >
-              刷新数据
-            </el-button>
-            <el-button
-              type="warning"
-              icon="document"
-              @click="importFromDatabase"
-              :loading="loading"
-            >
-              从数据库加载
-            </el-button>
-            <el-button
-              type="danger"
-              icon="delete"
-              @click="clearAllData"
-            >
-              清空数据
-            </el-button>
-          </div>
-        </div>
-
-        <!-- 导入进度显示 -->
-        <div class="import-progress" v-if="importing">
-          <el-progress
-            :percentage="importProgress"
-            :status="importStatus"
-            :stroke-width="20"
-          >
-            <span class="progress-text">{{ importMessage }}</span>
-          </el-progress>
-        </div>
-      </div>
-    </el-card>
-
-    <!-- 导入历史记录 -->
-    <el-card class="history-card" v-if="globalDataStore.importHistory.length > 0">
-      <template #header>
         <div class="header-actions">
-          <span>📜 导入历史记录</span>
-          <el-button
-            type="danger"
-            size="small"
-            @click="handleClearHistory"
-          >
-            清空历史
+          <el-button type="primary" plain round @click="startOnboarding">
+            <el-icon class="mr-1"><Guide /></el-icon> 新手引导
           </el-button>
         </div>
-      </template>
+      </div>
+    </header>
 
-      <el-timeline>
-        <el-timeline-item
-          v-for="item in globalDataStore.importHistory"
-          :key="item.id"
-          :timestamp="item.timestamp"
-          placement="top"
-        >
-          <el-card shadow="hover">
-            <div class="history-item">
-              <div class="history-info">
-                <div class="history-header">
-                  <el-tag :type="item.source === '文件导入' ? 'success' : 'primary'">
-                    {{ item.source }}
-                  </el-tag>
-                  <span class="history-count">{{ item.recordCount }} 条记录</span>
-                </div>
-                <div class="history-columns">
-                  <el-text size="small" type="info">
-                    包含字段: {{ item.columns.slice(0, 5).join(', ') }}
-                    <span v-if="item.columns.length > 5">等 {{ item.columns.length }} 个字段</span>
-                  </el-text>
-                </div>
-              </div>
-              <div class="history-actions">
-                <el-button
-                  type="primary"
-                  size="small"
-                  @click="handleRollback(item.id)"
-                >
-                  回滚到此版本
-                </el-button>
-                <el-button
-                  type="danger"
-                  size="small"
-                  @click="handleDeleteHistory(item.id)"
-                >
-                  删除
-                </el-button>
-              </div>
-            </div>
-          </el-card>
-        </el-timeline-item>
-      </el-timeline>
-    </el-card>
-
-    <!-- 数据预览区域 -->
-    <el-card class="preview-card">
-      <template #header>
-        <div class="header-actions">
-          <span>📋 数据预览</span>
-          <div class="filter-actions">
-            <el-input
-              v-model="searchQuery"
-              placeholder="搜索数据..."
-              prefix-icon="search"
-              class="search-input"
-            />
-            <el-select
-              v-model="selectedLithology"
-              placeholder="按岩性过滤"
-              clearable
-              class="filter-select"
-            >
-              <el-option
-                v-for="lithology in uniqueLithologies"
-                :key="lithology"
-                :label="lithology"
-                :value="lithology"
-              />
-            </el-select>
+    <main class="dashboard-main">
+      <!-- 顶部统计与快捷入口 -->
+      <section class="top-section">
+        <!-- 左侧：统计卡片矩阵 -->
+        <div class="stats-grid" ref="statsRef">
+          <div class="stat-card primary">
+            <div class="stat-icon"><el-icon><DataLine /></el-icon></div>
+            <div class="stat-value">{{ statistics.boreholeCount }}</div>
+            <div class="stat-label">钻孔总数</div>
+          </div>
+          <div class="stat-card success">
+            <div class="stat-icon"><el-icon><Collection /></el-icon></div>
+            <div class="stat-value">{{ statistics.coalSeamCount }}</div>
+            <div class="stat-label">煤层数据</div>
+          </div>
+          <div class="stat-card warning">
+            <div class="stat-icon"><el-icon><OfficeBuilding /></el-icon></div>
+            <div class="stat-value">{{ statistics.uniqueMines }}</div>
+            <div class="stat-label">矿井数量</div>
+          </div>
+          <div class="stat-card info">
+            <div class="stat-icon"><el-icon><Files /></el-icon></div>
+            <div class="stat-value">{{ statistics.totalRecords }}</div>
+            <div class="stat-label">总记录数</div>
           </div>
         </div>
-      </template>
 
-      <div class="table-container">
-        <el-table
-          :data="filteredData"
-          stripe
-          border
-          style="width: 100%"
-          :loading="loading"
-          height="400"
-        >
-          <el-table-column
-            prop="钻孔名"
-            label="钻孔名"
-            width="120"
-            fixed
-          />
-          <el-table-column
-            prop="岩层"
-            label="岩层名称"
-            width="150"
-          />
-          <el-table-column
-            prop="厚度/m"
-            label="厚度(m)"
-            width="100"
-            sortable
-          />
-          <el-table-column
-            prop="弹性模量/GPa"
-            label="弹性模量(GPa)"
-            width="130"
-            sortable
-          />
-          <el-table-column
-            prop="容重/kN·m-3"
-            label="容重(kN/m³)"
-            width="130"
-            sortable
-          />
-          <el-table-column
-            prop="抗拉强度/MPa"
-            label="抗拉强度(MPa)"
-            width="140"
-            sortable
-          />
-          <el-table-column
-            prop="泊松比"
-            label="泊松比"
-            width="100"
-            sortable
-          />
-          <el-table-column
-            prop="数据来源"
-            label="数据来源"
-            width="180"
-          />
-          <el-table-column
-            label="操作"
-            width="120"
-            fixed="right"
-          >
-            <template #default="{ row }">
-              <el-button
-                type="primary"
-                size="small"
-                @click="viewDetails(row)"
+        <!-- 右侧：快捷操作 -->
+        <div class="quick-actions-panel">
+          <h3>快捷操作</h3>
+          <div class="action-buttons">
+            <el-button type="primary" bg icon="Download" @click="downloadSampleCSV">下载模板</el-button>
+            <el-button type="success" bg icon="VideoPlay" @click="loadExampleData" :loading="loading">加载示例</el-button>
+            <el-button type="danger" bg icon="Delete" plain @click="clearAllData">清空数据</el-button>
+          </div>
+        </div>
+      </section>
+
+      <div class="main-grid">
+        <!-- 左侧主要区域：上传与列表 -->
+        <div class="left-column">
+          <!-- 上传区域 -->
+          <div class="content-card upload-card" ref="uploadRef">
+            <div class="card-header">
+              <h3><el-icon><Upload /></el-icon> 数据导入</h3>
+              <el-tag size="small" effect="plain">支持 .csv 格式</el-tag>
+            </div>
+            <div class="upload-wrapper">
+              <el-upload
+                ref="uploadRefInner"
+                class="upload-area"
+                drag
+                multiple
+                :auto-upload="false"
+                :on-change="handleFileChange"
+                :on-remove="handleFileRemove"
+                :file-list="fileList"
+                accept=".csv"
+                :limit="100"
               >
-                查看详情
-              </el-button>
-            </template>
-          </el-table-column>
-        </el-table>
+                <el-icon class="el-icon--upload"><upload-filled /></el-icon>
+                <div class="upload-text">
+                  <strong>点击或拖拽文件到此处</strong>
+                  <p>支持批量上传多个 CSV 文件</p>
+                </div>
+              </el-upload>
+              
+              <div class="upload-actions" v-if="fileList.length > 0">
+                <div class="file-count">已选择 {{ fileList.length }} 个文件</div>
+                <el-button type="primary" size="large" @click="batchImportFiles" :loading="loading">
+                  开始导入
+                </el-button>
+              </div>
 
-        <div class="table-footer">
-          <span>显示 {{ filteredData.length }} / {{ globalDataStore.keyStratumData.length }} 条记录</span>
-          <el-pagination
-            v-model:current-page="currentPage"
-            v-model:page-size="pageSize"
-            :page-sizes="[10, 20, 50, 100]"
-            :total="globalDataStore.keyStratumData.length"
-            layout="total, sizes, prev, pager, next"
-            @size-change="handleSizeChange"
-            @current-change="handleCurrentChange"
-          />
+              <!-- 进度条 -->
+              <transition name="fade">
+                <div class="progress-bar-wrapper" v-if="importing">
+                  <el-progress :percentage="importProgress" :status="importStatus" :stroke-width="16" striped striped-flow />
+                  <p class="progress-text">{{ importMessage }}</p>
+                </div>
+              </transition>
+            </div>
+          </div>
+
+          <!-- 数据表格 -->
+          <div class="content-card table-card" ref="tableRef">
+            <div class="card-header">
+              <div class="header-left">
+                <h3><el-icon><List /></el-icon> 数据预览</h3>
+              </div>
+              <div class="header-right">
+                <el-input v-model="searchQuery" placeholder="搜索..." prefix-icon="Search" clearable style="width: 200px" />
+                <el-select v-model="selectedLithology" placeholder="岩性筛选" clearable style="width: 140px">
+                  <el-option v-for="l in uniqueLithologies" :key="l" :label="l" :value="l" />
+                </el-select>
+                <el-button icon="Refresh" circle @click="refreshData" :loading="loading" />
+              </div>
+            </div>
+            
+            <el-table :data="filteredData" stripe style="width: 100%" height="500" v-loading="loading">
+              <el-table-column prop="钻孔名" label="钻孔名" width="120" fixed />
+              <el-table-column prop="岩层" label="岩层" width="120">
+                <template #default="{ row }">
+                  <el-tag :type="getLithologyColor(row['岩层'])" size="small">{{ row['岩层'] }}</el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column prop="厚度/m" label="厚度(m)" sortable />
+              <el-table-column prop="弹性模量/GPa" label="弹模(GPa)" sortable />
+              <el-table-column prop="容重/kN·m-3" label="容重" sortable />
+              <el-table-column prop="抗拉强度/MPa" label="抗拉" sortable />
+              <el-table-column label="操作" width="100" fixed="right">
+                <template #default="{ row }">
+                  <el-button link type="primary" size="small" @click="viewDetails(row)">详情</el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+            
+            <div class="pagination-wrapper">
+              <el-pagination
+                v-model:current-page="currentPage"
+                v-model:page-size="pageSize"
+                :total="globalDataStore.keyStratumData.length"
+                layout="total, prev, pager, next"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- 右侧侧边栏：历史记录 -->
+        <div class="right-column">
+          <div class="content-card history-card" ref="historyRef">
+            <div class="card-header">
+              <h3><el-icon><Timer /></el-icon> 导入历史</h3>
+              <el-button link type="danger" size="small" @click="handleClearHistory" v-if="globalDataStore.importHistory.length">清空</el-button>
+            </div>
+            <div class="history-list">
+              <el-empty v-if="!globalDataStore.importHistory.length" description="暂无历史记录" :image-size="60" />
+              <el-timeline v-else>
+                <el-timeline-item
+                  v-for="item in globalDataStore.importHistory"
+                  :key="item.id"
+                  :timestamp="formatDate(item.timestamp)"
+                  :type="item.source === '文件导入' ? 'success' : 'primary'"
+                  size="large"
+                >
+                  <div class="history-item-content">
+                    <div class="history-meta">
+                      <span class="source-tag">{{ item.source }}</span>
+                      <span class="count-tag">+{{ item.recordCount }}条</span>
+                    </div>
+                    <div class="history-actions">
+                      <el-button link type="primary" size="small" @click="handleRollback(item.id)">回滚</el-button>
+                      <el-button link type="danger" size="small" @click="handleDeleteHistory(item.id)">删除</el-button>
+                    </div>
+                  </div>
+                </el-timeline-item>
+              </el-timeline>
+            </div>
+          </div>
         </div>
       </div>
-    </el-card>
+    </main>
 
     <!-- 数据详情对话框 -->
     <el-dialog
       v-model="detailDialogVisible"
       title="数据详情"
-      width="60%"
+      width="600px"
       class="detail-dialog"
     >
-      <div class="detail-content">
-        <el-descriptions :column="2" border>
-          <el-descriptions-item
-            v-for="(value, key) in currentRow"
-            :key="key"
-            :label="key"
-          >
-            {{ value }}
-          </el-descriptions-item>
-        </el-descriptions>
-      </div>
-      <template #footer>
-        <el-button @click="detailDialogVisible = false">关闭</el-button>
-      </template>
+      <el-descriptions :column="2" border>
+        <el-descriptions-item
+          v-for="(value, key) in currentRow"
+          :key="key"
+          :label="key"
+        >
+          {{ value }}
+        </el-descriptions-item>
+      </el-descriptions>
     </el-dialog>
+
+    <!-- 新手引导覆盖层 -->
+    <div v-if="showOnboarding" class="onboarding-overlay">
+      <div class="spotlight-box" :style="spotlightStyle"></div>
+      <div class="onboarding-card" :style="cardStyle">
+        <h3>{{ onboardingSteps[onboardingStep].title }}</h3>
+        <p>{{ onboardingSteps[onboardingStep].desc }}</p>
+        <div class="onboarding-controls">
+          <el-button size="small" @click="prevOnboarding" :disabled="onboardingStep===0">上一步</el-button>
+          <el-button size="small" type="primary" @click="nextOnboarding">{{ onboardingStep < onboardingSteps.length-1 ? '下一步' : '完成' }}</el-button>
+          <el-button size="small" type="text" @click="skipOnboarding">跳过</el-button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { UploadFilled } from '@element-plus/icons-vue'
 import { useGlobalDataStore } from '@/stores/globalData'
@@ -362,6 +234,9 @@ const selectedLithology = ref('')
 const detailDialogVisible = ref(false)
 const currentRow = ref({})
 const uploadRef = ref(null)
+const statsRef = ref(null)
+const tableRef = ref(null)
+const historyRef = ref(null)
 const fileList = ref([])
 
 // 导入进度相关
@@ -369,6 +244,168 @@ const importing = ref(false)
 const importProgress = ref(0)
 const importStatus = ref('')
 const importMessage = ref('')
+
+// 新手引导 & 示例数据
+const showOnboarding = ref(false)
+const onboardingStep = ref(0)
+const spotlightStyle = ref({ top: '50%', left: '50%', width: '0', height: '0', opacity: 0 })
+const cardStyle = ref({})
+
+const onboardingSteps = [
+  { title: '欢迎来到数据管理中心', desc: '这里可以导入、预览和管理全局钻孔与关键层数据。我们将带你快速熟悉常用操作。', target: null },
+  { title: '数据统计概览', desc: '这里展示了当前系统中钻孔、煤层和矿井的统计信息，让你对数据规模一目了然。', target: 'statsRef' },
+  { title: '数据导入区域', desc: '支持拖拽上传CSV文件，或点击“导入示例数据”快速体验。支持批量上传多个文件。', target: 'uploadRef' },
+  { title: '导入历史管理', desc: '每次导入都会生成一条历史记录。如果数据有问题，可以随时回滚到之前的版本。', target: 'historyRef' },
+  { title: '数据预览与筛选', desc: '在这里查看详细数据表格。使用顶部的搜索框和岩性筛选器快速查找特定数据。', target: 'tableRef' }
+]
+
+const updateSpotlight = async () => {
+  if (!showOnboarding.value) return
+  await nextTick()
+  
+  const step = onboardingSteps[onboardingStep.value]
+  const targetName = step.target
+  
+  // 默认居中样式 (无目标时)
+  if (!targetName) {
+    spotlightStyle.value = {
+      top: '50%',
+      left: '50%',
+      width: '0',
+      height: '0',
+      opacity: 0,
+      boxShadow: '0 0 0 9999px rgba(0,0,0,0.7)'
+    }
+    cardStyle.value = {
+      position: 'fixed',
+      top: '50%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)',
+      margin: 0
+    }
+    return
+  }
+
+  // 获取目标元素
+  let el = null
+  if (targetName === 'statsRef') el = statsRef.value?.$el || statsRef.value
+  else if (targetName === 'uploadRef') el = uploadRef.value?.$el || uploadRef.value
+  else if (targetName === 'historyRef') el = historyRef.value?.$el || historyRef.value
+  else if (targetName === 'tableRef') el = tableRef.value?.$el || tableRef.value
+
+  if (el && el.getBoundingClientRect) {
+    const rect = el.getBoundingClientRect()
+    const padding = 10
+    
+    spotlightStyle.value = {
+      top: `${rect.top - padding}px`,
+      left: `${rect.left - padding}px`,
+      width: `${rect.width + padding * 2}px`,
+      height: `${rect.height + padding * 2}px`,
+      opacity: 1,
+      borderRadius: '8px',
+      boxShadow: '0 0 0 9999px rgba(0,0,0,0.7), 0 0 15px rgba(255,255,255,0.3)'
+    }
+    
+    // 计算卡片位置 (优先在下方，如果不够则在上方)
+    const cardHeight = 200 // 预估高度
+    const spaceBelow = window.innerHeight - rect.bottom
+    const showBelow = spaceBelow > cardHeight + 20
+    
+    cardStyle.value = {
+      position: 'fixed',
+      left: `${Math.max(20, Math.min(window.innerWidth - 380, rect.left))}px`,
+      top: showBelow ? `${rect.bottom + 20}px` : `${rect.top - cardHeight - 20}px`,
+      transform: 'none',
+      margin: 0
+    }
+  }
+}
+
+watch(onboardingStep, updateSpotlight)
+watch(showOnboarding, (val) => {
+  if (val) {
+    // 禁用滚动
+    document.body.style.overflow = 'hidden'
+    updateSpotlight()
+  } else {
+    document.body.style.overflow = ''
+  }
+})
+
+const downloadSampleCSV = () => {
+  const headers = ['钻孔名','岩层','厚度/m','弹性模量/GPa','容重/kN·m-3','抗拉强度/MPa','泊松比','数据来源']
+  const rows = [
+    ['BK-1', '泥岩', '12.5', '15.2', '26.5', '4.2', '0.25', '钻孔数据'],
+    ['BK-1', '砂岩', '8.4', '22.1', '27.2', '8.5', '0.21', '钻孔数据'],
+    ['BK-1', '煤层', '3.5', '10.5', '14.2', '2.1', '0.32', '钻孔数据']
+  ]
+  
+  const csvContent = '\uFEFF' + [ // 添加BOM防止乱码
+    headers.join(','),
+    ...rows.map(r => r.join(','))
+  ].join('\n')
+  
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+  const link = document.createElement('a')
+  link.href = URL.createObjectURL(blob)
+  link.download = 'sample_data_template.csv'
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  ElMessage.success('示例CSV模板已下载')
+}
+
+const loadExampleData = async () => {
+  loading.value = true
+  try {
+    // 生成若干示例记录
+    const cols = ['钻孔名','岩层','厚度/m','弹性模量/GPa','容重/kN·m-3','抗拉强度/MPa','泊松比','数据来源']
+    const records = []
+    for (let i = 1; i <= 30; i++) {
+      records.push({
+        '钻孔名': `示例孔_${i}`,
+        '岩层': i % 3 === 0 ? '煤层' : (i % 3 === 1 ? '砂岩' : '泥岩'),
+        '厚度/m': (2 + (i % 8)).toFixed(2),
+        '弹性模量/GPa': (10 + (i % 5)).toFixed(2),
+        '容重/kN·m-3': (25 + (i % 4)).toFixed(2),
+        '抗拉强度/MPa': (5 + (i % 6)).toFixed(2),
+        '泊松比': (0.2 + (i % 10) * 0.01).toFixed(2),
+        '数据来源': '示例数据'
+      })
+    }
+
+    // 使用 store 的加载函数
+    await globalDataStore.loadKeyStratumData(records, cols)
+    // 保存到历史（模拟）
+    // store 内部会记录 last updated, 我们这里直接刷新界面
+    await refreshData()
+    ElMessage.success('已加载 30 条示例数据，开始体验吧！')
+  } catch (err) {
+    console.error('加载示例数据失败', err)
+    ElMessage.error('加载示例数据失败: ' + err.message)
+  } finally {
+    loading.value = false
+  }
+}
+
+const startOnboarding = () => {
+  onboardingStep.value = 0
+  showOnboarding.value = true
+}
+
+const nextOnboarding = () => {
+  if (onboardingStep.value < onboardingSteps.length - 1) onboardingStep.value++
+  else showOnboarding.value = false
+}
+
+const prevOnboarding = () => {
+  if (onboardingStep.value > 0) onboardingStep.value--
+}
+
+const skipOnboarding = () => {
+  showOnboarding.value = false
+}
 
 // 计算属性
 const statistics = computed(() => {
@@ -512,6 +549,7 @@ const batchImportFiles = async () => {
 }
 
 // 从数据库加载
+// eslint-disable-next-line no-unused-vars
 const importFromDatabase = async () => {
   loading.value = true
   try {
@@ -627,11 +665,13 @@ const handleClearHistory = async () => {
   }
 }
 
+// eslint-disable-next-line no-unused-vars
 const handleSizeChange = (val) => {
   pageSize.value = val
   currentPage.value = 1
 }
 
+// eslint-disable-next-line no-unused-vars
 const handleCurrentChange = (val) => {
   currentPage.value = val
 }
@@ -681,6 +721,81 @@ onMounted(() => {
   gap: 20px;
   margin-bottom: 20px;
 }
+
+/* 快速上手横幅 */
+.quick-start-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+  box-shadow: 0 6px 18px rgba(102,126,234,0.12);
+  animation: bannerIn 600ms ease;
+}
+.quick-start-banner .banner-left h3 { margin: 0; font-size: 20px }
+.quick-start-banner .banner-left p { margin: 4px 0 0 0; color: #4b5563 }
+.quick-start-banner .banner-actions { display: flex; gap: 12px }
+
+@keyframes bannerIn {
+  from { transform: translateY(-8px); opacity: 0 }
+  to { transform: translateY(0); opacity: 1 }
+}
+
+/* 卡片动画 */
+.stat-card { transition: transform 400ms cubic-bezier(.2,.8,.2,1), box-shadow 400ms; }
+.stat-card:hover { transform: translateY(-8px) scale(1.02); box-shadow: 0 18px 40px rgba(102,126,234,0.12); }
+.stat-content { transition: transform 600ms ease; }
+
+/* 上传区动画 */
+.upload-area :deep(.el-upload-dragger) { transition: transform 300ms ease, box-shadow 300ms ease; }
+.upload-area :deep(.el-upload-dragger):hover { transform: translateY(-6px); box-shadow: 0 12px 30px rgba(64,158,255,0.12); }
+
+/* 历史记录淡入 */
+.history-card :deep(.el-timeline-item) { animation: fadeInUp 500ms ease both; }
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(10px) }
+  to { opacity: 1; transform: translateY(0) }
+}
+
+/* 新手引导覆盖层 */
+.onboarding-overlay { position: fixed; inset: 0; z-index: 2000; pointer-events: auto; }
+.spotlight-box { position: absolute; transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); pointer-events: none; z-index: 2001; border: 2px solid rgba(255,255,255,0.5); }
+.onboarding-card { position: fixed; z-index: 2002; width: 360px; background: linear-gradient(180deg,#fff,#fbfdff); padding: 24px; border-radius: 12px; box-shadow: 0 18px 60px rgba(2,6,23,0.3); transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); }
+.onboarding-card h3 { margin:0 0 8px 0; color: #1f2937; font-size: 18px; font-weight: 600; }
+.onboarding-card p { margin:0 0 16px 0; color:#4b5563; line-height: 1.5; }
+.onboarding-controls { display:flex; gap:10px; justify-content:flex-end }
+
+/* 浮动动画 */
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+  100% { transform: translateY(0px); }
+}
+
+/* 脉冲发光动画 */
+@keyframes pulse-glow {
+  0% { box-shadow: 0 0 0 0 rgba(64, 158, 255, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(64, 158, 255, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(64, 158, 255, 0); }
+}
+
+.stat-icon { animation: float 3s ease-in-out infinite; }
+.stat-card:nth-child(1) .stat-icon { animation-delay: 0s; }
+.stat-card:nth-child(2) .stat-icon { animation-delay: 0.5s; }
+.stat-card:nth-child(3) .stat-icon { animation-delay: 1s; }
+.stat-card:nth-child(4) .stat-icon { animation-delay: 1.5s; }
+
+.upload-area :deep(.el-upload-dragger):hover {
+  animation: pulse-glow 2s infinite;
+}
+
+/* 按钮微交互动效 */
+.el-button { transition: transform 180ms ease, box-shadow 180ms ease }
+.el-button:active { transform: translateY(1px) }
+
 
 .stat-card {
   text-align: center;

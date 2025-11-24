@@ -282,7 +282,7 @@ function adaptForHeatmap(rows, { xField, yField, colorField }) {
 /**
  * 三维曲面数据适配
  */
-function adaptForSurface(rows, { xField, yField, zField }) {
+function adaptForSurface(rows, { xField, yField, zField, normalizeCoordinates = false }) {
   // 验证必需字段
   if (!xField || !yField || !zField) {
     throw new Error('3D曲面需要指定X字段、Y字段和Z字段')
@@ -312,7 +312,33 @@ function adaptForSurface(rows, { xField, yField, zField }) {
       zMatrix[i][j] = point ? point.z : null
     }
   }
-  
+
+  // 如果需要归一化坐标（例如导出时的规范），将 X/Y 轴从模型边界开始并映射到 [0,1]
+  if (normalizeCoordinates) {
+    const xMin = Math.min(...xValues)
+    const xMax = Math.max(...xValues)
+    const yMin = Math.min(...yValues)
+    const yMax = Math.max(...yValues)
+
+    const xRange = (xMax - xMin) === 0 ? 1 : (xMax - xMin)
+    const yRange = (yMax - yMin) === 0 ? 1 : (yMax - yMin)
+
+    const xNorm = xValues.map(v => (v - xMin) / xRange)
+    const yNorm = yValues.map(v => (v - yMin) / yRange)
+
+    // 返回归一化后的坐标，同时保留原始边界信息以便需要时映射回原始坐标
+    return {
+      x: xNorm,
+      y: yNorm,
+      z: zMatrix,
+      originalBounds: {
+        xMin, xMax, yMin, yMax
+      },
+      type: 'surface',
+      normalized: true
+    }
+  }
+
   return {
     x: xValues,
     y: yValues,

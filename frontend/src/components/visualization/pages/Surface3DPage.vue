@@ -229,6 +229,9 @@ const config = reactive({
   backgroundColor: 'transparent',
   fontFamily: 'SimSun, "Times New Roman", serif',
   titleFontSize: 18
+  ,
+  // 是否对坐标进行归一化（将模型边界映射到 0 起点并缩放到 [0,1]）
+  normalizeCoordinates: true
 })
 
 const fields = ref([])
