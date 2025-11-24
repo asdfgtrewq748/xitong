@@ -146,6 +146,9 @@
               <div class="upload-text">
                 <strong>点击或拖拽文件到此处</strong>
                 <p>支持批量上传多个 CSV 文件</p>
+                <p style="font-size: 12px; color: #67C23A; margin-top: 4px;">
+                  💡 钻孔名会自动从文件名提取（无需CSV包含钻孔名列）
+                </p>
               </div>
             </el-upload>
             
@@ -967,7 +970,7 @@ watch(showOnboarding, (val) => {
 
 // 标准字段定义
 const STANDARD_FIELDS = [
-  { key: '钻孔名', label: '钻孔名', aliases: ['钻孔', '孔号', 'borehole', 'hole'], required: true },
+  { key: '钻孔名', label: '钻孔名', aliases: ['钻孔', '孔号', 'borehole', 'hole'], required: false }, // 自动从文件名提取
   { key: '岩层', label: '岩层', aliases: ['岩性', 'lithology', 'rock', '名称', 'name'], required: true },
   { key: '厚度/m', label: '厚度/m', aliases: ['厚度', 'thickness', 'h'], required: true },
   { key: '弹性模量/GPa', label: '弹性模量/GPa', aliases: ['弹性模量', 'E', 'modulus'], required: false },
@@ -1016,16 +1019,16 @@ const checkDataQuality = (data, headers) => {
     statistics: {}
   }
   
-  // 检查必填字段
-  const requiredFields = STANDARD_FIELDS.filter(f => f.required).map(f => f.key)
+  // 检查必填字段（钻孔名除外，因为会从文件名自动提取）
+  const requiredFields = STANDARD_FIELDS.filter(f => f.required && f.key !== '钻孔名').map(f => f.key)
   const missingRequired = requiredFields.filter(field => !headers.includes(field))
   
   if (missingRequired.length > 0) {
-    // 降级为警告，允许用户手动映射或使用文件名作为钻孔名
+    // 仅作为警告，不阻止导入
     report.warnings.push({
       type: 'missing_required',
-      message: `缺少标准字段: ${missingRequired.join(', ')} (请在下方手动映射或确认文件名包含信息)`,
-      severity: 'warning'
+      message: `缺少推荐字段: ${missingRequired.join(', ')} (可在导入后手动补充或映射)`,
+      severity: 'info'  // 降级为信息级别
     })
   }
   

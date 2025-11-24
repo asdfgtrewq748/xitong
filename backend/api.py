@@ -47,7 +47,10 @@ def process_single_borehole_file(file_bytes: bytes, filename: str) -> Tuple[List
     """Process a single borehole CSV file and extract coal seam metrics."""
 
     processed_records: List[Dict[str, Any]] = []
-    borehole_name = os.path.splitext(os.path.basename(filename or ""))[0] or "未知钻孔"
+    # 使用Path安全提取文件名
+    from pathlib import Path
+    borehole_name = Path(filename).stem if filename else "未知钻孔"
+    print(f"[DEBUG API] 处理文件: {filename} → 钻孔名: {borehole_name}")
 
     try:
         df = _read_csv_from_bytes(file_bytes)

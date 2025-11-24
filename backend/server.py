@@ -2440,9 +2440,16 @@ async def import_raw_stratum_data(files: List[UploadFile] = File(...)):
             # 标准化关键列名(名称→岩层名称, 厚度→厚度/m等)
             df = _normalize_key_columns(df)
             
-            # 提取钻孔名(从文件名中,去掉扩展名)
+            # 提取钻孔名(从文件名中,去掉扩展名和路径)
             import os
-            borehole_name = os.path.splitext(filename)[0]
+            from pathlib import Path
+            # 使用Path来安全提取文件名(不含路径和扩展名)
+            borehole_name = Path(filename).stem if filename else "未知钻孔"
+            print(f"[DEBUG] 文件: {filename} → 钻孔名: {borehole_name}")
+            
+            # 删除可能已存在的钻孔名列(避免重复)
+            if '钻孔名' in df.columns:
+                df = df.drop(columns=['钻孔名'])
             
             # 添加钻孔名列(放在最前面)
             df.insert(0, '钻孔名', borehole_name)
