@@ -1,0 +1,27 @@
+model new
+model large-strain off
+fish define mesh_size
+    return 50.0   ; 如需加密网格，改小此值
+end
+; [函数2] 自动 ID 追踪，用于分层分组
+fish define prepare_id_range
+    global max_id = 0
+    loop foreach z zone.list
+        max_id = math.max(max_id, zone.id(z))
+    end_loop
+    global id_lower = max_id + 1
+end
+
+; --- L01 ---
+@prepare_id_range
+geometry import '01_coal_6.stl' set 'geo_01'
+geometry set 'geo_01' triangulate
+zone generate from-geometry set 'geo_01' maximum-edge @mesh_size
+zone group 'L01_coal_6' range id @id_lower 100000000
+
+; --- L02 ---
+@prepare_id_range
+geometry import '02_coal_6_1.stl' set 'geo_02'
+geometry set 'geo_02' triangulate
+zone generate from-geometry set 'geo_02' maximum-edge @mesh_size
+zone group 'L02_coal_6_1' range id @id_lower 100000000

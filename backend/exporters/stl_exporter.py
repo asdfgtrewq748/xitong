@@ -102,52 +102,50 @@ class STLExporter(BaseExporter):
             top_grids = self._prepare_grid_data(layer, downsample_factor, coord_offset, use_bottom=False)
             
             if top_grids is None:
-                print(f"    ❌ 顶面数据无效，跳过此层")
+                print(f"    [ERROR] 顶面数据无效,跳过此层")
                 continue
             
             print(f"    准备底面数据...")
             bottom_grids = self._prepare_grid_data(layer, downsample_factor, coord_offset, use_bottom=True)
             
             if bottom_grids is None:
-                print(f"    ❌ 底面数据无效，跳过此层")
+                print(f"    [ERROR] 底面数据无效,跳过此层")
                 continue
             
             top_x, top_y, top_z = top_grids
             bottom_x, bottom_y, bottom_z = bottom_grids
             
-            # 🔧 关键检查: 验证自身交错
+            # 🔧 信任建模阶段的逐列排序,不再在导出时修改Z值
+            # (之前的"导出阶段修复"会破坏精确的层间对齐)
             top_z_min = float(np.nanmin(top_z))
             top_z_max = float(np.nanmax(top_z))
             bottom_z_min = float(np.nanmin(bottom_z))
             bottom_z_max = float(np.nanmax(bottom_z))
             
+            print(f"    [Z范围] 顶面: [{top_z_min:.2f}, {top_z_max:.2f}]m")
+            print(f"    [Z范围] 底面: [{bottom_z_min:.2f}, {bottom_z_max:.2f}]m")
+            
+            # 仅检查但不修复(修复应该在建模阶段完成)
             if top_z_min < bottom_z_max:
-                print(f"    ⚠️  [导出警告] {layer_name} 检测到自身交错!")
-                print(f"        顶面Z: [{top_z_min:.2f}, {top_z_max:.2f}]m")
-                print(f"        底面Z: [{bottom_z_min:.2f}, {bottom_z_max:.2f}]m")
-                print(f"        问题: 顶面最小({top_z_min:.2f}m) < 底面最大({bottom_z_max:.2f}m)")
-                print(f"    [修复] 抬升整个顶面...")
-                
-                # 修复: 将整个顶面抬升到安全高度
-                required_lift = bottom_z_max - top_z_min + 1.0  # 1m安全余量
-                top_z = top_z + required_lift
-                
-                new_top_z_min = float(np.nanmin(top_z))
-                print(f"        修复后顶面: [{new_top_z_min:.2f}, {np.nanmax(top_z):.2f}]m")
-                if new_top_z_min >= bottom_z_max:
-                    print(f"        [OK] 导出阶段修复成功 ✅")
-                else:
-                    print(f"        [失败] 导出修复失败 ❌")
+                print(f"    [WARNING] {layer_name} 顶底面存在交错!")
+                print(f"              顶面最小({top_z_min:.2f}m) < 底面最大({bottom_z_max:.2f}m)")
+                print(f"              请检查建模阶段的逐列排序是否正确执行")
+                # 不再修改Z值,信任建模阶段的数据
             
             # 验证厚度
             thickness = top_z - bottom_z
             avg_thickness = np.nanmean(thickness)
+            min_thickness = np.nanmin(thickness)
             
             if avg_thickness < 1e-6:
-                print(f"    ⚠️  跳过此层（厚度过小: {avg_thickness:.6f}m）")
+                print(f"    [WARNING] 跳过此层(厚度过小: {avg_thickness:.6f}m)")
                 continue
             
-            print(f"    厚度: {np.nanmin(thickness):.2f}m ~ {np.nanmax(thickness):.2f}m (平均: {avg_thickness:.2f}m)")
+            if min_thickness < 0:
+                print(f"    [ERROR] 检测到负厚度! 最小厚度: {min_thickness:.2f}m")
+                print(f"            这说明建模阶段的修复未生效,请检查日志")
+            
+            print(f"    [厚度] 范围: [{min_thickness:.2f}, {np.nanmax(thickness):.2f}]m (平均: {avg_thickness:.2f}m)")
             
             # 生成该层的三角面片
             layer_triangles = self._build_triangulated_block(
@@ -209,10 +207,10 @@ class STLExporter(BaseExporter):
         
         # 显示归一化状态和效果
         if not normalize_coords:
-            print(f"  [归一化] ❌ 未启用 - 将使用原始坐标导出")
+            print(f"  [归一化] [DISABLED] 未启用 - 将使用原始坐标导出")
             if max(abs(offset_x), abs(offset_y)) > 1e6:
-                print(f"  [警告] ⚠️  检测到超大坐标值（百万级别），FLAC3D可能出现精度问题！")
-                print(f"  [建议] 强烈建议启用坐标归一化（normalize_coords=True）")
+                print(f"  [警告] [WARNING] 检测到超大坐标值(百万级别),FLAC3D可能出现精度问题!")
+                print(f"  [建议] 强烈建议启用坐标归一化(normalize_coords=True)")
         else:
             print(f"  [归一化] [OK] 已启用 - 偏移量: X={offset_x:.2f}, Y={offset_y:.2f}, Z={offset_z:.2f}")
             # 计算归一化后的范围
@@ -347,7 +345,7 @@ class STLExporter(BaseExporter):
         final_nan = np.isnan(grid_x).sum() + np.isnan(grid_y).sum() + np.isnan(grid_z).sum()
         if final_nan > 0:
             print(f"      [警告] 仍有 {final_nan} 个NaN，用有效值填充")
-            # ⚠️ 不能用0填充,Z坐标=0会影响厚度计算
+            # WARNING: 不能用0填充,Z坐标=0会影响厚度计算
             # 用最近邻有效值填充
             if np.isnan(grid_x).any():
                 valid_x = grid_x[~np.isnan(grid_x)]
@@ -449,105 +447,197 @@ class STLExporter(BaseExporter):
     
     def _build_triangulated_block(self, top_x, top_y, top_z, bottom_x, bottom_y, bottom_z) -> List[Dict]:
         """
-        构建三角化的封闭体块
-        每个四边形面分解为2个三角形
+        构建流形三角网格 (Manifold Mesh)
+        
+        核心改进:
+        1. 使用顶点索引表,避免重复顶点
+        2. 确保每条边恰好被2个三角形共享
+        3. 生成完全闭合的网格
+        
         返回格式: [{"vertices": [(x1,y1,z1), (x2,y2,z2), (x3,y3,z3)], "normal": (nx,ny,nz)}, ...]
         """
-        triangles = []
         rows, cols = top_z.shape
         
-        # 确保边界闭合（处理所有三个坐标）
+        # 确保边界闭合
         top_x, top_y, top_z = self._ensure_closed_boundary(top_x, top_y, top_z)
         bottom_x, bottom_y, bottom_z = self._ensure_closed_boundary(bottom_x, bottom_y, bottom_z)
+        
+        # Step 1: 构建唯一顶点索引表
+        vertex_dict = {}  # {(x,y,z): index}
+        vertex_list = []  # [(x,y,z), ...]
+        vertex_counter = 0
+        
+        def add_vertex(x, y, z):
+            """添加顶点到索引表,如果已存在则返回现有索引"""
+            nonlocal vertex_counter
+            # 使用浮点数容差来判断顶点是否相同
+            key = (round(x, 6), round(y, 6), round(z, 6))
+            if key not in vertex_dict:
+                vertex_dict[key] = vertex_counter
+                vertex_list.append((float(x), float(y), float(z)))
+                vertex_counter += 1
+            return vertex_dict[key]
+        
+        # Step 2: 为所有有效网格点创建顶点索引
+        top_indices = np.full((rows, cols), -1, dtype=int)
+        bottom_indices = np.full((rows, cols), -1, dtype=int)
         
         valid_top = ~(np.isnan(top_x) | np.isnan(top_y) | np.isnan(top_z))
         valid_bottom = ~(np.isnan(bottom_x) | np.isnan(bottom_y) | np.isnan(bottom_z))
         
+        for r in range(rows):
+            for c in range(cols):
+                if valid_top[r, c]:
+                    top_indices[r, c] = add_vertex(top_x[r, c], top_y[r, c], top_z[r, c])
+                if valid_bottom[r, c]:
+                    bottom_indices[r, c] = add_vertex(bottom_x[r, c], bottom_y[r, c], bottom_z[r, c])
+        
+        print(f"    [Manifold] 创建了 {len(vertex_list)} 个唯一顶点 (原始网格: {rows}x{cols}x2 = {rows*cols*2})")
+        
+        # Step 3: 生成表面三角形(只生成外表面,不生成内部重复的面)
+        triangles = []
+        
+        def add_triangle_by_indices(idx1, idx2, idx3, expected_normal):
+            """通过顶点索引添加三角形"""
+            v1, v2, v3 = vertex_list[idx1], vertex_list[idx2], vertex_list[idx3]
+            tri = self._create_triangle([v1, v2, v3], expected_normal)
+            if tri:
+                triangles.append(tri)
+        
+        # Step 4a: 生成顶面和底面三角形
+        # 策略: 遍历所有网格四边形,为顶面和底面各生成2个三角形
+        cell_count = 0
         for r in range(rows - 1):
             for c in range(cols - 1):
-                # 检查8个顶点是否都有效
-                corners_valid = (
-                    valid_top[r, c] and valid_top[r, c+1] and 
-                    valid_top[r+1, c+1] and valid_top[r+1, c] and
-                    valid_bottom[r, c] and valid_bottom[r, c+1] and 
-                    valid_bottom[r+1, c+1] and valid_bottom[r+1, c]
-                )
+                t_tl = top_indices[r, c]
+                t_tr = top_indices[r, c+1]
+                t_br = top_indices[r+1, c+1]
+                t_bl = top_indices[r+1, c]
                 
-                if not corners_valid:
+                b_tl = bottom_indices[r, c]
+                b_tr = bottom_indices[r, c+1]
+                b_br = bottom_indices[r+1, c+1]
+                b_bl = bottom_indices[r+1, c]
+                
+                # 检查顶点有效性
+                if any(idx < 0 for idx in [t_tl, t_tr, t_br, t_bl, b_tl, b_tr, b_br, b_bl]):
                     continue
                 
-                # 定义8个顶点
-                t1 = (float(top_x[r, c]), float(top_y[r, c]), float(top_z[r, c]))
-                t2 = (float(top_x[r, c+1]), float(top_y[r, c+1]), float(top_z[r, c+1]))
-                t3 = (float(top_x[r+1, c+1]), float(top_y[r+1, c+1]), float(top_z[r+1, c+1]))
-                t4 = (float(top_x[r+1, c]), float(top_y[r+1, c]), float(top_z[r+1, c]))
+                # 厚度检查
+                thickness_corners = [
+                    vertex_list[t_tl][2] - vertex_list[b_tl][2],
+                    vertex_list[t_tr][2] - vertex_list[b_tr][2],
+                    vertex_list[t_br][2] - vertex_list[b_br][2],
+                    vertex_list[t_bl][2] - vertex_list[b_bl][2]
+                ]
+                avg_thickness = sum(thickness_corners) / 4.0
+                min_thickness = min(thickness_corners)
                 
-                b1 = (float(bottom_x[r, c]), float(bottom_y[r, c]), float(bottom_z[r, c]))
-                b2 = (float(bottom_x[r, c+1]), float(bottom_y[r, c+1]), float(bottom_z[r, c+1]))
-                b3 = (float(bottom_x[r+1, c+1]), float(bottom_y[r+1, c+1]), float(bottom_z[r+1, c+1]))
-                b4 = (float(bottom_x[r+1, c]), float(bottom_y[r+1, c]), float(bottom_z[r+1, c]))
+                if avg_thickness < 0.1 or min_thickness < 0:
+                    continue
                 
-                # 顶面（分解为2个三角形）
-                triangles.extend(self._quad_to_triangles([t1, t2, t3, t4], (0, 0, 1)))
+                cell_count += 1
                 
-                # 底面（分解为2个三角形）
-                triangles.extend(self._quad_to_triangles([b1, b4, b3, b2], (0, 0, -1)))
+                # 顶面 (2个三角形)
+                add_triangle_by_indices(t_tl, t_tr, t_br, (0, 0, 1))
+                add_triangle_by_indices(t_tl, t_br, t_bl, (0, 0, 1))
                 
-                # 四个侧面
-                triangles.extend(self._quad_to_triangles([t1, b1, b2, t2], (0, -1, 0)))  # 前
-                triangles.extend(self._quad_to_triangles([t2, b2, b3, t3], (1, 0, 0)))   # 右
-                triangles.extend(self._quad_to_triangles([t3, b3, b4, t4], (0, 1, 0)))   # 后
-                triangles.extend(self._quad_to_triangles([t4, b4, b1, t1], (-1, 0, 0)))  # 左
+                # 底面 (2个三角形)
+                add_triangle_by_indices(b_tl, b_bl, b_br, (0, 0, -1))
+                add_triangle_by_indices(b_tl, b_br, b_tr, (0, 0, -1))
         
-        # 添加外围侧面以确保完全闭合
-        triangles.extend(self._add_perimeter_walls(top_x, top_y, top_z, bottom_x, bottom_y, bottom_z))
-        
-        return triangles
-    
-    def _add_perimeter_walls(self, top_x, top_y, top_z, bottom_x, bottom_y, bottom_z) -> List[Dict]:
-        """
-        为整个网格添加外围侧面，确保模型完全闭合
-        """
-        walls = []
-        rows, cols = top_z.shape
-        
+        # Step 4b: 生成四周侧面(只在边界处生成)
         # 前侧面 (row=0)
         for c in range(cols - 1):
-            if not np.isnan(top_x[0, c]) and not np.isnan(top_x[0, c+1]):
-                t1 = (float(top_x[0, c]), float(top_y[0, c]), float(top_z[0, c]))
-                t2 = (float(top_x[0, c+1]), float(top_y[0, c+1]), float(top_z[0, c+1]))
-                b1 = (float(bottom_x[0, c]), float(bottom_y[0, c]), float(bottom_z[0, c]))
-                b2 = (float(bottom_x[0, c+1]), float(bottom_y[0, c+1]), float(bottom_z[0, c+1]))
-                walls.extend(self._quad_to_triangles([t1, t2, b2, b1], (0, -1, 0)))
+            t_tl, t_tr = top_indices[0, c], top_indices[0, c+1]
+            b_tl, b_tr = bottom_indices[0, c], bottom_indices[0, c+1]
+            if all(idx >= 0 for idx in [t_tl, t_tr, b_tl, b_tr]):
+                add_triangle_by_indices(t_tl, b_tl, b_tr, (0, -1, 0))
+                add_triangle_by_indices(t_tl, b_tr, t_tr, (0, -1, 0))
         
         # 后侧面 (row=rows-1)
         for c in range(cols - 1):
-            if not np.isnan(top_x[-1, c]) and not np.isnan(top_x[-1, c+1]):
-                t1 = (float(top_x[-1, c]), float(top_y[-1, c]), float(top_z[-1, c]))
-                t2 = (float(top_x[-1, c+1]), float(top_y[-1, c+1]), float(top_z[-1, c+1]))
-                b1 = (float(bottom_x[-1, c]), float(bottom_y[-1, c]), float(bottom_z[-1, c]))
-                b2 = (float(bottom_x[-1, c+1]), float(bottom_y[-1, c+1]), float(bottom_z[-1, c+1]))
-                walls.extend(self._quad_to_triangles([t2, t1, b1, b2], (0, 1, 0)))
+            t_tl, t_tr = top_indices[rows-1, c], top_indices[rows-1, c+1]
+            b_tl, b_tr = bottom_indices[rows-1, c], bottom_indices[rows-1, c+1]
+            if all(idx >= 0 for idx in [t_tl, t_tr, b_tl, b_tr]):
+                add_triangle_by_indices(t_tr, b_tr, b_tl, (0, 1, 0))
+                add_triangle_by_indices(t_tr, b_tl, t_tl, (0, 1, 0))
         
         # 左侧面 (col=0)
         for r in range(rows - 1):
-            if not np.isnan(top_x[r, 0]) and not np.isnan(top_x[r+1, 0]):
-                t1 = (float(top_x[r, 0]), float(top_y[r, 0]), float(top_z[r, 0]))
-                t2 = (float(top_x[r+1, 0]), float(top_y[r+1, 0]), float(top_z[r+1, 0]))
-                b1 = (float(bottom_x[r, 0]), float(bottom_y[r, 0]), float(bottom_z[r, 0]))
-                b2 = (float(bottom_x[r+1, 0]), float(bottom_y[r+1, 0]), float(bottom_z[r+1, 0]))
-                walls.extend(self._quad_to_triangles([t2, t1, b1, b2], (-1, 0, 0)))
+            t_tl, t_bl = top_indices[r, 0], top_indices[r+1, 0]
+            b_tl, b_bl = bottom_indices[r, 0], bottom_indices[r+1, 0]
+            if all(idx >= 0 for idx in [t_tl, t_bl, b_tl, b_bl]):
+                add_triangle_by_indices(t_bl, b_bl, b_tl, (-1, 0, 0))
+                add_triangle_by_indices(t_bl, b_tl, t_tl, (-1, 0, 0))
         
         # 右侧面 (col=cols-1)
         for r in range(rows - 1):
-            if not np.isnan(top_x[r, -1]) and not np.isnan(top_x[r+1, -1]):
-                t1 = (float(top_x[r, -1]), float(top_y[r, -1]), float(top_z[r, -1]))
-                t2 = (float(top_x[r+1, -1]), float(top_y[r+1, -1]), float(top_z[r+1, -1]))
-                b1 = (float(bottom_x[r, -1]), float(bottom_y[r, -1]), float(bottom_z[r, -1]))
-                b2 = (float(bottom_x[r+1, -1]), float(bottom_y[r+1, -1]), float(bottom_z[r+1, -1]))
-                walls.extend(self._quad_to_triangles([t1, t2, b2, b1], (1, 0, 0)))
+            t_tr, t_br = top_indices[r, cols-1], top_indices[r+1, cols-1]
+            b_tr, b_br = bottom_indices[r, cols-1], bottom_indices[r+1, cols-1]
+            if all(idx >= 0 for idx in [t_tr, t_br, b_tr, b_br]):
+                add_triangle_by_indices(t_tr, b_tr, b_br, (1, 0, 0))
+                add_triangle_by_indices(t_tr, b_br, t_br, (1, 0, 0))
         
-        return walls
+        print(f"    [Manifold] 处理了 {cell_count} 个网格单元, 生成 {len(triangles)} 个三角形")
+        
+        # 验证流形性
+        manifold_check = self._check_manifold_quality(triangles)
+        if manifold_check['is_manifold']:
+            print(f"    [Manifold] [OK] 网格为流形 (所有边被2个三角形共享)")
+        else:
+            print(f"    [Manifold] [WARNING] 非流形边: {manifold_check['non_manifold_edges']}")
+        
+        return triangles
+    
+    def _check_manifold_quality(self, triangles: List[Dict]) -> Dict[str, Any]:
+        """
+        检查网格流形性质量
+        
+        Returns:
+            {
+                'is_manifold': bool,
+                'non_manifold_edges': int,
+                'edge_stats': {share_count: edge_count}
+            }
+        """
+        from collections import defaultdict
+        
+        edge_count = defaultdict(int)
+        
+        for tri in triangles:
+            vertices = tri['vertices']
+            # 对每条边计数(使用顶点坐标的有序对)
+            edges = [
+                tuple(sorted([vertices[0], vertices[1]], key=lambda v: (v[0], v[1], v[2]))),
+                tuple(sorted([vertices[1], vertices[2]], key=lambda v: (v[0], v[1], v[2]))),
+                tuple(sorted([vertices[2], vertices[0]], key=lambda v: (v[0], v[1], v[2])))
+            ]
+            for edge in edges:
+                edge_count[edge] += 1
+        
+        # 统计边的共享情况
+        edge_stats = defaultdict(int)
+        for count in edge_count.values():
+            edge_stats[count] += 1
+        
+        non_manifold = sum(cnt for share_count, cnt in edge_stats.items() if share_count != 2)
+        
+        return {
+            'is_manifold': non_manifold == 0,
+            'non_manifold_edges': non_manifold,
+            'edge_stats': dict(edge_stats),
+            'total_edges': len(edge_count)
+        }
+    
+    def _add_perimeter_walls(self, top_x, top_y, top_z, bottom_x, bottom_y, bottom_z) -> List[Dict]:
+        """
+        [已废弃] 为整个网格添加外围侧面
+        
+        此方法已被新的流形网格生成算法取代,不再需要单独添加外围墙壁。
+        新算法通过顶点索引表自动处理所有面,确保流形性。
+        """
+        return []  # 返回空列表,不再生成重复的外围墙壁
     
     def _quad_to_triangles(self, quad: List[Tuple], expected_normal: Tuple) -> List[Dict]:
         """
@@ -718,7 +808,7 @@ class STLExporter(BaseExporter):
             verify_num = struct.unpack('<I', f.read(4))[0]
             print(f"  [验证] 读取到三角形数量: {verify_num}")
             if verify_num != len(triangles):
-                print(f"  [警告] ⚠️  写入验证失败！期望 {len(triangles)}, 读取 {verify_num}")
+                print(f"  [警告] [WARNING] 写入验证失败!期望 {len(triangles)}, 读取 {verify_num}")
     
     def _write_ascii_stl(self, filepath: str, triangles: List[Dict]):
         """写入ASCII STL文件"""

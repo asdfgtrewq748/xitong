@@ -32,101 +32,192 @@ class LayeredSTLExporter:
         self.stl_exporter = STLExporter()
         self.temp_files = []
     
-    def _fix_layer_overlap(self, layers: List[Dict], min_gap: float = 0.5):
+    def _fix_layer_overlap(self, layers: List[Dict], min_gap: float = 0.5, min_thickness: float = 0.5):
         """
-        检测并修复层间重叠问题
+        检测并修复层间重叠问题 - 按修改建议优化版本
         
         Args:
-            layers: 地层列表（从上到下）
+            layers: 地层列表（应为从底到顶排列）
             min_gap: 最小层间间隙（米），默认0.5米
+            min_thickness: 最小层厚（米），默认0.5米
         """
         import numpy as np
         
-        overlap_count = 0
-        fix_count = 0
+        if not layers:
+            return
         
-        for i in range(len(layers) - 1):
-            upper_layer = layers[i]
-            lower_layer = layers[i + 1]
+        # 🔧 关键修复1: 确保layers是从底到顶排序（按bottom_surface平均值）
+        print(f"[Fix Overlap] 开始修复层间重叠，共{len(layers)}层")
+        
+        # 首先按底面平均高程排序
+        layers.sort(key=lambda l: float(np.nanmean(
+            l.get('bottom_surface') if 'bottom_surface' in l else 
+            l.get('grid_z_bottom') if 'grid_z_bottom' in l else 
+            l.get('bottom_surface_z', 0)
+        )))
+        
+        print(f"[Fix Overlap] 已按底面高程排序（从底到顶）")
+        
+        # 🔧 关键修复2: 逐点计算需要抬升量，使用全场最大值
+        for idx in range(len(layers) - 1):
+            lower = layers[idx]
+            upper = layers[idx + 1]
             
-            # 获取上层底面和下层顶面
-            upper_bottom = upper_layer.get("bottom_surface_z") or upper_layer.get("grid_z_bottom")
-            lower_top = lower_layer.get("top_surface_z") or lower_layer.get("grid_z")
+            # 获取下层顶面
+            lower_top = lower.get('top_surface')
+            if lower_top is None:
+                lower_top = lower.get('grid_z')
+            if lower_top is None:
+                lower_top = lower.get('top_surface_z')
             
-            if upper_bottom is None or lower_top is None:
+            # 获取上层底面
+            upper_bottom = upper.get('bottom_surface')
+            if upper_bottom is None:
+                upper_bottom = upper.get('grid_z_bottom')
+            if upper_bottom is None:
+                upper_bottom = upper.get('bottom_surface_z')
+            
+            if lower_top is None or upper_bottom is None:
                 continue
             
-            upper_bottom = np.array(upper_bottom)
-            lower_top = np.array(lower_top)
+            lower_top = np.asarray(lower_top, dtype=float)
+            upper_bottom = np.asarray(upper_bottom, dtype=float)
             
-            # 计算层间间隙（正值表示有间隙，负值表示重叠）
-            gap = lower_top - upper_bottom
+            # 要求: upper_bottom >= lower_top + min_gap
+            required_bottom = lower_top + float(min_gap)
             
-            # 详细统计间隙分布
-            valid_gap_mask = ~(np.isnan(gap))
-            if valid_gap_mask.sum() == 0:
-                continue
-                
-            gap_values = gap[valid_gap_mask]
-            min_gap_value = np.min(gap_values)
-            max_gap_value = np.max(gap_values)
-            mean_gap_value = np.mean(gap_values)
+            # 逐点计算需要抬升多少
+            delta = required_bottom - upper_bottom
+            # 只关心"需要抬高"的地方，其余置0
+            delta = np.where(delta > 0.0, delta, 0.0)
             
-            # 统计重叠区域
-            overlap_mask = gap < 0
-            overlap_count_points = overlap_mask.sum()
-            overlap_percent = (overlap_count_points / valid_gap_mask.sum()) * 100 if valid_gap_mask.sum() > 0 else 0
+            # 统一采用"全场最大需要抬升量"来抬这一层，避免层内扭曲
+            adjust = float(np.nanmax(delta))
             
-            upper_name = upper_layer.get("name", f"Layer_{i}")
-            lower_name = lower_layer.get("name", f"Layer_{i+1}")
+            lower_name = lower.get('name', f'Layer_{idx}')
+            upper_name = upper.get('name', f'Layer_{idx+1}')
             
-            # 显示详细信息
-            print(f"    [{upper_name} → {lower_name}]")
-            print(f"      间隙范围: [{min_gap_value:.3f}, {max_gap_value:.3f}]m (均值: {mean_gap_value:.3f}m)")
+            if adjust <= 0:
+                print(f"  [{lower_name} → {upper_name}] 无需调整，间隙充足")
+                continue  # 不需要调整
             
-            if min_gap_value < 0:
-                overlap_count += 1
-                max_overlap = -min_gap_value
-                print(f"      ⚠️  重叠情况: 最大重叠{max_overlap:.3f}m, {overlap_count_points}个点({overlap_percent:.1f}%)重叠")
+            print(f"  [{lower_name} → {upper_name}] 检测到重叠，需要上抬 {adjust:.3f}m")
+            
+            # 抬升上层的底面和顶面
+            upper_bottom_new = upper_bottom + adjust
+            
+            if 'bottom_surface' in upper:
+                upper['bottom_surface'] = upper_bottom_new
+            if 'grid_z_bottom' in upper:
+                upper['grid_z_bottom'] = upper_bottom_new
+            if 'bottom_surface_z' in upper:
+                upper['bottom_surface_z'] = upper_bottom_new
+            
+            # 同时抬升顶面
+            upper_top = upper.get('top_surface')
+            if upper_top is None:
+                upper_top = upper.get('grid_z')
+            if upper_top is None:
+                upper_top = upper.get('top_surface_z')
+            
+            if upper_top is not None:
+                upper_top = np.asarray(upper_top, dtype=float) + adjust
+                if 'top_surface' in upper:
+                    upper['top_surface'] = upper_top
+                if 'grid_z' in upper:
+                    upper['grid_z'] = upper_top
+                if 'top_surface_z' in upper:
+                    upper['top_surface_z'] = upper_top
+            
+            # 🔧 关键修复3: 兜底保证上层内部厚度不小于min_thickness
+            upper_top_final = upper.get('top_surface', upper.get('grid_z', upper.get('top_surface_z')))
+            upper_bottom_final = upper.get('bottom_surface', upper.get('grid_z_bottom', upper.get('bottom_surface_z')))
+            
+            if upper_top_final is not None and upper_bottom_final is not None:
+                upper_top_final = np.asarray(upper_top_final, dtype=float)
+                upper_bottom_final = np.asarray(upper_bottom_final, dtype=float)
                 
-                # 修复策略：确保所有点都有最小间隙
-                # 方法：将下层整体下移，使最严重的重叠点也有min_gap的间隙
-                adjustment = max_overlap + min_gap
-                lower_top_adjusted = lower_top - adjustment
+                # 确保每个位置厚度 >= min_thickness
+                upper_top_final = np.maximum(
+                    upper_top_final,
+                    upper_bottom_final + float(min_thickness)
+                )
                 
-                # 更新下层数据
-                if "top_surface_z" in lower_layer:
-                    lower_layer["top_surface_z"] = lower_top_adjusted.tolist()
-                if "grid_z" in lower_layer:
-                    lower_layer["grid_z"] = lower_top_adjusted.tolist()
-                
-                # 同时调整底面
-                if "bottom_surface_z" in lower_layer:
-                    bottom_z = np.array(lower_layer["bottom_surface_z"])
-                    lower_layer["bottom_surface_z"] = (bottom_z - adjustment).tolist()
-                if "grid_z_bottom" in lower_layer:
-                    bottom_z = np.array(lower_layer["grid_z_bottom"])
-                    lower_layer["grid_z_bottom"] = (bottom_z - adjustment).tolist()
-                
-                # 厚度不变（整层平移）
-                
-                fix_count += 1
-                
-                # 验证修复后的间隙
-                new_gap = lower_top_adjusted - upper_bottom
-                new_min = np.nanmin(new_gap)
-                new_max = np.nanmax(new_gap)
-                print(f"      ✅ 修复: {lower_name}整层下移{adjustment:.3f}m")
-                print(f"      新间隙范围: [{new_min:.3f}, {new_max:.3f}]m")
-            else:
-                print(f"      ✓ 无重叠")
+                if 'top_surface' in upper:
+                    upper['top_surface'] = upper_top_final
+                if 'grid_z' in upper:
+                    upper['grid_z'] = upper_top_final
+                if 'top_surface_z' in upper:
+                    upper['top_surface_z'] = upper_top_final
+            
+            # 输出调整后的Z范围
+            final_lower_top_min = float(np.nanmin(lower_top))
+            final_lower_top_max = float(np.nanmax(lower_top))
+            final_upper_bottom_min = float(np.nanmin(upper_bottom_new))
+            final_upper_bottom_max = float(np.nanmax(upper_bottom_new))
+            actual_gap_min = final_upper_bottom_min - final_lower_top_max
+            
+            print(f"    调整后: 下层顶面 [{final_lower_top_min:.2f}, {final_lower_top_max:.2f}]m")
+            print(f"            上层底面 [{final_upper_bottom_min:.2f}, {final_upper_bottom_max:.2f}]m")
+            print(f"            实际最小间隙: {actual_gap_min:.3f}m")
         
-        if overlap_count > 0:
-            print(f"  [层间检测] 发现 {overlap_count} 处重叠，已修复 {fix_count} 处")
-        else:
-            print(f"  [层间检测] 无重叠，层间关系正常")
+        print(f"[Fix Overlap] 层间重叠修复完成")
     
-    def export_layered(self, data: Dict[str, Any], output_zip_path: str, 
+    def _create_top_plate_layer(self, layers: List[Dict], top_plate_thickness: float = 10.0) -> Dict:
+        """
+        创建顶板层,填平最顶层的曲面
+        
+        Args:
+            layers: 地层列表
+            top_plate_thickness: 顶板厚度(m),默认10m
+        
+        Returns:
+            顶板层数据字典
+        """
+        import numpy as np
+        
+        if not layers:
+            raise ValueError("无法创建顶板:地层列表为空")
+        
+        # 找到最顶层(地层列表是从下到上排列,最后一个是最顶层)
+        top_layer = layers[-1]
+        
+        # 获取顶层的顶面数据
+        grid_x = np.array(top_layer.get("grid_x"))
+        grid_y = np.array(top_layer.get("grid_y"))
+        
+        # 获取顶层的顶面高程
+        if "top_surface_z" in top_layer:
+            top_surface_z = np.array(top_layer["top_surface_z"])
+        elif "grid_z" in top_layer:
+            top_surface_z = np.array(top_layer["grid_z"])
+        else:
+            raise ValueError("最顶层缺少高程数据")
+        
+        # 找到最高点
+        max_z = np.nanmax(top_surface_z)
+        
+        print(f"  [顶板生成] 最顶层: {top_layer.get('name', '未命名')}")
+        print(f"  [顶板生成] 最高点: {max_z:.2f}m")
+        print(f"  [顶板生成] 顶板厚度: {top_plate_thickness:.2f}m")
+        
+        # 创建顶板层:
+        # - 底面: 跟随最顶层曲面
+        # - 顶面: 统一平面,高度为最高点+顶板厚度
+        top_plate_layer = {
+            "name": "顶板",
+            "grid_x": grid_x.copy(),
+            "grid_y": grid_y.copy(),
+            "bottom_surface_z": top_surface_z.copy(),  # 底面跟随曲面
+            "top_surface_z": np.full_like(top_surface_z, max_z + top_plate_thickness)  # 顶面平坦
+        }
+        
+        print(f"  [顶板生成] 底面高程范围: [{np.nanmin(top_surface_z):.2f}, {max_z:.2f}]m")
+        print(f"  [顶板生成] 顶面高程: {max_z + top_plate_thickness:.2f}m (平面)")
+        
+        return top_plate_layer
+    
+    def export_layered(self, data: Dict[str, Any], output_zip_path: str,
                       options: Optional[Dict[str, Any]] = None) -> str:
         """
         分层导出地质模型为多个STL文件并打包
@@ -138,7 +229,9 @@ class LayeredSTLExporter:
                 - format: 'binary' 或 'ascii'
                 - downsample_factor: 降采样倍数
                 - normalize_coords: 是否坐标归一化
-                - include_fish_script: 是否生成FISH脚本（默认True）
+                - include_fish_script: 是否生成FISH脚本(默认True)
+                - add_top_plate: 是否添加顶板层(默认True)
+                - top_plate_thickness: 顶板厚度(m,默认10m)
         
         Returns:
             str: 输出ZIP文件的路径
@@ -150,7 +243,26 @@ class LayeredSTLExporter:
         if not layers:
             raise ValueError("没有可导出的地层数据")
         
-        print(f"[Layered STL Export] 开始分层导出 {len(layers)} 个地层")
+        print(f"[Layered STL Export] 开始处理 {len(layers)} 个地层")
+        
+        # 🔧 步骤1: 先修复层间重叠（在添加顶板之前）
+        print("  [步骤1] 检查并修复层间重叠...")
+        min_gap = options.get("min_layer_gap", 0.5)
+        min_thickness = options.get("min_layer_thickness", 0.5)
+        self._fix_layer_overlap(layers, min_gap=min_gap, min_thickness=min_thickness)
+        
+        # 🔧 步骤2: 添加顶板层（在修复重叠之后）
+        add_top_plate = options.get("add_top_plate", True)
+        if add_top_plate:
+            top_plate_thickness = options.get("top_plate_thickness", 10.0)
+            print(f"  [步骤2] 添加顶板层 (厚度: {top_plate_thickness}m)")
+            top_plate_layer = self._create_top_plate_layer(layers, top_plate_thickness)
+            # 将顶板追加到列表末尾(因为地层是从下到上排列)
+            layers.append(top_plate_layer)
+            # 更新data中的layers引用
+            data["layers"] = layers
+        
+        print(f"[Layered STL Export] 准备导出 {len(layers)} 个地层（含顶板）")
         
         # 创建临时目录
         temp_dir = os.path.join(os.path.dirname(output_zip_path), "_temp_stl_export")
@@ -172,15 +284,11 @@ class LayeredSTLExporter:
         # 预先计算全局坐标偏移量（确保所有层使用相同的坐标系）
         global_offset = None
         if options.get("normalize_coords", True):
-            print("  [预计算] 正在计算全局坐标偏移量...")
+            print("  [步骤3] 计算全局坐标偏移量...")
             global_offset = self.stl_exporter._calculate_coord_offset(layers, True)
             print(f"  [全局偏移] X={global_offset[0]:.2f}, Y={global_offset[1]:.2f}, Z={global_offset[2]:.2f}")
         
-        # 检测并修复层间重叠
-        print("  [层间检测] 检查相邻层重叠情况...")
-        self._fix_layer_overlap(layers, options.get("min_layer_gap", 0.5))
-        
-        # 逐层导出
+        # 🔧 步骤4: 逐层导出STL文件
         for layer_idx, layer in enumerate(layers):
             layer_name = layer.get("name", f"Layer_{layer_idx}")
             # 转换为英文文件名（FLAC3D对中文支持不好）
@@ -214,10 +322,10 @@ class LayeredSTLExporter:
                     "file_size_mb": round(file_size / 1024 / 1024, 2)
                 })
                 
-                print(f"    ✅ 成功 ({file_size / 1024:.1f} KB)")
+                print(f"    [OK] 成功 ({file_size / 1024:.1f} KB)")
                 
             except Exception as e:
-                print(f"    ❌ 失败: {e}")
+                print(f"    [ERROR] 失败: {e}")
                 manifest_data["layers"].append({
                     "index": layer_idx,
                     "name": layer_name,
@@ -263,7 +371,7 @@ class LayeredSTLExporter:
         shutil.rmtree(temp_dir)
         
         zip_size = os.path.getsize(output_zip_path)
-        print(f"[Layered STL Export] ✅ 完成！")
+        print(f"[Layered STL Export] [DONE] 完成！")
         print(f"  - 导出地层: {len(exported_files)}/{len(layers)}")
         print(f"  - 文件大小: {zip_size / 1024 / 1024:.2f} MB")
         print(f"  - 保存位置: {output_zip_path}")
@@ -569,8 +677,34 @@ end
 
 """
         
-        # 为每层生成导入命令（使用新的zone分组方法）
-        for layer_info in manifest['layers']:
+        # 检查是否有顶板层（第一层名称包含"顶板"）
+        has_top_plate = False
+        if manifest['layers'] and manifest['layers'][0].get('filename'):
+            first_layer_name = manifest['layers'][0]['name']
+            if '顶板' in first_layer_name or 'layer' in manifest['layers'][0].get('name_english', '').lower():
+                has_top_plate = True
+        
+        # 如果有顶板层,添加特别说明
+        if has_top_plate:
+            last_layer_num = len(manifest['layers'])
+            script += f"""; ==========================================
+;   🛡️ 顶板层说明 (Layer {last_layer_num:02d})
+; ==========================================
+; 最后一层为自动生成的顶板层,具有以下特点:
+;   • 底面:跟随最顶层地质体的曲面起伏
+;   • 顶面:完全平坦的水平面
+;   • 用途:便于施加上覆载荷和设置顶部边界条件
+;
+; 推荐设置:
+;   1. 材料属性:与最顶层相同或稍硬(代表上覆岩层)
+;   2. 边界条件:固定顶面(zone face apply velocity-z 0 range group 'L{last_layer_num:02d}_*' face top)
+;   3. 载荷施加:在顶面施加均布载荷(zone face apply stress-zz [压力值] range group 'L{last_layer_num:02d}_*' face top)
+; ==========================================
+
+"""
+        
+        # 为每层生成导入命令
+        for idx, layer_info in enumerate(manifest['layers']):
             if not layer_info.get('filename'):
                 continue
             
@@ -581,13 +715,109 @@ end
             group_name = f"L{layer_num:02d}_{layer_name_en}"
             geo_set_name = f"geo_{layer_num:02d}"
             
-            script += f"""; --- Layer {layer_num:02d}: {layer_name_cn} ---
+            # 为顶板层添加特殊标记
+            if idx == 0 and has_top_plate:
+                script += f"""; --- Layer {layer_num:02d}: {layer_name_cn} (顶板层 - 顶面平坦) ---
 @prepare_id_range
 geometry import '{filename}' set '{geo_set_name}'
 geometry set '{geo_set_name}' triangulate
 zone generate from-geometry set '{geo_set_name}' maximum-edge @mesh_size
 zone group '{group_name}' range id @id_lower 100000000
 
+"""
+            else:
+                script += f"""; --- Layer {layer_num:02d}: {layer_name_cn} ---
+@prepare_id_range
+geometry import '{filename}' set '{geo_set_name}'
+geometry set '{geo_set_name}' triangulate
+zone generate from-geometry set '{geo_set_name}' maximum-edge @mesh_size
+zone group '{group_name}' range id @id_lower 100000000
+
+"""
+        
+        # 根据是否有顶板添加不同的后续步骤
+        if has_top_plate:
+            script += """
+; ==========================================
+;   3. 建立层间连接（关键步骤）
+; ==========================================
+; 虽然各层有物理间隙，但需要建立力学连接
+zone attach by-face
+
+; ==========================================
+;   4. 顶板层专用配置（推荐）
+; ==========================================
+; 以下为顶板层的典型应用示例，根据实际需求选择
+
+; --- 4.1 施加上覆载荷（均布压力）---
+; 模拟上覆岩层自重，假设埋深500m，岩石密度2500kg/m³
+fish define apply_overburden_load
+    ; 计算上覆压力: P = ρ × g × h
+    local depth = 500.0        ; 埋深(m)
+    local density = 2500.0     ; 密度(kg/m³)
+    local gravity = 9.81       ; 重力加速度(m/s²)
+    local pressure = density * gravity * depth  ; 压力(Pa)
+    
+    ; 在顶板顶面施加压力
+    command
+        zone face apply stress-zz [pressure] range group 'L01_*' face top
+    end_command
+    
+    io.out('已在顶板顶面施加上覆载荷: ' + string(pressure/1e6) + ' MPa')
+end
+; 执行载荷施加（取消下一行注释）
+; [@apply_overburden_load]
+
+; --- 4.2 固定顶板顶面（边界条件）---
+; 如果不需要施加载荷，而是固定顶面，使用以下命令
+; zone face apply velocity-z 0 range group 'L01_*' face top
+
+; --- 4.3 查看顶板层信息---
+fish define show_top_plate_info
+    ; 统计顶板zone数量
+    local count = 0
+    loop foreach z zone.list
+        if string.find(zone.group(z), 'L01_') # 0 then
+            count = count + 1
+        end_if
+    end_loop
+    io.out('顶板层zone数量: ' + string(count))
+end
+[@show_top_plate_info]
+
+; ==========================================
+;   5. 检查并显示结果
+; ==========================================
+"""
+        else:
+            script += """
+; ==========================================
+;   3. 建立层间连接（关键步骤）
+; ==========================================
+; 虽然各层有物理间隙，但需要建立力学连接
+; 选择以下方法之一：
+
+; --- 方法A：刚性连接（推荐，假设完整接触）---
+; 将所有相邻层的接触面粘合在一起
+; 优点：简单、稳定，适合大多数情况
+zone attach by-face
+
+; --- 方法B：柔性接触（可选，适合软弱夹层）---
+; 如果需要模拟层间滑移或分离，使用接触单元
+; 注释掉上面的 zone attach，改用以下代码：
+;
+; fish define setup_interfaces
+;   ; 为每对相邻层创建接触界面
+;   zone interface create by-face
+;   ; 设置接触刚度（根据实际地质条件调整）
+;   zone interface property stiffness-normal=1e10 stiffness-shear=1e9
+;   zone interface property friction=30.0 cohesion=0.5e6
+; end
+; [@setup_interfaces]
+
+; ==========================================
+;   4. 检查并显示结果
+; ==========================================
 """
         
         script += """
@@ -615,7 +845,11 @@ zone attach by-face
 ; end
 ; [@setup_interfaces]
 
-
+; ==========================================
+;   4. 检查并显示结果
+; ==========================================
+; 显示模型信息
+model list information
 
 ; ==========================================
 ;   5. 保存模型

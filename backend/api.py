@@ -409,13 +409,16 @@ class Api:
 
             def interpolation_wrapper(x, y, z, xi_flat, yi_flat):
                 """包装插值函数,增加异常处理"""
+                method = params['method'].lower()
+                print(f"[API] 🎯 用户选择的插值方法: {method}")
                 try:
-                    return self._perform_interpolation(
-                        x, y, z, xi_flat, yi_flat,
-                        params['method'].lower()
+                    result = self._perform_interpolation(
+                        x, y, z, xi_flat, yi_flat, method
                     )
+                    print(f"[API] ✅ 插值成功: method={method}, 结果形状={result.shape if hasattr(result, 'shape') else len(result)}")
+                    return result
                 except Exception as e:
-                    print(f"[警告] 插值失败: {e}, 使用最近邻方法")
+                    print(f"[API] ⚠️ 插值失败: {e}, 使用最近邻方法")
                     return self._perform_interpolation(
                         x, y, z, xi_flat, yi_flat, 'nearest'
                     )

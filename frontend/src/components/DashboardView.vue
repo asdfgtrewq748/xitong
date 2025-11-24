@@ -150,7 +150,7 @@
           
           <div v-if="!hasGlobalData" class="empty-state">
             <el-empty description="暂无全局钻孔数据，请先导入原始岩层数据">
-              <el-button type="primary" size="large" @click="showImportDialog = true">
+              <el-button type="primary" size="large" @click="triggerFileSelect">
                 <el-icon style="margin-right: 8px;"><Upload /></el-icon>
                 导入钻孔数据
               </el-button>
@@ -182,7 +182,7 @@
             </div>
             
             <div class="action-buttons">
-              <el-button type="primary" @click="showImportDialog = true">
+              <el-button type="primary" @click="triggerFileSelect">
                 <el-icon style="margin-right: 6px;"><RefreshRight /></el-icon>
                 重新导入
               </el-button>
@@ -314,16 +314,8 @@
     </el-row>
 
     <!-- 导入数据对话框 -->
-    <el-dialog v-model="showImportDialog" title="导入钻孔数据" width="600px">
-      <div class="import-section">
-        <input ref="boreholeFileInput" type="file" multiple accept=".csv" class="hidden-input" @change="handleBoreholeImport" />
-        <el-button type="primary" size="large" @click="$refs.boreholeFileInput?.click()" :loading="isImporting">
-          <el-icon style="margin-right: 8px;"><UploadFilled /></el-icon>
-          选择钻孔 CSV 文件
-        </el-button>
-        <p class="import-tip">💡 支持批量选择多个钻孔 CSV 文件，自动过滤关键层计算字段，保留原始岩层数据</p>
-      </div>
-    </el-dialog>
+    <!-- 隐藏的文件输入框 -->
+    <input ref="boreholeFileInput" type="file" multiple accept=".csv" class="hidden-input" @change="handleBoreholeImport" />
     
     <!-- 数据预览对话框 -->
     <el-dialog v-model="showPreviewDialog" title="全局数据预览" width="90%" top="5vh">
@@ -604,13 +596,17 @@ const stats = ref({
   modeling_record_count: 0
 });
 
-const showImportDialog = ref(false);
 const showPreviewDialog = ref(false);
 const showQuickStart = ref(false);
 const showFAQ = ref(false);
 const isImporting = ref(false);
 const activeStep = ref(0);
 const boreholeFileInput = ref(null);
+
+// 直接触发文件选择
+const triggerFileSelect = () => {
+  boreholeFileInput.value?.click();
+};
 
 // 图表相关
 const chartType = ref('bar');
@@ -723,7 +719,6 @@ const handleBoreholeImport = async (event) => {
     }
     
     ElMessage.success(message);
-    showImportDialog.value = false;
   } catch (error) {
     console.error('导入钻孔数据失败:', error);
     ElMessage.error(error.message || '导入失败');

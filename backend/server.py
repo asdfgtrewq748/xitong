@@ -120,21 +120,11 @@ def _get_records_table_or_500():
 
 
 def _get_records_table_safe():
-    """安全获取 records 表，如果失败返回 None
-    
-    Returns:
-        Table 对象或 None（如果数据库未初始化）
-    """
+    """安全获取 records 表，如果失败返回 None"""
     try:
         return get_records_table()
-    except RuntimeError as e:
-        print(f"[WARNING] 获取 records 表失败: {e}")
+    except RuntimeError:
         return None
-    except Exception as e:
-        print(f"[ERROR] 获取 records 表时发生未预期错误: {e}")
-        return None
-
-
 def _serialize_row(row: Dict[str, Any], columns: List[str]) -> Dict[str, Any]:
     payload = {}
     for column in columns:
@@ -366,7 +356,7 @@ class ContourRequest(BaseModel):
     z_col: str
     method: str
     seams: Optional[List[str]] = None
-    resolution: Optional[int] = 80
+    resolution: Optional[int] = 150  # 提高默认分辨率以获得更精细的模型
 
 
 class BlockModelRequest(BaseModel):
@@ -376,7 +366,7 @@ class BlockModelRequest(BaseModel):
     seam_col: str
     selected_seams: List[str]
     method: str
-    resolution: Optional[int] = 80
+    resolution: Optional[int] = 150  # 提高默认分辨率以获得更精细的模型
     base_level: Optional[float] = 0
     gap: Optional[float] = 0
 
@@ -861,7 +851,8 @@ async def generate_contour(data: ContourRequest):
     y = y.iloc[:valid_length]
     z = z.iloc[:valid_length]
 
-    resolution = max(int(data.resolution or 80), 20)
+    # 分辨率限制: 最小30,最大300,默认150
+    resolution = max(min(int(data.resolution or 150), 300), 30)
     xi = np.linspace(x.min(), x.max(), resolution)
     yi = np.linspace(y.min(), y.max(), resolution)
     XI, YI = np.meshgrid(xi, yi)
@@ -998,7 +989,7 @@ async def generate_block_model(payload: BlockModelRequest):
             thickness_col=payload.thickness_col,
             selected_seams=payload.selected_seams,
             method_callable=interpolation_wrapper,
-            resolution=int(payload.resolution or 80),
+            resolution=int(payload.resolution or 150),
             base_level=float(payload.base_level or 0.0),
             gap_value=float(payload.gap or 0.0),
         )
@@ -2846,6 +2837,23 @@ async def export_model_endpoint(payload: ExportRequest):
             print(f"[Export] 插值失败,回退到nearest: {e}")
             return griddata((x, y), z, (xi_flat, yi_flat), method='nearest')
 
+    export_type = (payload.export_type or 'dxf').lower()
+    is_grid_export = export_type in ('flac3d', 'f3grid')
+    requested_gap = None
+    if payload.gap is not None:
+        try:
+            requested_gap = float(payload.gap)
+        except (TypeError, ValueError):
+            requested_gap = None
+
+    if is_grid_export:
+        gap_for_modeling = 0.0
+        min_gap_for_order = 0.0
+        print("[Export] Grid export detected -> forcing gap/min_gap to 0.0 for seamless layers")
+    else:
+        gap_for_modeling = float(requested_gap or 0.0)
+        min_gap_for_order = float(requested_gap if requested_gap is not None else 0.5)
+
     # 生成块体模型
     try:
         block_models_objs, skipped, (XI, YI) = build_block_models(
@@ -2856,9 +2864,9 @@ async def export_model_endpoint(payload: ExportRequest):
             thickness_col=payload.thickness_col,
             selected_seams=payload.selected_seams,
             method_callable=interpolation_wrapper,
-            resolution=payload.resolution or 80,
+            resolution=payload.resolution or 150,
             base_level=payload.base_level or 0,
-            gap_value=payload.gap or 0,
+            gap_value=gap_for_modeling,
         )
     except ValueError as e:
         # 常见的建模输入错误（例如数据点不足、网格不匹配等）用 400 返回，并将原始错误消息暴露给前端
@@ -2877,6 +2885,29 @@ async def export_model_endpoint(payload: ExportRequest):
 
     if not block_models_objs:
         raise HTTPException(status_code=400, detail="未能生成模型数据, 无法导出")
+    
+    # 🔧 关键步骤: 逐列强制排序,消除层间重叠
+    from coal_seam_blocks.modeling import check_vertical_order, enforce_columnwise_order
+    
+    print("\n" + "="*80)
+    print("🔍 步骤1: 检查层间垂向顺序(修复前)")
+    print("="*80)
+    check_vertical_order(block_models_objs)
+    
+    print("="*80)
+    print("🔧 步骤2: 逐列强制排序修复")
+    print("="*80)
+    enforce_columnwise_order(
+        block_models_objs,
+        min_gap=min_gap_for_order,
+        min_thickness=0.5
+    )
+    
+    print("="*80)
+    print("✅ 步骤3: 验证修复结果")
+    print("="*80)
+    check_vertical_order(block_models_objs)
+    print("="*80 + "\n")
 
     export_data = {"layers": []}
     for model in block_models_objs:
@@ -2901,21 +2932,25 @@ async def export_model_endpoint(payload: ExportRequest):
             print(f"[Export] {model.name}: 使用底板计算厚度")
             thickness = model.top_surface - bottom_surface
         
-        export_data["layers"].append({
+        layer_payload = {
             "name": model.name,
             "grid_x": XI,
             "grid_y": YI,
+            "top_surface_z": model.top_surface,
+            "bottom_surface_z": bottom_surface,
+            # 兼容旧导出器字段
             "grid_z": model.top_surface,
             "grid_z_bottom": bottom_surface,
             "thickness": thickness,
-        })
+        }
+        export_data["layers"].append(layer_payload)
 
     # 确定导出器
-    export_type = (payload.export_type or 'dxf').lower()
     from exporters.dxf_exporter import DXFExporter
     from exporters.flac3d_exporter import FLAC3DExporter
     from exporters.stl_exporter import STLExporter
     from exporters.layered_stl_exporter import LayeredSTLExporter
+    from exporters.tetra_f3grid_exporter import TetraF3GridExporter
     from datetime import datetime
     import traceback
 
@@ -2925,6 +2960,8 @@ async def export_model_endpoint(payload: ExportRequest):
         if any('\u4e00' <= c <= '\u9fff' for c in filename):
             # 包含中文，使用英文默认名
             if export_type == 'flac3d':
+                ext = 'dat'
+            elif export_type == 'f3grid':
                 ext = 'f3grid'
             elif export_type in ['stl', 'stl_single']:
                 ext = 'stl'
@@ -2937,6 +2974,8 @@ async def export_model_endpoint(payload: ExportRequest):
             print(f"[Export] 检测到中文文件名，自动转换为: {filename}")
     else:
         if export_type == 'flac3d':
+            ext = 'dat'
+        elif export_type == 'f3grid':
             ext = 'f3grid'
         elif export_type in ['stl', 'stl_single']:
             ext = 'stl'
@@ -2963,8 +3002,18 @@ async def export_model_endpoint(payload: ExportRequest):
             final_path = exporter.export(export_data, output_path, options=export_options)
         elif export_type == 'flac3d':
             exporter = FLAC3DExporter()
-            print(f"[Export] 开始导出 FLAC3D 格式，输出路径: {output_path}")
+            print(f"[Export] 开始导出 FLAC3D DAT 脚本，输出路径: {output_path}")
             final_path = exporter.export(export_data, output_path, options=export_options)
+        elif export_type == 'f3grid':
+            exporter = TetraF3GridExporter()
+            print(f"[Export] 开始导出 FLAC3D 原生网格格式(.f3grid, T4), 输出路径: {output_path}")
+
+            tet_payload = {
+                "block_models": block_models_objs,
+                "grid_x": XI,
+                "grid_y": YI,
+            }
+            final_path = exporter.export(tet_payload, output_path, options=export_options)
         elif export_type in ['stl', 'stl_single']:
             # 单文件STL导出（所有地层合并）
             exporter = STLExporter()

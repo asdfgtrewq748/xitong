@@ -64,6 +64,169 @@ def interpolate_seam(x_points: np.ndarray, y_points: np.ndarray, thickness: np.n
     return np.clip(values, 0.0, None)
 
 
+def check_vertical_order(block_models: List[BlockModel]) -> Dict[str, int]:
+    """
+    检查相邻层在每个网格点的垂向顺序
+    
+    检查相邻层是否存在 upper.bottom < lower.top 的情况(即重叠)
+    
+    Args:
+        block_models: BlockModel列表,应为从底到顶排序
+        
+    Returns:
+        包含检查结果的字典
+    """
+    if not block_models:
+        print("[check_vertical_order] 无 block_models")
+        return {}
+    
+    nlay = len(block_models)
+    if nlay < 2:
+        print("[check_vertical_order] 只有1层,无需检查")
+        return {}
+    
+    # 堆叠所有层的底面和顶面 (nlay, ny, nx)
+    bottoms = np.stack([bm.bottom_surface for bm in block_models])
+    tops = np.stack([bm.top_surface for bm in block_models])
+    
+    ny, nx = bottoms.shape[1:]
+    total_cells = ny * nx
+    
+    print(f"\n[垂向顺序检查] 开始检查 {nlay} 层，总网格点: {total_cells} ({ny}×{nx})")
+    print(f"{'':>4} {'下层':>15} {'上层':>15} {'重叠点数':>10} {'重叠比例':>10} {'最大重叠':>12}")
+    print("-" * 80)
+    
+    total_bad = 0
+    results = {}
+    
+    for k in range(nlay - 1):
+        lower_top = tops[k]
+        upper_bottom = bottoms[k + 1]
+        
+        # 只在有效点检查
+        valid = np.isfinite(lower_top) & np.isfinite(upper_bottom)
+        bad = valid & (upper_bottom < lower_top)
+        
+        bad_count = int(bad.sum())
+        valid_count = int(valid.sum())
+        
+        lower_name = block_models[k].name
+        upper_name = block_models[k + 1].name
+        
+        if valid_count > 0:
+            bad_percent = (bad_count / valid_count) * 100
+            
+            # 计算最大重叠量
+            overlap = np.where(bad, lower_top - upper_bottom, 0.0)
+            max_overlap = float(np.max(overlap)) if bad_count > 0 else 0.0
+            
+            status = "❌" if bad_count > 0 else "✅"
+            print(f"{status} {k:>2} {lower_name:>15} {upper_name:>15} {bad_count:>10} {bad_percent:>9.1f}% {max_overlap:>11.2f}m")
+            
+            total_bad += bad_count
+            results[f"{lower_name}→{upper_name}"] = {
+                'bad_count': bad_count,
+                'total_count': valid_count,
+                'max_overlap': max_overlap
+            }
+        else:
+            print(f"⚠️ {k:>2} {lower_name:>15} {upper_name:>15} {'无有效点':>10}")
+    
+    print("-" * 80)
+    if total_bad == 0:
+        print(f"✅ 检查通过: 所有相邻层在所有网格点都满足垂向顺序")
+    else:
+        print(f"❌ 检查失败: 共 {total_bad} 个网格点存在层间重叠")
+    print()
+    
+    return results
+
+
+def enforce_columnwise_order(block_models: List[BlockModel], 
+                            min_gap: float = 0.5, 
+                            min_thickness: float = 0.5) -> None:
+    """
+    对每个(y,x)垂直柱子强制重排层序
+    
+    逐列处理,按bottom深度从小到大排序,然后自下而上重新码放,
+    保证相邻层之间有min_gap,每层厚度不小于min_thickness。
+    
+    Args:
+        block_models: BlockModel列表,会直接修改其bottom_surface和top_surface
+        min_gap: 最小层间间隙(米),默认0.5米
+        min_thickness: 最小层厚(米),默认0.5米
+    """
+    if not block_models:
+        return
+    
+    nlay = len(block_models)
+    if nlay < 2:
+        return
+    
+    print(f"\n[逐列排序] 开始对 {nlay} 层进行逐列垂向排序")
+    print(f"           最小间隙: {min_gap}m, 最小厚度: {min_thickness}m")
+    
+    # 堆叠所有层 (nlay, ny, nx)
+    bottoms = np.stack([bm.bottom_surface for bm in block_models])
+    tops = np.stack([bm.top_surface for bm in block_models])
+    
+    ny, nx = bottoms.shape[1:]
+    total_cells = ny * nx
+    fixed_count = 0
+    
+    # 逐列处理
+    for j in range(ny):
+        for i in range(nx):
+            # 提取这一列的所有层
+            bcol = bottoms[:, j, i]
+            tcol = tops[:, j, i]
+            
+            # 找出有效的层(bottom和top都是有限值)
+            valid_idx = np.where(np.isfinite(bcol) & np.isfinite(tcol))[0]
+            if valid_idx.size == 0:
+                continue
+            
+            # 按原始bottom深度排序(从浅到深,即从下到上)
+            order = valid_idx[np.argsort(bcol[valid_idx])]
+            
+            # 检查是否需要修复
+            needs_fix = False
+            for ii in range(len(order) - 1):
+                if tops[order[ii], j, i] + min_gap > bottoms[order[ii+1], j, i]:
+                    needs_fix = True
+                    break
+            
+            if not needs_fix:
+                continue
+            
+            fixed_count += 1
+            
+            # 这一列最底部的起始深度
+            z_cur = float(np.min(bcol[valid_idx]))
+            
+            # 自下而上重新码放
+            for idx in order:
+                # 计算厚度
+                thick = float(tcol[idx] - bcol[idx])
+                if not np.isfinite(thick) or thick < min_thickness:
+                    thick = min_thickness
+                
+                # 重新设置底面和顶面
+                bottoms[idx, j, i] = z_cur
+                tops[idx, j, i] = z_cur + thick
+                
+                # 更新下一层的起始位置
+                z_cur = tops[idx, j, i] + float(min_gap)
+    
+    # 写回到BlockModel
+    for k, bm in enumerate(block_models):
+        bm.bottom_surface = bottoms[k]
+        bm.top_surface = tops[k]
+        bm.thickness_grid = tops[k] - bottoms[k]
+    
+    print(f"[逐列排序] 完成! 共修复 {fixed_count}/{total_cells} 个垂直柱 ({fixed_count/total_cells*100:.1f}%)\n")
+
+
 def build_block_models(merged_df: pd.DataFrame,
                        seam_column: str,
                        x_col: str,
@@ -184,114 +347,31 @@ def build_block_models(merged_df: pd.DataFrame,
                 thickness_grid = np.nan_to_num(thickness_grid, nan=fill_value_inf)
                 print(f"    [建模] {seam_name}: {inf_count}个无效值(Inf/负值)用{fill_value_inf:.2f}m填充")
             
-            # 确保非负
-            thickness_grid = np.clip(thickness_grid, 0.0, None)
-
-            # 🔧 厚度变化限制: 防止网格扭曲
-            # 如果厚度max/min > 2.0,会导致侧壁网格严重扭曲和边缘相交
-            thickness_min_val = float(np.min(thickness_grid[thickness_grid > 0]))
-            thickness_max_val = float(np.max(thickness_grid))
-            thickness_avg = float(np.mean(thickness_grid[thickness_grid > 0]))
-            thickness_ratio = thickness_max_val / thickness_min_val if thickness_min_val > 0 else 1.0
+            # 确保非负,并设置最小厚度(0.5m)防止退化几何体
+            # 原因: 厚度为0会导致顶面=底面,生成STL时产生重叠的退化三角面片
+            MIN_LAYER_THICKNESS = 0.5  # 最小层厚0.5米
+            thickness_grid = np.clip(thickness_grid, MIN_LAYER_THICKNESS, None)
             
-            if thickness_ratio > 2.0:
-                print(f"    [警告] {seam_name} 厚度变化过大!")
-                print(f"           厚度范围: [{thickness_min_val:.2f}, {thickness_max_val:.2f}]m")
-                print(f"           变化比值: {thickness_ratio:.2f} (推荐 < 2.0)")
-                print(f"           平均厚度: {thickness_avg:.2f}m")
-                
-                # 策略: 使用高斯平滑减少极端值,而非硬性截断
-                # 保存原始范围
-                original_range = thickness_max_val - thickness_min_val
-                
-                # 应用温和的高斯平滑 (sigma=1.0)
-                thickness_grid_smoothed = gaussian_filter(thickness_grid, sigma=1.0, mode='nearest')
-                
-                # 如果平滑后比值仍>2.0,才使用软性限制
-                new_min = float(np.min(thickness_grid_smoothed[thickness_grid_smoothed > 0]))
-                new_max = float(np.max(thickness_grid_smoothed))
-                new_ratio = new_max / new_min if new_min > 0 else 1.0
-                
-                if new_ratio > 2.0:
-                    # 软性限制: 只裁剪极端5%的异常值
-                    percentile_5 = np.percentile(thickness_grid_smoothed, 5)
-                    percentile_95 = np.percentile(thickness_grid_smoothed, 95)
-                    thickness_grid_smoothed = np.clip(thickness_grid_smoothed, percentile_5, percentile_95)
-                    
-                    new_min = float(np.min(thickness_grid_smoothed[thickness_grid_smoothed > 0]))
-                    new_max = float(np.max(thickness_grid_smoothed))
-                    new_ratio = new_max / new_min
-                
-                print(f"           → 平滑后: [{new_min:.2f}, {new_max:.2f}]m, 比值 {new_ratio:.2f}")
-                thickness_grid = thickness_grid_smoothed
+            zero_thickness_count = np.sum(thickness_grid == MIN_LAYER_THICKNESS)
+            if zero_thickness_count > 0:
+                total_cells = thickness_grid.size
+                print(f"    [建模] {seam_name}: {zero_thickness_count}个位置厚度过小(<0.5m),已调整为{MIN_LAYER_THICKNESS}m ({zero_thickness_count/total_cells*100:.1f}%)")
 
+            # 🔧 使用current_base_surface作为本层底面,自然实现自下而上堆叠
             bottom_surface = current_base_surface.copy()
-            
-            # 🔧 预防性检查: 底面起伏过大时,预先增加最小厚度
-            bottom_min = float(np.min(bottom_surface))
-            bottom_max = float(np.max(bottom_surface))
-            bottom_range = bottom_max - bottom_min
-            
-            # 如果底面起伏 > 20m,预防性地增加最小厚度
-            if bottom_range > 20.0:
-                # 确保最小厚度至少是底面起伏的1.1倍 + 2m安全余量
-                preventive_min_thickness = bottom_range * 1.1 + 2.0
-                thickness_min_original = float(np.min(thickness_grid))
-                
-                if thickness_min_original < preventive_min_thickness:
-                    print(f"    [预防] {seam_name} 底面起伏很大({bottom_range:.2f}m)")
-                    print(f"           预防性增加最小厚度: {thickness_min_original:.2f}m → {preventive_min_thickness:.2f}m")
-                    thickness_grid = np.maximum(thickness_grid, preventive_min_thickness)
-            
             top_surface = bottom_surface + thickness_grid
             
-            # 🔧 关键修复: 检查并修复自身交错
-            # 问题: 如果 top_min < bottom_max,顶面和底面在空间上会交错
-            top_min = float(np.min(top_surface))
-            top_max = float(np.max(top_surface))
+            # 🔧 简单验证: 确保本层内部top >= bottom (理论上不会违反,这里仅作兜底)
+            top_surface = np.maximum(top_surface, bottom_surface + MIN_LAYER_THICKNESS)
             
-            if top_min < bottom_max:
-                # 计算需要的最小厚度保证 top_min >= bottom_max
-                # 使用更大的安全余量: max(2m, 底面起伏的5%)
-                safety_margin = max(2.0, bottom_range * 0.05)
-                required_min_thickness = bottom_max - bottom_min + safety_margin
-                
-                print(f"    [警告] {seam_name} 检测到自身交错风险!")
-                print(f"           顶面范围: [{top_min:.2f}, {top_max:.2f}]m")
-                print(f"           底面范围: [{bottom_min:.2f}, {bottom_max:.2f}]m")
-                print(f"           问题: 顶面最小值({top_min:.2f}m) < 底面最大值({bottom_max:.2f}m)")
-                print(f"           差值: {bottom_max - top_min:.2f}m")
-                print(f"    [修复] 将所有厚度增加到最小 {required_min_thickness:.2f}m (安全余量: {safety_margin:.2f}m)")
-                
-                # 方案: 确保每个位置的厚度至少等于 (底面最大值 - 底面最小值 + 安全余量)
-                # 这样即使底面起伏很大,顶面也能完全覆盖底面
-                thickness_grid = np.maximum(thickness_grid, required_min_thickness)
-                top_surface = bottom_surface + thickness_grid
-                
-                # 验证修复
-                new_top_min = float(np.min(top_surface))
-                new_top_max = float(np.max(top_surface))
-                print(f"    [验证] 修复后顶面: [{new_top_min:.2f}, {new_top_max:.2f}]m")
-                print(f"           修复后厚度: [{np.min(thickness_grid):.2f}, {np.max(thickness_grid):.2f}]m")
-                
-                if new_top_min >= bottom_max:
-                    margin_achieved = new_top_min - bottom_max
-                    print(f"    [OK] 自身交错已修复 ✅ (实际余量: {margin_achieved:.2f}m)")
-                else:
-                    print(f"    [失败] 修复无效! ❌")
-                    print(f"           仍有差值: {bottom_max - new_top_min:.2f}m")
-                    # 强制修复: 使用更激进的策略
-                    required_min_thickness = bottom_max - bottom_min + 5.0  # 强制5m余量
-                    print(f"    [强制] 使用激进修复: 最小厚度 {required_min_thickness:.2f}m")
-                    thickness_grid = np.maximum(thickness_grid, required_min_thickness)
-                    top_surface = bottom_surface + thickness_grid
-                    final_top_min = float(np.min(top_surface))
-                    if final_top_min >= bottom_max:
-                        print(f"    [OK] 强制修复成功 ✅")
-                    else:
-                        print(f"    [错误] 强制修复仍失败,数据可能有严重问题 ⚠️")
+            # 🔧 使用current_base_surface作为本层底面,自然实现自下而上堆叠
+            bottom_surface = current_base_surface.copy()
+            top_surface = bottom_surface + thickness_grid
             
-            # 最终验证并记录
+            # 🔧 简单验证: 确保本层内部top >= bottom (理论上不会违反,这里仅作兜底)
+            top_surface = np.maximum(top_surface, bottom_surface + MIN_LAYER_THICKNESS)
+            
+            # 最终验证并记录 - 添加调试日志以便验证Z范围
             final_top_min = float(np.min(top_surface))
             final_top_max = float(np.max(top_surface))
             final_bottom_min = float(np.min(bottom_surface))
@@ -300,16 +380,9 @@ def build_block_models(merged_df: pd.DataFrame,
             final_thickness_max = float(np.max(thickness_grid))
             
             print(f"    [最终] {seam_name} 建模完成")
-            print(f"           底面: [{final_bottom_min:.2f}, {final_bottom_max:.2f}]m (极差: {final_bottom_max - final_bottom_min:.2f}m)")
-            print(f"           厚度: [{final_thickness_min:.2f}, {final_thickness_max:.2f}]m (极差: {final_thickness_max - final_thickness_min:.2f}m)")
-            print(f"           顶面: [{final_top_min:.2f}, {final_top_max:.2f}]m (极差: {final_top_max - final_top_min:.2f}m)")
-            
-            # 最终安全检查
-            if final_top_min < final_bottom_max:
-                print(f"    ⚠️⚠️⚠️  严重警告: 仍存在交错! 差值: {final_bottom_max - final_top_min:.2f}m")
-            else:
-                safety_gap = final_top_min - final_bottom_max
-                print(f"           ✅ 安全间隙: {safety_gap:.2f}m")
+            print(f"           底面Z: [{final_bottom_min:.2f}, {final_bottom_max:.2f}]m (极差: {final_bottom_max - final_bottom_min:.2f}m)")
+            print(f"           厚度:  [{final_thickness_min:.2f}, {final_thickness_max:.2f}]m (极差: {final_thickness_max - final_thickness_min:.2f}m)")
+            print(f"           顶面Z: [{final_top_min:.2f}, {final_top_max:.2f}]m (极差: {final_top_max - final_top_min:.2f}m)")
             
             block_models.append(BlockModel(
                 name=str(seam_name),
@@ -318,10 +391,13 @@ def build_block_models(merged_df: pd.DataFrame,
                 bottom_surface=bottom_surface
             ))
 
+            # 更新下一层的基准面: current_base_surface = 本层顶面 + gap
+            # 这样下一层的底面自然从本层顶面之上开始,实现严格自下而上堆叠
             current_base_surface = top_surface
             if gap_value:
                 current_base_surface = current_base_surface + float(gap_value)
-                print(f"           [层间] 添加间隙 {float(gap_value):.2f}m,下一层底面将从 {np.mean(current_base_surface):.2f}m 开始")
+                next_bottom_mean = float(np.mean(current_base_surface))
+                print(f"           [层间] 添加间隙 {float(gap_value):.2f}m, 下一层底面平均高程: {next_bottom_mean:.2f}m")
         
         except Exception as e:
             skipped.append(f"{seam_name} (插值失败: {str(e)[:30]}, {num_valid}个点)")

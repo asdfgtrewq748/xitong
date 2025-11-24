@@ -136,8 +136,48 @@
               </el-form-item>
               <el-divider content-position="left">高级参数</el-divider>
               <el-form-item label="网格分辨率">
-                <el-input-number v-model="params.resolution" :min="20" :max="200" :step="10" style="width: 100%;" />
-                <div style="font-size: 12px; color: #909399; margin-top: 4px;">分辨率越高，模型越精细，但计算时间更长</div>
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                  <el-input-number 
+                    v-model="params.resolution" 
+                    :min="30" 
+                    :max="300" 
+                    :step="10" 
+                    style="width: 140px;" 
+                  />
+                  <el-button-group>
+                    <el-button size="small" @click="params.resolution = 50">快速</el-button>
+                    <el-button size="small" @click="params.resolution = 100">标准</el-button>
+                    <el-button size="small" @click="params.resolution = 150" type="primary">精细</el-button>
+                    <el-button size="small" @click="params.resolution = 200">超精细</el-button>
+                  </el-button-group>
+                </div>
+                <el-slider 
+                  v-model="params.resolution" 
+                  :min="30" 
+                  :max="300" 
+                  :step="10" 
+                  style="margin: 12px 0;"
+                  show-stops
+                />
+                <div style="font-size: 12px; color: #909399; line-height: 1.6;">
+                  <div style="margin-bottom: 4px;">
+                    网格: <strong>{{ params.resolution }}×{{ params.resolution }}</strong> = <strong>{{ (params.resolution * params.resolution).toLocaleString() }}</strong> 个点
+                  </div>
+                  <div>
+                    <el-tag size="small" :type="params.resolution < 80 ? 'info' : params.resolution < 120 ? 'warning' : params.resolution < 180 ? 'success' : 'danger'">
+                      {{ params.resolution < 80 ? '⚡ 快速预览' : params.resolution < 120 ? '⚖️ 平衡模式' : params.resolution < 180 ? '🎨 精细展示' : params.resolution < 250 ? '🔬 超高精度' : '💎 极致细节' }}
+                    </el-tag>
+                    <span style="margin-left: 8px; color: #67C23A;" v-if="params.resolution >= 150 && params.resolution <= 200">
+                      ✓ 推荐用于展示汇报
+                    </span>
+                    <span style="margin-left: 8px; color: #E6A23C;" v-else-if="params.resolution >= 80 && params.resolution < 150">
+                      ○ 适合快速测试
+                    </span>
+                    <span style="margin-left: 8px; color: #F56C6C;" v-else-if="params.resolution > 200">
+                      ⚠ 计算时间较长
+                    </span>
+                  </div>
+                </div>
               </el-form-item>
               <el-form-item label="首层基底高程 (m)">
                 <el-input-number v-model="params.base_level" :step="0.5" style="width: 100%;" />
@@ -413,7 +453,8 @@
             <el-radio label="csv">CSV 数据</el-radio>
             <el-divider direction="vertical" />
             <el-radio label="dxf">DXF (CAD)</el-radio>
-            <el-radio label="flac3d">FLAC3D (.dat)</el-radio>
+            <el-radio label="flac3d">FLAC3D DAT 脚本</el-radio>
+            <el-radio label="f3grid">FLAC3D 原生网格</el-radio>
             <el-radio label="stl_single">STL 单文件</el-radio>
             <el-radio label="stl_layered">STL 分层</el-radio>
           </el-radio-group>
@@ -462,6 +503,117 @@
             <el-switch 
               v-model="exportOptions.normalize_coords" 
               active-text="坐标归一化（推荐）"
+              inactive-text="保留原始坐标"
+            />
+            <el-alert 
+              type="warning" 
+              :closable="false" 
+              show-icon
+              style="margin-top: 8px;"
+            >
+              大地坐标（如X=3940000）会导致FLAC3D精度丢失，强烈建议开启归一化
+            </el-alert>
+          </el-form-item>
+        </template>
+
+        <!-- FLAC3D DAT 脚本导出配置 -->
+        <template v-if="exportOptions.format === 'flac3d'">
+          <el-divider content-position="left">FLAC3D DAT 脚本配置</el-divider>
+          <el-alert 
+            type="info" 
+            :closable="false" 
+            show-icon
+            style="margin-bottom: 16px;"
+          >
+            <template #title>
+              <strong>🧱 DAT 命令脚本 (.dat)</strong>
+            </template>
+            <div style="font-size: 13px; line-height: 1.8;">
+              • 输出文件扩展名为 <code style="background:#f5f5f5;padding:2px 6px;">.dat</code>，内容是 FLAC3D 命令脚本<br/>
+              • 运行方式：<code style="background:#f5f5f5;padding:2px 6px;">program call "model.dat"</code><br/>
+              • 与 .f3grid 不同，DAT 会逐条执行 <code>zone gridpoint / zone create</code> 指令生成网格<br/>
+              • 适合需要自定义脚本流程或与现有 FLAC3D 项目整合的场景
+            </div>
+          </el-alert>
+
+          <el-form-item label="坐标归一化">
+            <el-switch 
+              v-model="exportOptions.flac3d_normalize" 
+              active-text="开启归一化（推荐）"
+              inactive-text="保留原始坐标"
+            />
+            <el-alert 
+              type="warning" 
+              :closable="false" 
+              show-icon
+              style="margin-top: 8px;"
+            >
+              大地坐标（如X=3940000）易造成 DAT 脚本精度问题，建议开启归一化；如需绝对坐标，可关闭此选项
+            </el-alert>
+          </el-form-item>
+        </template>
+        
+        <!-- F3GRID 原生网格导出配置 -->
+        <template v-if="exportOptions.format === 'f3grid'">
+          <el-divider content-position="left">FLAC3D 原生网格导出配置</el-divider>
+          <el-alert 
+            type="success" 
+            :closable="false" 
+            show-icon
+            style="margin-bottom: 16px;"
+          >
+            <template #title>
+              <strong>🎯 方案三：FLAC3D原生网格格式 - 彻底消除层间重叠</strong>
+            </template>
+            <div style="font-size: 13px; line-height: 1.8;">
+              <b>✅ 核心优势：</b><br/>
+              • <b>拓扑直接定义：</b>无需STL的三角面片→体积转换，直接定义节点和单元<br/>
+              • <b>层间节点共享：</b>上层底面节点ID = 下层顶面节点ID，完美对接<br/>
+              • <b>零几何冲突：</b>不依赖geometry import，避免FLAC3D网格生成时的体积冲突<br/>
+              • <b>应力自然传递：</b>相邻层通过节点ID复用，应力场连续<br/>
+              • <b>文本格式调试：</b>.f3grid为文本文件，便于检查和验证<br/><br/>
+              
+              <b>📦 文件结构：</b><br/>
+              • <b>GRIDPOINTS：</b>所有网格节点的坐标(X, Y, Z)<br/>
+              • <b>ZONES：</b>T4 四面体单元(每个柱体自动拆分 6 个)<br/>
+              • <b>GROUPS：</b>按地层分组，方便赋予材料参数<br/><br/>
+              
+              <b>🚀 FLAC3D导入：</b><br/>
+              <code style="background: #f5f5f5; padding: 2px 6px;">zone import f3grid "model.f3grid"</code><br/>
+              直接导入，无需手动生成网格！<br/><br/>
+              
+              <b>🆚 与STL方案对比：</b><br/>
+              • <b>STL分层：</b>仍需FLAC3D生成网格，可能在interface处有微小gap<br/>
+              • <b>F3GRID：</b>网格已生成完毕，interface节点ID复用，绝对无gap ✅<br/><br/>
+              
+              <b>⚙️ 技术细节：</b><br/>
+              • 已集成逐列强制排序算法，确保层间Z坐标对齐<br/>
+              • 每个六面体柱自动拆分为 6 个正向 T4 四面体，杜绝负体积<br/>
+              • 支持坐标归一化，避免大坐标精度问题
+            </div>
+          </el-alert>
+          
+          <el-form-item label="最小四面体体积 (m³)">
+            <el-input
+              v-model.number="exportOptions.f3grid_min_tet_volume"
+              type="number"
+              :step="0.000001"
+              placeholder="1e-6"
+            />
+            <el-alert 
+              type="info" 
+              :closable="false" 
+              show-icon
+              style="margin-top: 8px;"
+            >
+              用于剔除退化的四面体单元，默认 <code>1e-6</code> m³；可根据模型尺度调大/调小。
+            </el-alert>
+          </el-form-item>
+          
+          <el-form-item label="坐标归一化">
+            <el-switch 
+              v-model="exportOptions.f3grid_normalize" 
+              active-text="开启归一化（推荐）"
               inactive-text="保留原始坐标"
             />
             <el-alert 
@@ -559,6 +711,50 @@
             >
               大地坐标（如X=3940000）会导致FLAC3D精度丢失，强烈建议开启归一化
             </el-alert>
+          </el-form-item>
+          
+          <!-- 顶板层配置 -->
+          <el-divider content-position="left">🛡️ 顶板层配置</el-divider>
+          <el-alert 
+            type="info" 
+            :closable="false" 
+            show-icon
+            style="margin-bottom: 16px;"
+          >
+            <div style="font-size: 13px; line-height: 1.8;">
+              <b>🛡️ 顶板层功能：</b><br/>
+              • <b>自动生成：</b>在最顶层上方自动添加一个顶板层<br/>
+              • <b>底面跟随：</b>顶板底面跟随地形起伏，与最顶层紧密贴合<br/>
+              • <b>顶面平坦：</b>顶板顶面完全平坦，方便在FLAC3D中施加上覆载荷<br/>
+              • <b>厚度可调：</b>根据地形起伏调整厚度，确保顶板顶面高于最高点<br/><br/>
+              <b>🎯 适用场景：</b><br/>
+              • 需要在模型顶部施加均布载荷（如自重应力、上覆层压力）<br/>
+              • 需要设置顶部边界条件（如固定、位移约束）<br/>
+              • 防止地形起伏导致网格质量下降
+            </div>
+          </el-alert>
+          
+          <el-form-item label="自动添加顶板层">
+            <el-switch 
+              v-model="exportOptions.add_top_plate" 
+              active-text="启用顶板"
+              inactive-text="不添加顶板"
+            />
+          </el-form-item>
+          
+          <el-form-item v-if="exportOptions.add_top_plate" label="顶板厚度 (m)">
+            <el-slider 
+              v-model="exportOptions.top_plate_thickness" 
+              :min="5" 
+              :max="50" 
+              :step="5"
+              show-input
+            />
+            <div style="font-size: 12px; color: #909399; margin-top: 4px;">
+              • 地形起伏大时建议增加厚度<br/>
+              • 顶板顶面高程 = 最高点 + 厚度<br/>
+              • 推荐值：小型模型5-10m，大型模型20-50m
+            </div>
           </el-form-item>
         </template>
         
@@ -801,7 +997,7 @@ const params = reactive({
   selected_seams: [],
   method: 'linear',
   validation_ratio: 20,
-  resolution: 80,    // 网格分辨率
+  resolution: 150,    // 网格分辨率(提高到150以获得更精细的形状)
   base_level: 0.0,   // 首层基底高程
   gap: 0.0,          // 层间可视化间隔
 });
@@ -885,10 +1081,18 @@ const exportOptions = reactive({
   downsample_factor: 5,      // 降采样倍数，默认5x
   export_as_blocks: true,    // 导出为封闭体块，默认true
   normalize_coords: true,    // 坐标归一化，默认true
+  // FLAC3D DAT 导出配置
+  flac3d_normalize: true,    // DAT脚本坐标归一化
+  // F3GRID 专用配置
+  f3grid_min_tet_volume: 1e-6, // F3GRID最小四面体体积，默认1e-6 m³
+  f3grid_normalize: true,    // F3GRID坐标归一化，默认true
   // STL 专用配置
   stl_downsample: 5,         // STL降采样倍数，默认5x
   stl_format: 'binary',      // STL格式：binary或ascii
-  stl_normalize: true        // STL坐标归一化，默认true
+  stl_normalize: true,       // STL坐标归一化，默认true
+  // STL 分层导出 - 顶板配置
+  add_top_plate: true,       // 自动添加顶板层，默认true
+  top_plate_thickness: 10    // 顶板厚度(m)，默认10m
 });
 
 function triggerBoreholeSelection() {
@@ -2331,7 +2535,7 @@ async function confirmExport() {
   }
 
   // 对于 DXF、FLAC3D 和 STL 导出，先验证建模可行性
-  if (exportOptions.format === 'dxf' || exportOptions.format === 'flac3d' || 
+  if (exportOptions.format === 'dxf' || exportOptions.format === 'flac3d' || exportOptions.format === 'f3grid' ||
       exportOptions.format === 'stl_single' || exportOptions.format === 'stl_layered') {
     try {
       const validationResult = await validateModeling();
@@ -2374,13 +2578,14 @@ async function confirmExport() {
         break;
       case 'dxf':
       case 'flac3d':
+      case 'f3grid':
       case 'stl_single':
       case 'stl_layered':
         await exportToBackend(exportOptions.format, filename);
         break;
     }
 
-    if (exportOptions.format !== 'dxf' && exportOptions.format !== 'flac3d' && 
+    if (exportOptions.format !== 'dxf' && exportOptions.format !== 'flac3d' && exportOptions.format !== 'f3grid' &&
         exportOptions.format !== 'stl_single' && exportOptions.format !== 'stl_layered') {
        ElMessage.success(`导出成功: ${filename}`);
     }
@@ -2458,6 +2663,21 @@ async function exportToBackend(format, filename) {
       normalize_coords: exportOptions.normalize_coords
     };
   }
+
+  // 如果是FLAC3D DAT脚本，添加DAT专用配置
+  if (format === 'flac3d') {
+    exportParams.options = {
+      normalize_coords: exportOptions.flac3d_normalize
+    };
+  }
+  
+  // 如果是F3GRID格式，添加F3GRID专用配置
+  if (format === 'f3grid') {
+    exportParams.options = {
+      min_tet_volume: exportOptions.f3grid_min_tet_volume || 1e-6,
+      normalize_coords: exportOptions.f3grid_normalize
+    };
+  }
   
   // 如果是STL格式，添加STL专用配置
   if (format === 'stl_single' || format === 'stl_layered') {
@@ -2466,6 +2686,12 @@ async function exportToBackend(format, filename) {
       format: exportOptions.stl_format,
       normalize_coords: exportOptions.stl_normalize
     };
+    
+    // 分层导出需要顶板配置
+    if (format === 'stl_layered') {
+      exportParams.options.add_top_plate = exportOptions.add_top_plate;
+      exportParams.options.top_plate_thickness = exportOptions.top_plate_thickness;
+    }
   }
   
   try {
@@ -2496,7 +2722,17 @@ async function exportToBackend(format, filename) {
       }
       
       // 确保扩展名正确
-      const ext = format === 'flac3d' ? '.f3grid' : '.dxf';
+      let ext = '.dxf';
+      if (format === 'flac3d') {
+        ext = '.dat';
+      } else if (format === 'f3grid') {
+        ext = '.f3grid';
+      } else if (format === 'stl_single') {
+        ext = '.stl';
+      } else if (format === 'stl_layered') {
+        ext = '.zip';
+      }
+      
       if (!downloadFilename.toLowerCase().endsWith(ext)) {
           downloadFilename += ext;
       }

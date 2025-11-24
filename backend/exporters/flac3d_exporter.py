@@ -1,10 +1,12 @@
 import numpy as np
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 from .base_exporter import BaseExporter
 
 class FLAC3DExporter(BaseExporter):
     """
-    导出地质模型为 FLAC3D 格式 (.f3grid)
+    导出地质模型为 FLAC3D 命令脚本 (.dat)
+    直接通过 program call 执行 zone gridpoint/zones 指令生成网格。
     """
     
     def export(self, data: Dict[str, Any], output_path: str, options: Optional[Dict[str, Any]] = None) -> str:
@@ -32,9 +34,14 @@ class FLAC3DExporter(BaseExporter):
         Returns:
             str: 导出文件的路径
         """
-        # 确保输出文件有.f3grid扩展名
-        if not output_path.endswith('.f3grid'):
-            output_path = output_path + '.f3grid'
+        options = options or {}
+
+        desired_ext = options.get("extension") or Path(output_path).suffix
+        if desired_ext:
+            desired_ext = desired_ext if desired_ext.startswith('.') else f".{desired_ext}"
+        else:
+            desired_ext = '.dat'
+        output_path = str(Path(output_path).with_suffix(desired_ext))
         
         layers = data.get("layers", [])
         if not layers:
@@ -57,7 +64,9 @@ class FLAC3DExporter(BaseExporter):
             
             grid_x = layer.get("grid_x")
             grid_y = layer.get("grid_y")
-            grid_z_top = layer.get("grid_z")
+            grid_z_top = layer.get("top_surface_z")
+            if grid_z_top is None:
+                grid_z_top = layer.get("grid_z")
             
             if grid_x is None or grid_y is None or grid_z_top is None:
                 continue
@@ -69,7 +78,9 @@ class FLAC3DExporter(BaseExporter):
             if grid_x.ndim == 1 and grid_y.ndim == 1:
                  grid_x, grid_y = np.meshgrid(grid_x, grid_y)
             
-            grid_z_bottom = layer.get("grid_z_bottom")
+            grid_z_bottom = layer.get("bottom_surface_z")
+            if grid_z_bottom is None:
+                grid_z_bottom = layer.get("grid_z_bottom")
             if grid_z_bottom is None:
                 thickness = layer.get("thickness")
                 if thickness is not None:
@@ -159,13 +170,23 @@ class FLAC3DExporter(BaseExporter):
         if len(zones) == 0:
             raise ValueError("未能生成任何有效的体单元，请检查数据是否包含厚度信息")
 
-        # 计算几何中心并归一化坐标
-        if nodes:
+        coord_offset = options.get("coordinate_offset")
+        if coord_offset is None:
+            coord_offset = options.get("coord_offset")
+
+        normalize_coords = bool(options.get("normalize_coords"))
+        x_off = y_off = z_off = 0.0
+
+        if coord_offset is not None:
+            if len(coord_offset) != 3:
+                raise ValueError("coordinate_offset 必须是长度为3的(x,y,z)序列")
+            x_off, y_off, z_off = map(float, coord_offset)
+            print(f"[FLAC3D Export] 使用外部坐标偏移: ({x_off}, {y_off}, {z_off})")
+        elif normalize_coords and nodes:
             nodes_array = np.array([(n[1], n[2], n[3]) for n in nodes])
             centroid = np.mean(nodes_array, axis=0)
-            print(f"Model Centroid: {centroid}")
-        else:
-            centroid = np.array([0.0, 0.0, 0.0])
+            x_off, y_off, z_off = centroid
+            print(f"[FLAC3D Export] normalize_coords=True, 使用模型质心偏移 {centroid}")
 
         # 写入文件（使用缓冲提高性能）
         print(f"[FLAC3D Export] 开始写入文件...")
@@ -173,7 +194,6 @@ class FLAC3DExporter(BaseExporter):
         
         # 文件头（使用FLAC3D命令格式）
         lines.append("; FLAC3D Grid Import Script\n")
-        lines.append(f"; Original Center: X={centroid[0]:.4f}, Y={centroid[1]:.4f}, Z={centroid[2]:.4f}\n")
         lines.append(f"; Total Gridpoints: {len(nodes)}\n")
         lines.append(f"; Total Zones: {len(zones)}\n")
         lines.append("\n")
@@ -186,9 +206,9 @@ class FLAC3DExporter(BaseExporter):
         lines.append("; Creating gridpoints...\n")
         node_map = {}  # 原始ID -> FLAC3D顺序ID的映射
         for idx, (nid, x, y, z) in enumerate(nodes, start=1):
-            nx = x - centroid[0]
-            ny = y - centroid[1]
-            nz = z - centroid[2]
+            nx = x - x_off
+            ny = y - y_off
+            nz = z - z_off
             lines.append(f"zone gridpoint create position ({nx:.4f},{ny:.4f},{nz:.4f})\n")
             node_map[nid] = idx
         
@@ -210,15 +230,7 @@ class FLAC3DExporter(BaseExporter):
         
         # 分组信息（作为注释记录）
         lines.append("\n")
-        lines.append("; Zone Groups Summary\n")
-        groups = {}
-        for ztype, zid, nids, group in zones:
-            if group not in groups:
-                groups[group] = []
-            groups[group].append(zid)
-        
-        for gname, zids in groups.items():
-            lines.append(f"; Group '{gname}': {len(zids)} zones\n")
+        lines.append("; End of FLAC3D grid definition\n")
         
         # 一次性写入（比逐行写入快得多）
         print(f"[FLAC3D Export] 正在写入文件到磁盘...")

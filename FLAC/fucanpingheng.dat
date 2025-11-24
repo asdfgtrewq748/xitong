@@ -1,0 +1,331 @@
+; ============================================================
+; FLAC3D 7.0 全流程自动化脚本 (从0到完美平衡)
+; 版本: V_Final_Perfect
+; 功能: 几何导入 -> ID分组 -> 焊接 -> 兜底赋参 -> 弹性初算 -> 塑性平衡
+; ============================================================
+
+; --- 1. 初始化环境 ---
+model new
+model deterministic on
+model title "19-Layer Final Model"
+model large-strain off  ; 初始平衡强制小变形
+
+; --- 2. 定义辅助函数 (FISH) ---
+
+; [函数1] 网格尺寸定义
+fish define mesh_size
+    return 20.0  ; 如需加密网格，改小此值
+end
+
+; [函数2] 自动ID追踪 (解决分组问题的核心)
+fish define prepare_id_range
+    global max_id = 0
+    loop foreach z zone.list
+        max_id = math.max(max_id, zone.id(z))
+    end_loop
+    global id_lower = max_id + 1
+end
+
+; [函数3] 自动寻找模型边界 (解决边界约束问题)
+fish define find_bounds
+    global x_min = 1e20
+    global x_max = -1e20
+    global y_min = 1e20
+    global y_max = -1e20
+    global z_min = 1e20
+    global z_max = -1e20
+    loop foreach gp gp.list
+        x_min = math.min(x_min, gp.pos.x(gp))
+        x_max = math.max(x_max, gp.pos.x(gp))
+        y_min = math.min(y_min, gp.pos.y(gp))
+        y_max = math.max(y_max, gp.pos.y(gp))
+        z_min = math.min(z_min, gp.pos.z(gp))
+        z_max = math.max(z_max, gp.pos.z(gp))
+    end_loop
+end
+
+; ============================================================
+; 3. 几何导入与网格生成 (Layer 01 - 19)
+; ============================================================
+
+; --- L01 ---
+@prepare_id_range
+geometry import '01_coal_6.stl' set 'geo_01'
+geometry set 'geo_01' triangulate
+zone generate from-geometry set 'geo_01' maximum-edge @mesh_size
+zone group 'L01_coal_6' range id @id_lower 100000000
+
+; --- L02 ---
+@prepare_id_range
+geometry import '02_coal_6_1.stl' set 'geo_02'
+geometry set 'geo_02' triangulate
+zone generate from-geometry set 'geo_02' maximum-edge @mesh_size
+zone group 'L02_coal_6_1' range id @id_lower 100000000
+
+; --- L03 ---
+@prepare_id_range
+geometry import '03_sandy_mudstone.stl' set 'geo_03'
+geometry set 'geo_03' triangulate
+zone generate from-geometry set 'geo_03' maximum-edge @mesh_size
+zone group 'L03_sandy_mudstone' range id @id_lower 100000000
+
+; --- L04 ---
+@prepare_id_range
+geometry import '04_mudstone.stl' set 'geo_04'
+geometry set 'geo_04' triangulate
+zone generate from-geometry set 'geo_04' maximum-edge @mesh_size
+zone group 'L04_mudstone' range id @id_lower 100000000
+
+; --- L05 ---
+@prepare_id_range
+geometry import '05_mudstone.stl' set 'geo_05'
+geometry set 'geo_05' triangulate
+zone generate from-geometry set 'geo_05' maximum-edge @mesh_size
+zone group 'L05_mudstone' range id @id_lower 100000000
+
+; --- L06 ---
+@prepare_id_range
+geometry import '06_coal.stl' set 'geo_06'
+geometry set 'geo_06' triangulate
+zone generate from-geometry set 'geo_06' maximum-edge @mesh_size
+zone group 'L06_coal' range id @id_lower 100000000
+
+; --- L07 ---
+@prepare_id_range
+geometry import '07_siltstone.stl' set 'geo_07'
+geometry set 'geo_07' triangulate
+zone generate from-geometry set 'geo_07' maximum-edge @mesh_size
+zone group 'L07_siltstone' range id @id_lower 100000000
+
+; --- L08 (含修复) ---
+@prepare_id_range
+geometry import '08_coarse_sandstone.stl' set 'geo_08'
+geometry set 'geo_08' triangulate
+zone generate from-geometry set 'geo_08' maximum-edge @mesh_size
+zone group 'L08_coarse_sandstone' range id @id_lower 100000000
+
+; --- L09 ---
+@prepare_id_range
+geometry import '09_fine_sandstone.stl' set 'geo_09'
+geometry set 'geo_09' triangulate
+zone generate from-geometry set 'geo_09' maximum-edge @mesh_size
+zone group 'L09_fine_sandstone' range id @id_lower 100000000
+
+; --- L10 ---
+@prepare_id_range
+geometry import '10_medium_sandstone.stl' set 'geo_10'
+geometry set 'geo_10' triangulate
+zone generate from-geometry set 'geo_10' maximum-edge @mesh_size
+zone group 'L10_medium_sandstone' range id @id_lower 100000000
+
+; --- L11 ---
+@prepare_id_range
+geometry import '11_mudstone.stl' set 'geo_11'
+geometry set 'geo_11' triangulate
+zone generate from-geometry set 'geo_11' maximum-edge @mesh_size
+zone group 'L11_mudstone' range id @id_lower 100000000
+
+; --- L12 ---
+@prepare_id_range
+geometry import '12_coarse_sandstone.stl' set 'geo_12'
+geometry set 'geo_12' triangulate
+zone generate from-geometry set 'geo_12' maximum-edge @mesh_size
+zone group 'L12_coarse_sandstone' range id @id_lower 100000000
+
+; --- L13 ---
+@prepare_id_range
+geometry import '13_medium_sandstone.stl' set 'geo_13'
+geometry set 'geo_13' triangulate
+zone generate from-geometry set 'geo_13' maximum-edge @mesh_size
+zone group 'L13_medium_sandstone' range id @id_lower 100000000
+
+; --- L14 ---
+@prepare_id_range
+geometry import '14_coal_5.stl' set 'geo_14'
+geometry set 'geo_14' triangulate
+zone generate from-geometry set 'geo_14' maximum-edge @mesh_size
+zone group 'L14_coal_5' range id @id_lower 100000000
+
+; --- L15 ---
+@prepare_id_range
+geometry import '15_loess.stl' set 'geo_15'
+geometry set 'geo_15' triangulate
+zone generate from-geometry set 'geo_15' maximum-edge @mesh_size
+zone group 'L15_loess' range id @id_lower 100000000
+
+; --- L16 ---
+@prepare_id_range
+geometry import '16_layer.stl' set 'geo_16'
+geometry set 'geo_16' triangulate
+zone generate from-geometry set 'geo_16' maximum-edge @mesh_size
+zone group 'L16_layer' range id @id_lower 100000000
+
+; --- L17 ---
+@prepare_id_range
+geometry import '17_coarse_sandstone.stl' set 'geo_17'
+geometry set 'geo_17' triangulate
+zone generate from-geometry set 'geo_17' maximum-edge @mesh_size
+zone group 'L17_coarse_sandstone' range id @id_lower 100000000
+
+; --- L18 ---
+@prepare_id_range
+geometry import '18_coal_4.stl' set 'geo_18'
+geometry set 'geo_18' triangulate
+zone generate from-geometry set 'geo_18' maximum-edge @mesh_size
+zone group 'L18_coal_4' range id @id_lower 100000000
+
+; --- L19 ---
+@prepare_id_range
+geometry import '19_layer.stl' set 'geo_19'
+geometry set 'geo_19' triangulate
+zone generate from-geometry set 'geo_19' maximum-edge @mesh_size
+zone group 'L19_layer' range id @id_lower 100000000
+model save 'Mesh_Generated_19Layers.sav'
+model rest 'Mesh_Generated_19Layers.sav'
+; ============================================================
+; 4. 材质与参数赋值 (必须在建立接触面之前！)
+; ============================================================
+
+
+; --- 4.1 建立 Slot 映射 ---
+zone group 'coal' slot 'mat' range group 'L01_coal_6'
+zone group 'coal' slot 'mat' range group 'L02_coal_6_1'
+zone group 'coal' slot 'mat' range group 'L06_coal'
+zone group 'coal' slot 'mat' range group 'L14_coal_5'
+zone group 'coal' slot 'mat' range group 'L18_coal_4'
+
+zone group 'siltstone' slot 'mat' range group 'L07_siltstone'
+zone group 'fine_sand' slot 'mat' range group 'L09_fine_sandstone'
+
+zone group 'coarse_sand' slot 'mat' range group 'L08_coarse_sandstone'
+zone group 'coarse_sand' slot 'mat' range group 'L10_medium_sandstone'
+zone group 'coarse_sand' slot 'mat' range group 'L12_coarse_sandstone'
+zone group 'coarse_sand' slot 'mat' range group 'L13_medium_sandstone'
+zone group 'coarse_sand' slot 'mat' range group 'L17_coarse_sandstone'
+zone group 'coarse_sand' slot 'mat' range group 'L19_layer'
+
+zone group 'mudstone' slot 'mat' range group 'L03_sandy_mudstone'
+zone group 'mudstone' slot 'mat' range group 'L04_mudstone'
+zone group 'mudstone' slot 'mat' range group 'L05_mudstone'
+zone group 'mudstone' slot 'mat' range group 'L11_mudstone'
+zone group 'mudstone' slot 'mat' range group 'L16_layer'
+
+zone group 'loess' slot 'mat' range group 'L15_loess'
+
+; --- 4.2 赋值本构 (关键一步) ---
+; 这一步运行后，Zone 2601 就不再是 Null 了
+zone cmodel assign mohr-coulomb
+
+; --- 4.3 全模型兜底赋参 ---
+zone property bulk 5e9 shear 3e9 cohesion 2e6 friction 30 tension 1e6 density 2500
+
+; --- 4.4 精确赋参 ---
+zone property bulk 2.167e9 shear 1.000e9 cohesion 1.57e6 friction 27.29 tension 0.90e6 density 1470.67 range group 'coal' slot 'mat'
+zone property bulk 6.80e9 shear 4.08e9 cohesion 3.80e6 friction 34.0 tension 2.60e6 density 2590.0 range group 'siltstone' slot 'mat'
+zone property bulk 7.107e9 shear 4.264e9 cohesion 3.80e6 friction 34.0 tension 2.80e6 density 2600.0 range group 'fine_sand' slot 'mat'
+zone property bulk 5.96e9 shear 3.576e9 cohesion 4.10e6 friction 34.0 tension 2.10e6 density 2580.0 range group 'coarse_sand' slot 'mat'
+zone property bulk 4.091e9 shear 2.109e9 cohesion 2.21e6 friction 30.0 tension 1.70e6 density 2437.0 range group 'mudstone' slot 'mat'
+zone property bulk 2.0e9 shear 1.0e9 cohesion 0.05e6 friction 25.0 tension 0.0 density 1800.0 range group 'loess' slot 'mat'
+
+
+; ============================================================
+; 5. 层间连接 (现在可以安全地建立接触面了)
+; ============================================================
+
+;
+;; 清理旧关系
+;zone attach delete
+;zone interface element delete range id 1 100000000
+;
+;; 创建接触面
+;zone interface create by-face range id 1 100000000
+;
+;; 赋予接触面参数
+;; 注意：这里不需要 model cycle 0，放到最后的平衡里一起算
+;zone interface node property stiffness-normal 1.0e10 ...
+;                             stiffness-shear 1.0e9 ...
+;                             friction 25.0 ...
+;                             cohesion 0.1e6 ...
+;                             tension 0.0 range id 1 100000000
+
+
+; ============================================================
+; 6. 边界与荷载 (极简版)
+; ============================================================
+
+@find_bounds
+; --- 6.1 施加边界约束 ---
+zone gridpoint fix velocity-x range position-x @x_min tolerance 0.5
+zone gridpoint fix velocity-x range position-x @x_max tolerance 0.5
+zone gridpoint fix velocity-y range position-y @y_min tolerance 0.5
+zone gridpoint fix velocity-y range position-y @y_max tolerance 0.5
+zone gridpoint fix velocity-z range position-z @z_min tolerance 0.5
+
+
+; ============================================================
+; 6.2 [关键] 孤儿节点自动释放 (list.size 函数版)
+; ============================================================
+
+
+fish define release_orphan_nodes
+    local count = 0
+    loop foreach gp gp.list
+        ; 1. 获取连接该节点的单元列表
+        local z_list = gp.zone(gp)
+        
+        ; 2. 【修正】使用 list.size() 函数来判断
+        if list.size(z_list) = 0 then
+            ; 强制松绑 (X, Y, Z 方向)
+            gp.fix(gp, 1) = false
+            gp.fix(gp, 2) = false
+            gp.fix(gp, 3) = false
+            count = count + 1
+        endif
+    end_loop
+end
+@release_orphan_nodes
+
+; ============================================================
+; 6.3 施加荷载 (接下去继续运行)
+; ============================================================
+zone face apply stress-normal -22.4e6 range position-z @z_max tolerance 0.5
+model gravity 0 0 -9.8
+
+; ============================================================
+; 7.1 自动删除畸形单元 (修复 Zero Stiffness 根源)
+; ============================================================
+
+; 定义一个 FISH 函数，寻找体积小于 1e-6 的坏单元
+fish define mark_bad_zones
+    local count = 0
+    loop foreach z zone.list
+        ; 如果单元体积极小，说明是坏的
+        if zone.vol(z) < 1e-6 then
+            ; 把这块坏石头扔进一个叫 'Bad_Zones' 的垃圾桶组里
+            zone.group(z) = 'Bad_Zones'
+            count = count + 1
+        endif
+    end_loop
+end
+@mark_bad_zones
+
+; --- 执行删除 ---
+; 删除所有被标记为坏单元的石头
+zone delete range group 'Bad_Zones'
+
+
+
+
+; ============================================================
+; 7.3 直接求解
+; ============================================================
+
+
+model large-strain off
+
+zone gridpoint initialize velocity (0,0,0)
+zone gridpoint initialize displacement (0,0,0)
+
+model solve
+
+model save 'Final_Balanced_Solved.sav'

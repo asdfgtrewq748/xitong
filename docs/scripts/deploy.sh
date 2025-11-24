@@ -67,11 +67,18 @@ backup_data() {
     BACKUP_DIR="./backups/$(date +%Y%m%d_%H%M%S)"
     mkdir -p "$BACKUP_DIR"
     
-    if [ -d backend/data ]; then
-        cp -r backend/data "$BACKUP_DIR/"
-        log_info "数据已备份到 $BACKUP_DIR"
+    # 备份项目根目录的data文件夹（包含汇总表.csv等重要数据）
+    if [ -d data ]; then
+        cp -r data "$BACKUP_DIR/"
+        log_info "数据已备份到 $BACKUP_DIR/data"
     else
-        log_warn "没有找到数据目录，跳过备份"
+        log_warn "没有找到data目录，跳过备份"
+    fi
+    
+    # 备份日志
+    if [ -d backend/logs ]; then
+        cp -r backend/logs "$BACKUP_DIR/"
+        log_info "日志已备份到 $BACKUP_DIR/logs"
     fi
 }
 

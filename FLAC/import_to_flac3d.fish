@@ -1,13 +1,13 @@
 ; ==========================================
-; FLAC3D 18层地质模型分步导入脚本
-; 生成时间: 2025-11-22T00:59:39.949966
+; FLAC3D 19层地质模型分步导入脚本
+; 生成时间: 2025-11-23T01:02:06.024725
 ; 优势：线性执行，无复杂函数，易于调试
 ; ==========================================
 
 ; --- 1. 初始化 ---
 model new
 model deterministic on
-model title "18-Layer Geological Model"
+model title "19-Layer Geological Model"
 
 ; --- 2. 定义全局网格尺寸 ---
 ; 修改这个数字可以控制所有层的网格疏密
@@ -34,7 +34,7 @@ end
 ;   zone interface property stiffness-normal=1e10 stiffness-shear=1e9
 
 ; ==========================================
-;   开始分层导入 (Layer 01 - 18)
+;   开始分层导入 (Layer 01 - 19)
 ; ==========================================
 ; 
 ; 重要提示：
@@ -53,116 +53,152 @@ end
 ; 方法3：删除几何集后重新导入
 ;   - 如果某层失败，使用: geometry delete set 'geo_XX'
 ;   - 然后重新导入该层
-; 
+
+; 【关键】升级版ID范围追踪函数
+fish define prepare_id_range
+    global max_id = 0
+    loop foreach z zone.list
+        max_id = math.max(max_id, zone.id(z))
+    end_loop
+    global id_lower = max_id + 1
+end
+
+; ==========================================
+;   开始导入 (Layer 01 - 19)
 ; ==========================================
 
 ; --- Layer 01: 6煤 ---
+@prepare_id_range
 geometry import '01_coal_6.stl' set 'geo_01'
 geometry set 'geo_01' triangulate
 zone generate from-geometry set 'geo_01' maximum-edge @mesh_size
-zone group 'L01_coal_6'
+zone group 'L01_coal_6' range id @id_lower 100000000
 
 ; --- Layer 02: 6-1煤 ---
+@prepare_id_range
 geometry import '02_coal_6_1.stl' set 'geo_02'
 geometry set 'geo_02' triangulate
 zone generate from-geometry set 'geo_02' maximum-edge @mesh_size
-zone group 'L02_coal_6_1'
+zone group 'L02_coal_6_1' range id @id_lower 100000000
 
 ; --- Layer 03: 砂质泥岩 ---
+@prepare_id_range
 geometry import '03_sandy_mudstone.stl' set 'geo_03'
 geometry set 'geo_03' triangulate
 zone generate from-geometry set 'geo_03' maximum-edge @mesh_size
-zone group 'L03_sandy_mudstone'
+zone group 'L03_sandy_mudstone' range id @id_lower 100000000
 
 ; --- Layer 04: 炭质泥岩 ---
+@prepare_id_range
 geometry import '04_mudstone.stl' set 'geo_04'
 geometry set 'geo_04' triangulate
 zone generate from-geometry set 'geo_04' maximum-edge @mesh_size
-zone group 'L04_mudstone'
+zone group 'L04_mudstone' range id @id_lower 100000000
 
 ; --- Layer 05: 高岭质泥岩 ---
+@prepare_id_range
 geometry import '05_mudstone.stl' set 'geo_05'
 geometry set 'geo_05' triangulate
 zone generate from-geometry set 'geo_05' maximum-edge @mesh_size
-zone group 'L05_mudstone'
+zone group 'L05_mudstone' range id @id_lower 100000000
 
 ; --- Layer 06: 风化煤 ---
+@prepare_id_range
 geometry import '06_coal.stl' set 'geo_06'
 geometry set 'geo_06' triangulate
 zone generate from-geometry set 'geo_06' maximum-edge @mesh_size
-zone group 'L06_coal'
+zone group 'L06_coal' range id @id_lower 100000000
 
 ; --- Layer 07: 粉砂岩 ---
+@prepare_id_range
 geometry import '07_siltstone.stl' set 'geo_07'
 geometry set 'geo_07' triangulate
 zone generate from-geometry set 'geo_07' maximum-edge @mesh_size
-zone group 'L07_siltstone'
+zone group 'L07_siltstone' range id @id_lower 100000000
 
 ; --- Layer 08: 粗粒砂岩 ---
+@prepare_id_range
 geometry import '08_coarse_sandstone.stl' set 'geo_08'
 geometry set 'geo_08' triangulate
 zone generate from-geometry set 'geo_08' maximum-edge @mesh_size
-zone group 'L08_coarse_sandstone'
+zone group 'L08_coarse_sandstone' range id @id_lower 100000000
 
 ; --- Layer 09: 细粒砂岩 ---
+@prepare_id_range
 geometry import '09_fine_sandstone.stl' set 'geo_09'
 geometry set 'geo_09' triangulate
 zone generate from-geometry set 'geo_09' maximum-edge @mesh_size
-zone group 'L09_fine_sandstone'
+zone group 'L09_fine_sandstone' range id @id_lower 100000000
 
 ; --- Layer 10: 中粒砂岩 ---
+@prepare_id_range
 geometry import '10_medium_sandstone.stl' set 'geo_10'
 geometry set 'geo_10' triangulate
 zone generate from-geometry set 'geo_10' maximum-edge @mesh_size
-zone group 'L10_medium_sandstone'
+zone group 'L10_medium_sandstone' range id @id_lower 100000000
 
 ; --- Layer 11: 泥岩 ---
+@prepare_id_range
 geometry import '11_mudstone.stl' set 'geo_11'
 geometry set 'geo_11' triangulate
 zone generate from-geometry set 'geo_11' maximum-edge @mesh_size
-zone group 'L11_mudstone'
+zone group 'L11_mudstone' range id @id_lower 100000000
 
 ; --- Layer 12: 含砾粗粒砂岩 ---
+@prepare_id_range
 geometry import '12_coarse_sandstone.stl' set 'geo_12'
 geometry set 'geo_12' triangulate
 zone generate from-geometry set 'geo_12' maximum-edge @mesh_size
-zone group 'L12_coarse_sandstone'
+zone group 'L12_coarse_sandstone' range id @id_lower 100000000
 
 ; --- Layer 13: 含砾中砂岩 ---
+@prepare_id_range
 geometry import '13_medium_sandstone.stl' set 'geo_13'
 geometry set 'geo_13' triangulate
 zone generate from-geometry set 'geo_13' maximum-edge @mesh_size
-zone group 'L13_medium_sandstone'
+zone group 'L13_medium_sandstone' range id @id_lower 100000000
 
 ; --- Layer 14: 5煤 ---
+@prepare_id_range
 geometry import '14_coal_5.stl' set 'geo_14'
 geometry set 'geo_14' triangulate
 zone generate from-geometry set 'geo_14' maximum-edge @mesh_size
-zone group 'L14_coal_5'
+zone group 'L14_coal_5' range id @id_lower 100000000
 
 ; --- Layer 15: 黄土 ---
+@prepare_id_range
 geometry import '15_loess.stl' set 'geo_15'
 geometry set 'geo_15' triangulate
 zone generate from-geometry set 'geo_15' maximum-edge @mesh_size
-zone group 'L15_loess'
+zone group 'L15_loess' range id @id_lower 100000000
 
 ; --- Layer 16: 高岭岩 ---
+@prepare_id_range
 geometry import '16_layer.stl' set 'geo_16'
 geometry set 'geo_16' triangulate
 zone generate from-geometry set 'geo_16' maximum-edge @mesh_size
-zone group 'L16_layer'
+zone group 'L16_layer' range id @id_lower 100000000
 
 ; --- Layer 17: 含砾粗砂岩 ---
+@prepare_id_range
 geometry import '17_coarse_sandstone.stl' set 'geo_17'
 geometry set 'geo_17' triangulate
 zone generate from-geometry set 'geo_17' maximum-edge @mesh_size
-zone group 'L17_coarse_sandstone'
+zone group 'L17_coarse_sandstone' range id @id_lower 100000000
 
 ; --- Layer 18: 4煤 ---
+@prepare_id_range
 geometry import '18_coal_4.stl' set 'geo_18'
 geometry set 'geo_18' triangulate
 zone generate from-geometry set 'geo_18' maximum-edge @mesh_size
-zone group 'L18_coal_4'
+zone group 'L18_coal_4' range id @id_lower 100000000
+
+; --- Layer 19: 顶板 ---
+@prepare_id_range
+geometry import '19_layer.stl' set 'geo_19'
+geometry set 'geo_19' triangulate
+zone generate from-geometry set 'geo_19' maximum-edge @mesh_size
+zone group 'L19_layer' range id @id_lower 100000000
 
 
 ; ==========================================
@@ -192,16 +228,44 @@ zone attach by-face
 ; ==========================================
 ;   4. 检查并显示结果
 ; ==========================================
-; 显示各层的网格数量
-list zone group
+
+; ==========================================
+;   3. 建立层间连接（关键步骤）
+; ==========================================
+; 虽然各层有物理间隙，但需要建立力学连接
+; 选择以下方法之一：
+
+; --- 方法A：刚性连接（推荐，假设完整接触）---
+; 将所有相邻层的接触面粘合在一起
+; 优点：简单、稳定，适合大多数情况
+zone attach by-face
+
+; --- 方法B：柔性接触（可选，适合软弱夹层）---
+; 如果需要模拟层间滑移或分离，使用接触单元
+; 注释掉上面的 zone attach，改用以下代码：
+;
+; fish define setup_interfaces
+;   ; 为每对相邻层创建接触界面
+;   zone interface create by-face
+;   ; 设置接触刚度（根据实际地质条件调整）
+;   zone interface property stiffness-normal=1e10 stiffness-shear=1e9
+;   zone interface property friction=30.0 cohesion=0.5e6
+; end
+; [@setup_interfaces]
+
+; ==========================================
+;   4. 检查并显示结果
+; ==========================================
+; 显示模型信息
+model list information
 
 ; ==========================================
 ;   5. 保存模型
 ; ==========================================
-model save 'Mesh_Generated_18Layers.sav'
+model save 'Mesh_Generated_19Layers.sav'
 
 ; 输出结果信息
-list zone information
+model list information
 
 ; ==========================================
 ;   导入完成！

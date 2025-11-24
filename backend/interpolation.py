@@ -193,6 +193,7 @@ class EnhancedInterpolation:
                                    angle: float = 0.0, ratio: float = 2.0) -> np.ndarray:
         """
         各向异性插值 - 考虑地质构造的方向性
+        添加了结果验证机制
 
         Args:
             x, y, z: 已知数据点
@@ -203,6 +204,10 @@ class EnhancedInterpolation:
         Returns:
             插值结果
         """
+        # 计算数据范围用于后续验证
+        z_min, z_max = np.min(z), np.max(z)
+        z_range = z_max - z_min
+        
         # 坐标变换矩阵
         theta = np.radians(angle)
         cos_theta = np.cos(theta)
@@ -218,9 +223,21 @@ class EnhancedInterpolation:
 
         # 在变换空间中插值
         try:
-            rbf = Rbf(x_transformed, y_transformed, z, function='thin_plate')
-            z_pred = rbf(xi_transformed, yi_transformed)
-            return z_pred
+            # 自适应smooth参数
+            smooth_factor = max(0.5, z_range * 0.05)
+            rbf = Rbf(x_transformed, y_transformed, z, function='thin_plate', smooth=smooth_factor)
+            result = rbf(xi_transformed, yi_transformed)
+            
+            # 验证并裁剪结果
+            safe_min = z_min - z_range * 0.5
+            safe_max = z_max + z_range * 0.5
+            
+            outliers = (result < safe_min) | (result > safe_max)
+            if np.any(outliers):
+                print(f"[INTERP-ANISO] ⚠️ 裁剪{np.sum(outliers)}个异常值")
+                result = np.clip(result, safe_min, safe_max)
+            
+            return result
         except Exception as e:
             warnings.warn(f"各向异性插值失败: {e}, 回退到各向同性")
             return griddata((x, y), z, (xi, yi), method='linear')
@@ -381,24 +398,12 @@ class EnhancedInterpolation:
             metadata["fill_value"] = fill_value
             return z_interp, metadata
 
-
-# 全局插值器实例
-_interpolator = None
-
-def get_interpolator() -> EnhancedInterpolation:
-    """获取全局插值器实例(单例模式)"""
-    global _interpolator
-    if _interpolator is None:
-        _interpolator = EnhancedInterpolation()
-    return _interpolator
-
-
-# 便捷函数
     def modified_shepard(self, x: np.ndarray, y: np.ndarray, z: np.ndarray,
                          xi: np.ndarray, yi: np.ndarray,
                          power: float = 2.0) -> np.ndarray:
         """
         修正谢泼德插值 (Modified Shepard)
+        IDW的改进版本,添加异常值保护
 
         Args:
             x, y, z: 已知数据点
@@ -412,6 +417,7 @@ def get_interpolator() -> EnhancedInterpolation:
         yi_flat = yi.flatten() if len(yi.shape) > 1 else yi
 
         result = np.zeros(len(xi_flat))
+        z_min, z_max = np.min(z), np.max(z)
 
         for i, (xv, yv) in enumerate(zip(xi_flat, yi_flat)):
             distances = np.sqrt((x - xv) ** 2 + (y - yv) ** 2)
@@ -420,6 +426,9 @@ def get_interpolator() -> EnhancedInterpolation:
             weights = 1.0 / (distances ** power)
             weights = weights / np.sum(weights)
             result[i] = np.sum(weights * z)
+            
+            # Modified Shepard理论上不会外推,但添加安全检查
+            result[i] = np.clip(result[i], z_min - 5, z_max + 5)
 
         return result.reshape(xi.shape) if len(xi.shape) > 1 else result
 
@@ -448,6 +457,7 @@ def get_interpolator() -> EnhancedInterpolation:
                                function: str = 'multiquadric') -> np.ndarray:
         """
         径向基函数插值 (Radial Basis Function)
+        添加了结果验证,防止外推产生异常值
 
         Args:
             x, y, z: 已知数据点
@@ -458,8 +468,36 @@ def get_interpolator() -> EnhancedInterpolation:
             插值结果
         """
         try:
-            rbf = Rbf(x, y, z, function=function, smooth=0.1)
-            return rbf(xi, yi)
+            # 计算原始数据的合理范围
+            z_min, z_max = np.min(z), np.max(z)
+            z_range = z_max - z_min
+            
+            # 增加smooth参数防止过拟合和外推
+            # smooth值越大,越平滑,越不容易产生异常值
+            smooth_factor = max(0.1, z_range * 0.01)  # 自适应smooth
+            
+            rbf = Rbf(x, y, z, function=function, smooth=smooth_factor)
+            result = rbf(xi, yi)
+            
+            # ⚠️ 关键修复:验证结果范围,防止外推产生异常值
+            # 允许结果略微超出原始范围,但不能太离谱
+            safe_min = z_min - z_range * 0.5  # 允许向下外推50%
+            safe_max = z_max + z_range * 0.5  # 允许向上外推50%
+            
+            # 检查是否有异常值
+            outliers = (result < safe_min) | (result > safe_max)
+            outlier_count = np.sum(outliers)
+            
+            if outlier_count > 0:
+                print(f"[INTERP-RBF] ⚠️ 检测到{outlier_count}个异常值(范围: [{result.min():.2f}, {result.max():.2f}])")
+                print(f"[INTERP-RBF] 📊 原始数据范围: [{z_min:.2f}, {z_max:.2f}], 安全范围: [{safe_min:.2f}, {safe_max:.2f}]")
+                
+                # 对异常值进行裁剪
+                result = np.clip(result, safe_min, safe_max)
+                print(f"[INTERP-RBF] ✂️ 裁剪后范围: [{result.min():.2f}, {result.max():.2f}]")
+            
+            return result
+            
         except Exception as e:
             warnings.warn(f"RBF插值失败: {e}, 回退到线性插值")
             return griddata((x, y), z, (xi, yi), method='linear')
@@ -478,12 +516,31 @@ def get_interpolator() -> EnhancedInterpolation:
             插值结果
         """
         if len(x) < 4:
-            warnings.warn("数据点太少，使用最近邻插值")
+            warnings.warn("数据点太少,使用最近邻插值")
             return griddata((x, y), z, (xi, yi), method='nearest')
 
         try:
-            rbf = Rbf(x, y, z, function='thin_plate', smooth=0.5)
-            return rbf(xi, yi)
+            # 计算数据范围
+            z_min, z_max = np.min(z), np.max(z)
+            z_range = z_max - z_min
+            
+            # 自适应smooth参数
+            smooth_factor = max(0.5, z_range * 0.05)
+            
+            rbf = Rbf(x, y, z, function='thin_plate', smooth=smooth_factor)
+            result = rbf(xi, yi)
+            
+            # 验证并裁剪结果
+            safe_min = z_min - z_range * 0.5
+            safe_max = z_max + z_range * 0.5
+            
+            outliers = (result < safe_min) | (result > safe_max)
+            if np.any(outliers):
+                print(f"[INTERP-KRIGING] ⚠️ 裁剪{np.sum(outliers)}个异常值")
+                result = np.clip(result, safe_min, safe_max)
+            
+            return result
+            
         except Exception as e:
             warnings.warn(f"通用克里金插值失败: {e}, 回退到线性插值")
             return griddata((x, y), z, (xi, yi), method='linear')
@@ -517,13 +574,18 @@ def get_interpolator() -> EnhancedInterpolation:
             插值结果
         """
         method = method.lower()
+        original_method = method  # 保存原始方法名
         print(f"[INTERPOLATION] 🎯 执行插值: method={method}, 数据点={len(x)}, 目标点={len(xi)}")
 
-        # 数据验证
+        # 数据验证 - 只对真正需要大量点的方法降级
         if len(x) < 3:
-            print(f"[INTERPOLATION] ⚠️ 数据点太少 ({len(x)} < 3), 强制使用 nearest")
-            warnings.warn(f"数据点太少 ({len(x)} 个)，使用最近邻插值")
-            return griddata((x, y), z, (xi, yi), method='nearest')
+            if method in ['cubic', 'kriging', 'ordinary_kriging', 'universal_kriging']:
+                print(f"[INTERPOLATION] ⚠️ 数据点太少 ({len(x)} < 3), {method}降级为 nearest")
+                warnings.warn(f"数据点太少 ({len(x)} 个)，{method}降级为最近邻插值")
+                return griddata((x, y), z, (xi, yi), method='nearest')
+            else:
+                # linear, nearest等方法可以处理少量点
+                print(f"[INTERPOLATION] ℹ️ 数据点较少 ({len(x)}), 但{method}方法可以处理")
 
         try:
             # 基础griddata方法
@@ -531,12 +593,19 @@ def get_interpolator() -> EnhancedInterpolation:
                 print(f"[INTERPOLATION] ✅ 使用 scipy.griddata({method})")
                 return griddata((x, y), z, (xi, yi), method=method)
             elif method == 'cubic':
-                if len(x) >= 16:
-                    print(f"[INTERPOLATION] ✅ 使用 scipy.griddata(cubic)")
-                    return griddata((x, y), z, (xi, yi), method='cubic')
+                if len(x) >= 10:  # 降低要求从16到10
+                    print(f"[INTERPOLATION] ✅ 使用 scipy.griddata(cubic), 数据点={len(x)}")
+                    result = griddata((x, y), z, (xi, yi), method='cubic')
+                    # cubic可能在边界产生NaN,用linear填充
+                    if np.any(np.isnan(result)):
+                        nan_count = np.sum(np.isnan(result))
+                        print(f"[INTERPOLATION] ℹ️ cubic产生{nan_count}个NaN, 用linear填充")
+                        linear_result = griddata((x, y), z, (xi, yi), method='linear')
+                        result = np.where(np.isnan(result), linear_result, result)
+                    return result
                 else:
-                    print(f"[INTERPOLATION] ⚠️ 数据点不足 ({len(x)} < 16), cubic降级为linear")
-                    warnings.warn(f"数据点不足 ({len(x)} < 16)，从cubic降级为linear")
+                    print(f"[INTERPOLATION] ⚠️ 数据点不足 ({len(x)} < 10), cubic降级为linear")
+                    warnings.warn(f"数据点不足 ({len(x)} < 10)，从cubic降级为linear")
                     return griddata((x, y), z, (xi, yi), method='linear')
 
             # RBF方法
@@ -573,8 +642,21 @@ def get_interpolator() -> EnhancedInterpolation:
                 return griddata((x, y), z, (xi, yi), method='linear')
 
         except Exception as e:
+            print(f"[INTERPOLATION] ❌ 插值方法 '{method}' 失败: {e}")
+            print(f"[INTERPOLATION] 🔄 回退到最近邻插值")
             warnings.warn(f"插值方法 '{method}' 失败: {e}, 回退到最近邻插值")
             return griddata((x, y), z, (xi, yi), method='nearest')
+
+
+# 全局插值器实例
+_interpolator = None
+
+def get_interpolator() -> EnhancedInterpolation:
+    """获取全局插值器实例(单例模式)"""
+    global _interpolator
+    if _interpolator is None:
+        _interpolator = EnhancedInterpolation()
+    return _interpolator
 
 
 def interpolate_smart(x: np.ndarray, y: np.ndarray, z: np.ndarray,

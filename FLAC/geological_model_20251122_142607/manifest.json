@@ -1,0 +1,163 @@
+{
+  "export_time": "2025-11-22T14:26:07.883971",
+  "total_layers": 19,
+  "format": "binary",
+  "downsample_factor": 5,
+  "coordinate_normalized": true,
+  "min_layer_gap": 0.5,
+  "quality_checks_enabled": true,
+  "layers": [
+    {
+      "index": 0,
+      "name": "顶板",
+      "name_english": "layer",
+      "filename": "01_layer.stl",
+      "file_size_bytes": 179884,
+      "file_size_mb": 0.17
+    },
+    {
+      "index": 1,
+      "name": "6煤",
+      "name_english": "coal_6",
+      "filename": "02_coal_6.stl",
+      "file_size_bytes": 179884,
+      "file_size_mb": 0.17
+    },
+    {
+      "index": 2,
+      "name": "6-1煤",
+      "name_english": "coal_6_1",
+      "filename": "03_coal_6_1.stl",
+      "file_size_bytes": 179884,
+      "file_size_mb": 0.17
+    },
+    {
+      "index": 3,
+      "name": "砂质泥岩",
+      "name_english": "sandy_mudstone",
+      "filename": "04_sandy_mudstone.stl",
+      "file_size_bytes": 179884,
+      "file_size_mb": 0.17
+    },
+    {
+      "index": 4,
+      "name": "炭质泥岩",
+      "name_english": "mudstone",
+      "filename": "05_mudstone.stl",
+      "file_size_bytes": 179884,
+      "file_size_mb": 0.17
+    },
+    {
+      "index": 5,
+      "name": "高岭质泥岩",
+      "name_english": "mudstone",
+      "filename": "06_mudstone.stl",
+      "file_size_bytes": 179884,
+      "file_size_mb": 0.17
+    },
+    {
+      "index": 6,
+      "name": "风化煤",
+      "name_english": "coal",
+      "filename": "07_coal.stl",
+      "file_size_bytes": 179884,
+      "file_size_mb": 0.17
+    },
+    {
+      "index": 7,
+      "name": "粉砂岩",
+      "name_english": "siltstone",
+      "filename": "08_siltstone.stl",
+      "file_size_bytes": 179884,
+      "file_size_mb": 0.17
+    },
+    {
+      "index": 8,
+      "name": "粗粒砂岩",
+      "name_english": "coarse_sandstone",
+      "filename": "09_coarse_sandstone.stl",
+      "file_size_bytes": 179884,
+      "file_size_mb": 0.17
+    },
+    {
+      "index": 9,
+      "name": "细粒砂岩",
+      "name_english": "fine_sandstone",
+      "filename": "10_fine_sandstone.stl",
+      "file_size_bytes": 179884,
+      "file_size_mb": 0.17
+    },
+    {
+      "index": 10,
+      "name": "中粒砂岩",
+      "name_english": "medium_sandstone",
+      "filename": "11_medium_sandstone.stl",
+      "file_size_bytes": 179884,
+      "file_size_mb": 0.17
+    },
+    {
+      "index": 11,
+      "name": "泥岩",
+      "name_english": "mudstone",
+      "filename": "12_mudstone.stl",
+      "file_size_bytes": 179884,
+      "file_size_mb": 0.17
+    },
+    {
+      "index": 12,
+      "name": "含砾粗粒砂岩",
+      "name_english": "coarse_sandstone",
+      "filename": "13_coarse_sandstone.stl",
+      "file_size_bytes": 179884,
+      "file_size_mb": 0.17
+    },
+    {
+      "index": 13,
+      "name": "含砾中砂岩",
+      "name_english": "medium_sandstone",
+      "filename": "14_medium_sandstone.stl",
+      "file_size_bytes": 179884,
+      "file_size_mb": 0.17
+    },
+    {
+      "index": 14,
+      "name": "5煤",
+      "name_english": "coal_5",
+      "filename": "15_coal_5.stl",
+      "file_size_bytes": 179884,
+      "file_size_mb": 0.17
+    },
+    {
+      "index": 15,
+      "name": "黄土",
+      "name_english": "loess",
+      "filename": "16_loess.stl",
+      "file_size_bytes": 179884,
+      "file_size_mb": 0.17
+    },
+    {
+      "index": 16,
+      "name": "高岭岩",
+      "name_english": "layer",
+      "filename": "17_layer.stl",
+      "file_size_bytes": 179884,
+      "file_size_mb": 0.17
+    },
+    {
+      "index": 17,
+      "name": "含砾粗砂岩",
+      "name_english": "coarse_sandstone",
+      "filename": "18_coarse_sandstone.stl",
+      "file_size_bytes": 179884,
+      "file_size_mb": 0.17
+    },
+    {
+      "index": 18,
+      "name": "4煤",
+      "name_english": "coal_4",
+      "filename": "19_coal_4.stl",
+      "file_size_bytes": 179884,
+      "file_size_mb": 0.17
+    }
+  ]
+}
