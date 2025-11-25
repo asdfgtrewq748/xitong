@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="container mx-auto px-8 py-12 animate-fadeIn">
      <div class="flex items-end justify-between mb-10">
         <div>
@@ -119,7 +119,7 @@
 
      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
         <!-- Tool: Rock Mechanics Database -->
-        <div class="glass-panel glass-card-hover p-8 rounded-[2rem] transition-all group relative overflow-hidden">
+        <div class="glass-panel glass-card-hover p-8 rounded-[2rem] transition-all group relative overflow-hidden flex flex-col h-full">
            <div class="flex justify-between items-start mb-8">
               <div class="bg-indigo-50 p-3.5 rounded-2xl text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
                  <Layers :size="24" />
@@ -143,14 +143,14 @@
                  </div>
               </div>
            </div>
-           <button @click="router.push('/tools/key-stratum')" class="relative w-full px-6 py-3 font-bold text-sm transition-all duration-300 rounded-xl flex items-center justify-center gap-2 overflow-hidden group shadow-[0_2px_10px_rgba(99,102,241,0.1)] hover:shadow-[0_8px_20px_rgba(99,102,241,0.2)] hover:-translate-y-0.5 active:translate-y-0 bg-gradient-primary text-white border border-transparent">
+           <button @click="router.push('/tools/key-stratum')" class="mt-auto relative w-full px-6 py-3 font-bold text-sm transition-all duration-300 rounded-xl flex items-center justify-center gap-2 overflow-hidden group shadow-[0_2px_10px_rgba(99,102,241,0.1)] hover:shadow-[0_8px_20px_rgba(99,102,241,0.2)] hover:-translate-y-0.5 active:translate-y-0 bg-gradient-primary text-white border border-transparent">
               <span class="relative z-10 flex items-center gap-2">访问数据库</span>
               <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
            </button>
         </div>
 
         <!-- Tool: Borehole Analysis -->
-        <div class="glass-panel glass-card-hover p-8 rounded-[2rem] transition-all group relative overflow-hidden">
+        <div class="glass-panel glass-card-hover p-8 rounded-[2rem] transition-all group relative overflow-hidden flex flex-col h-full">
            <div class="flex justify-between items-start mb-8">
               <div class="bg-cyan-50 p-3.5 rounded-2xl text-cyan-600 group-hover:bg-cyan-500 group-hover:text-white transition-colors">
                  <Crosshair :size="24" />
@@ -176,14 +176,14 @@
                  DEPTH: 842.5m / AZM: 11.20
               </div>
            </div>
-           <button @click="router.push('/tools/borehole-analysis')" class="relative w-full px-6 py-3 font-bold text-sm transition-all duration-300 rounded-xl flex items-center justify-center gap-2 overflow-hidden group shadow-[0_2px_10px_rgba(99,102,241,0.1)] hover:shadow-[0_8px_20px_rgba(99,102,241,0.2)] hover:-translate-y-0.5 active:translate-y-0 bg-gradient-primary text-white border border-transparent">
+           <button @click="router.push('/tools/borehole-analysis')" class="mt-auto relative w-full px-6 py-3 font-bold text-sm transition-all duration-300 rounded-xl flex items-center justify-center gap-2 overflow-hidden group shadow-[0_2px_10px_rgba(99,102,241,0.1)] hover:shadow-[0_8px_20px_rgba(99,102,241,0.2)] hover:-translate-y-0.5 active:translate-y-0 bg-gradient-primary text-white border border-transparent">
               <span class="relative z-10 flex items-center gap-2">开始分析</span>
               <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
            </button>
         </div>
 
         <!-- Tool: Upward Mining -->
-        <div class="glass-panel glass-card-hover p-8 rounded-[2rem] transition-all group relative overflow-hidden">
+        <div class="glass-panel glass-card-hover p-8 rounded-[2rem] transition-all group relative overflow-hidden flex flex-col h-full">
            <div class="flex justify-between items-start mb-8">
               <div class="bg-amber-50 p-3.5 rounded-2xl text-amber-600 group-hover:bg-amber-500 group-hover:text-white transition-colors">
                  <Pickaxe :size="24" />
@@ -200,14 +200,14 @@
               </div>
            </div>
 
-           <button @click="router.push('/tools/upward-mining-feasibility')" class="relative w-full px-6 py-3 font-bold text-sm transition-all duration-300 rounded-xl flex items-center justify-center gap-2 overflow-hidden group shadow-[0_2px_10px_rgba(99,102,241,0.1)] hover:shadow-[0_8px_20px_rgba(99,102,241,0.2)] hover:-translate-y-0.5 active:translate-y-0 bg-gradient-primary text-white border border-transparent">
+           <button @click="router.push('/tools/upward-mining-feasibility')" class="mt-auto relative w-full px-6 py-3 font-bold text-sm transition-all duration-300 rounded-xl flex items-center justify-center gap-2 overflow-hidden group shadow-[0_2px_10px_rgba(99,102,241,0.1)] hover:shadow-[0_8px_20px_rgba(99,102,241,0.2)] hover:-translate-y-0.5 active:translate-y-0 bg-gradient-primary text-white border border-transparent">
               <span class="relative z-10 flex items-center gap-2">进入评估系统</span>
               <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
            </button>
         </div>
 
         <!-- Tool: Geological Modeling -->
-        <div class="glass-panel glass-card-hover p-8 rounded-[2rem] transition-all group relative overflow-hidden">
+        <div class="glass-panel glass-card-hover p-8 rounded-[2rem] transition-all group relative overflow-hidden flex flex-col h-full">
            <div class="flex justify-between items-start mb-8">
               <div class="bg-emerald-50 p-3.5 rounded-2xl text-emerald-600 group-hover:bg-emerald-500 group-hover:text-white transition-colors">
                  <Box :size="24" />
@@ -217,12 +217,195 @@
            <h3 class="text-xl font-bold text-slate-800 mb-2">三维地质建模</h3>
            <p class="text-slate-500 text-sm mb-8 leading-relaxed">构建高精度三维地质体模型，支持切片查看与体积计算。</p>
            
+           <!-- Visualization: 3D Layers Animation -->
            <div class="h-40 bg-slate-50 rounded-3xl border border-slate-200 relative overflow-hidden mb-8 flex items-center justify-center group-hover:bg-slate-100 transition-colors">
-              <Box :size="48" class="text-slate-300 group-hover:text-emerald-400 transition-colors duration-500" />
+              <div class="relative w-24 h-24">
+                 <!-- Bottom Layer -->
+                 <div class="absolute inset-x-0 bottom-0 h-12 bg-emerald-200/50 rounded-xl transform scale-90 translate-y-2 group-hover:translate-y-4 transition-transform duration-500"></div>
+                 <!-- Middle Layer -->
+                 <div class="absolute inset-x-0 bottom-4 h-12 bg-emerald-300/50 rounded-xl transform scale-95 translate-y-1 group-hover:translate-y-0 transition-transform duration-500 delay-75"></div>
+                 <!-- Top Layer -->
+                 <div class="absolute inset-x-0 bottom-8 h-12 bg-emerald-400/50 rounded-xl shadow-sm group-hover:-translate-y-4 transition-transform duration-500 delay-150 flex items-center justify-center">
+                    <Box :size="24" class="text-emerald-700" />
+                 </div>
+              </div>
            </div>
 
-           <button @click="router.push('/tools/geological-modeling')" class="relative w-full px-6 py-3 font-bold text-sm transition-all duration-300 rounded-xl flex items-center justify-center gap-2 overflow-hidden group shadow-[0_2px_10px_rgba(99,102,241,0.1)] hover:shadow-[0_8px_20px_rgba(99,102,241,0.2)] hover:-translate-y-0.5 active:translate-y-0 bg-gradient-primary text-white border border-transparent">
+           <button @click="router.push('/tools/geological-modeling')" class="mt-auto relative w-full px-6 py-3 font-bold text-sm transition-all duration-300 rounded-xl flex items-center justify-center gap-2 overflow-hidden group shadow-[0_2px_10px_rgba(99,102,241,0.1)] hover:shadow-[0_8px_20px_rgba(99,102,241,0.2)] hover:-translate-y-0.5 active:translate-y-0 bg-gradient-primary text-white border border-transparent">
               <span class="relative z-10 flex items-center gap-2">启动建模</span>
+              <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
+           </button>
+        </div>
+
+        <!-- Tool: Tunnel Support -->
+        <div class="glass-panel glass-card-hover p-8 rounded-[2rem] transition-all group relative overflow-hidden flex flex-col h-full">
+           <div class="flex justify-between items-start mb-8">
+              <div class="bg-orange-50 p-3.5 rounded-2xl text-orange-600 group-hover:bg-orange-500 group-hover:text-white transition-colors">
+                 <Hammer :size="24" />
+              </div>
+              <div class="bg-slate-100 text-slate-500 border border-slate-200 px-3 py-1 rounded-full text-xs font-bold">New</div>
+           </div>
+           <h3 class="text-xl font-bold text-slate-800 mb-2">巷道支护计算</h3>
+           <p class="text-slate-500 text-sm mb-8 leading-relaxed">智能计算巷道支护参数，生成科学的支护方案建议。</p>
+           
+           <!-- Visualization: Tunnel Arch Support -->
+           <div class="h-40 bg-slate-900 rounded-3xl relative overflow-hidden mb-8 flex items-center justify-center group-hover:shadow-lg transition-all duration-500">
+              <!-- Tunnel shape -->
+              <div class="w-32 h-24 border-4 border-slate-700 border-b-0 rounded-t-full relative">
+                 <!-- Anchor bolts -->
+                 <div class="absolute -top-2 left-1/2 -translate-x-1/2 w-1 h-4 bg-orange-500 rounded-full animate-pulse"></div>
+                 <div class="absolute top-4 -left-2 w-4 h-1 bg-orange-500 rounded-full animate-pulse" style="animation-delay: 0.2s"></div>
+                 <div class="absolute top-4 -right-2 w-4 h-1 bg-orange-500 rounded-full animate-pulse" style="animation-delay: 0.4s"></div>
+                 
+                 <!-- Inner glow -->
+                 <div class="absolute inset-0 bg-orange-500/10 rounded-t-full blur-md"></div>
+              </div>
+              <div class="absolute bottom-4 text-xs font-mono text-orange-400 bg-orange-900/30 px-2 py-1 rounded border border-orange-500/30">
+                 SUPPORT: ACTIVE
+              </div>
+           </div>
+
+           <button @click="router.push('/tools/tunnel-support')" class="mt-auto relative w-full px-6 py-3 font-bold text-sm transition-all duration-300 rounded-xl flex items-center justify-center gap-2 overflow-hidden group shadow-[0_2px_10px_rgba(99,102,241,0.1)] hover:shadow-[0_8px_20px_rgba(99,102,241,0.2)] hover:-translate-y-0.5 active:translate-y-0 bg-gradient-primary text-white border border-transparent">
+              <span class="relative z-10 flex items-center gap-2">开始计算</span>
+              <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
+           </button>
+        </div>
+
+        <!-- Tool: Mining Design -->
+        <div class="glass-panel glass-card-hover p-8 rounded-[2rem] transition-all group relative overflow-hidden flex flex-col h-full">
+           <div class="flex justify-between items-start mb-8">
+              <div class="bg-purple-50 p-3.5 rounded-2xl text-purple-600 group-hover:bg-purple-500 group-hover:text-white transition-colors">
+                 <PenTool :size="24" />
+              </div>
+              <div class="bg-slate-100 text-slate-500 border border-slate-200 px-3 py-1 rounded-full text-xs font-bold">Tool</div>
+           </div>
+           <h3 class="text-xl font-bold text-slate-800 mb-2">采掘设计功能</h3>
+           <p class="text-slate-500 text-sm mb-8 leading-relaxed">辅助进行采掘工程设计与规划，优化开采布局。</p>
+           
+           <!-- Visualization: Blueprint Grid -->
+           <div class="h-40 bg-slate-50 rounded-3xl border border-slate-200 relative overflow-hidden mb-8 group-hover:border-purple-200 transition-colors">
+              <!-- Grid -->
+              <div class="absolute inset-0 bg-[linear-gradient(to_right,#e2e8f0_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f0_1px,transparent_1px)] bg-[size:16px_16px]"></div>
+              
+              <!-- Design Elements -->
+              <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-16 border-2 border-dashed border-purple-300 rounded-lg group-hover:border-purple-500 group-hover:w-28 group-hover:h-20 transition-all duration-500"></div>
+              <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-purple-500 rounded-full shadow-[0_0_15px_rgba(168,85,247,0.5)]"></div>
+              
+              <!-- Cursor -->
+              <div class="absolute bottom-8 right-12 text-slate-400 group-hover:text-purple-500 group-hover:translate-x-2 group-hover:-translate-y-2 transition-all duration-700">
+                 <PenTool :size="24" />
+              </div>
+           </div>
+
+           <button @click="router.push('/tools/mining-design')" class="mt-auto relative w-full px-6 py-3 font-bold text-sm transition-all duration-300 rounded-xl flex items-center justify-center gap-2 overflow-hidden group shadow-[0_2px_10px_rgba(99,102,241,0.1)] hover:shadow-[0_8px_20px_rgba(99,102,241,0.2)] hover:-translate-y-0.5 active:translate-y-0 bg-gradient-primary text-white border border-transparent">
+              <span class="relative z-10 flex items-center gap-2">进入设计</span>
+              <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
+           </button>
+        </div>
+
+        <!-- Tool: Scientific Visualization -->
+        <div class="glass-panel glass-card-hover p-8 rounded-[2rem] transition-all group relative overflow-hidden flex flex-col h-full">
+           <div class="flex justify-between items-start mb-8">
+              <div class="bg-pink-50 p-3.5 rounded-2xl text-pink-600 group-hover:bg-pink-500 group-hover:text-white transition-colors">
+                 <BarChart3 :size="24" />
+              </div>
+              <div class="bg-slate-100 text-slate-500 border border-slate-200 px-3 py-1 rounded-full text-xs font-bold">Pro</div>
+           </div>
+           <h3 class="text-xl font-bold text-slate-800 mb-2">科研绘图</h3>
+           <p class="text-slate-500 text-sm mb-8 leading-relaxed">生成高质量科研图表，支持散点、折线、热力等多种图表。</p>
+           
+           <!-- Visualization: Animated Charts -->
+           <div class="h-40 bg-slate-50 rounded-3xl border border-slate-200 relative overflow-hidden mb-8 flex items-end justify-center gap-3 pb-8 px-8">
+              <div class="w-8 bg-pink-200 rounded-t-lg h-12 group-hover:h-20 transition-all duration-500 ease-out relative overflow-hidden">
+                 <div class="absolute bottom-0 left-0 w-full h-full bg-gradient-to-t from-pink-500 to-pink-300 opacity-80"></div>
+              </div>
+              <div class="w-8 bg-pink-200 rounded-t-lg h-16 group-hover:h-28 transition-all duration-700 ease-out delay-75 relative overflow-hidden">
+                 <div class="absolute bottom-0 left-0 w-full h-full bg-gradient-to-t from-pink-500 to-pink-300 opacity-90"></div>
+              </div>
+              <div class="w-8 bg-pink-200 rounded-t-lg h-10 group-hover:h-16 transition-all duration-500 ease-out delay-150 relative overflow-hidden">
+                 <div class="absolute bottom-0 left-0 w-full h-full bg-gradient-to-t from-pink-500 to-pink-300 opacity-70"></div>
+              </div>
+              
+              <!-- Floating Stats -->
+              <div class="absolute top-4 right-4 bg-white/80 backdrop-blur px-2 py-1 rounded text-[10px] font-bold text-pink-500 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity delay-300">
+                 +128%
+              </div>
+           </div>
+
+           <button @click="router.push('/tools/visualization')" class="mt-auto relative w-full px-6 py-3 font-bold text-sm transition-all duration-300 rounded-xl flex items-center justify-center gap-2 overflow-hidden group shadow-[0_2px_10px_rgba(99,102,241,0.1)] hover:shadow-[0_8px_20px_rgba(99,102,241,0.2)] hover:-translate-y-0.5 active:translate-y-0 bg-gradient-primary text-white border border-transparent">
+              <span class="relative z-10 flex items-center gap-2">开始绘图</span>
+              <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
+           </button>
+        </div>
+
+        <!-- Tool: CSV Formatter -->
+        <div class="glass-panel glass-card-hover p-8 rounded-[2rem] transition-all group relative overflow-hidden flex flex-col h-full">
+           <div class="flex justify-between items-start mb-8">
+              <div class="bg-blue-50 p-3.5 rounded-2xl text-blue-600 group-hover:bg-blue-500 group-hover:text-white transition-colors">
+                 <FileSpreadsheet :size="24" />
+              </div>
+              <div class="bg-slate-100 text-slate-500 border border-slate-200 px-3 py-1 rounded-full text-xs font-bold">Util</div>
+           </div>
+           <h3 class="text-xl font-bold text-slate-800 mb-2">CSV 格式化工具</h3>
+           <p class="text-slate-500 text-sm mb-8 leading-relaxed">快速处理和格式化数据文件，一键适配系统输入要求。</p>
+           
+           <!-- Visualization: Data Processing -->
+           <div class="h-40 bg-slate-50 rounded-3xl border border-slate-200 relative overflow-hidden mb-8 flex flex-col items-center justify-center gap-2 p-6">
+              <!-- Rows -->
+              <div class="w-full h-8 bg-white rounded-lg border border-slate-100 shadow-sm flex items-center px-3 gap-2 transform translate-x-0 group-hover:translate-x-2 transition-transform duration-500">
+                 <div class="w-2 h-2 rounded-full bg-red-400 group-hover:bg-emerald-400 transition-colors duration-1000"></div>
+                 <div class="h-2 w-20 bg-slate-100 rounded-full"></div>
+                 <div class="h-2 w-12 bg-slate-100 rounded-full ml-auto"></div>
+              </div>
+              <div class="w-full h-8 bg-white rounded-lg border border-slate-100 shadow-sm flex items-center px-3 gap-2 transform translate-x-0 group-hover:-translate-x-2 transition-transform duration-500 delay-75">
+                 <div class="w-2 h-2 rounded-full bg-red-400 group-hover:bg-emerald-400 transition-colors duration-1000 delay-100"></div>
+                 <div class="h-2 w-16 bg-slate-100 rounded-full"></div>
+                 <div class="h-2 w-10 bg-slate-100 rounded-full ml-auto"></div>
+              </div>
+              <div class="w-full h-8 bg-white rounded-lg border border-slate-100 shadow-sm flex items-center px-3 gap-2 transform translate-x-0 group-hover:translate-x-1 transition-transform duration-500 delay-150">
+                 <div class="w-2 h-2 rounded-full bg-red-400 group-hover:bg-emerald-400 transition-colors duration-1000 delay-200"></div>
+                 <div class="h-2 w-24 bg-slate-100 rounded-full"></div>
+                 <div class="h-2 w-8 bg-slate-100 rounded-full ml-auto"></div>
+              </div>
+              
+              <!-- Scan Line -->
+              <div class="absolute top-0 left-0 w-full h-1 bg-blue-400/50 blur-sm translate-y-[-100%] group-hover:translate-y-[1000%] transition-transform duration-[1.5s] ease-in-out"></div>
+           </div>
+
+           <button @click="router.push('/tools/csv-formatter')" class="mt-auto relative w-full px-6 py-3 font-bold text-sm transition-all duration-300 rounded-xl flex items-center justify-center gap-2 overflow-hidden group shadow-[0_2px_10px_rgba(99,102,241,0.1)] hover:shadow-[0_8px_20px_rgba(99,102,241,0.2)] hover:-translate-y-0.5 active:translate-y-0 bg-gradient-primary text-white border border-transparent">
+              <span class="relative z-10 flex items-center gap-2">打开工具</span>
+              <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
+           </button>
+        </div>
+
+        <!-- Tool: Downloads -->
+        <div class="glass-panel glass-card-hover p-8 rounded-[2rem] transition-all group relative overflow-hidden flex flex-col h-full">
+           <div class="flex justify-between items-start mb-8">
+              <div class="bg-slate-50 p-3.5 rounded-2xl text-slate-600 group-hover:bg-slate-500 group-hover:text-white transition-colors">
+                 <Download :size="24" />
+              </div>
+              <div class="bg-slate-100 text-slate-500 border border-slate-200 px-3 py-1 rounded-full text-xs font-bold">Res</div>
+           </div>
+           <h3 class="text-xl font-bold text-slate-800 mb-2">下载中心</h3>
+           <p class="text-slate-500 text-sm mb-8 leading-relaxed">获取系统说明书、示例数据包与离线辅助工具。</p>
+           
+           <!-- Visualization: Download Stream -->
+           <div class="h-40 bg-slate-50 rounded-3xl border border-slate-200 relative overflow-hidden mb-8 flex items-center justify-center group-hover:bg-slate-100 transition-colors">
+              <div class="relative">
+                 <!-- Circle Progress -->
+                 <svg class="w-20 h-20 transform -rotate-90">
+                    <circle cx="40" cy="40" r="36" stroke="currentColor" stroke-width="4" fill="transparent" class="text-slate-200" />
+                    <circle cx="40" cy="40" r="36" stroke="currentColor" stroke-width="4" fill="transparent" stroke-dasharray="226" stroke-dashoffset="226" class="text-emerald-500 group-hover:stroke-dashoffset-0 transition-all duration-[1.5s] ease-out" />
+                 </svg>
+                 <!-- Icon -->
+                 <div class="absolute inset-0 flex items-center justify-center text-slate-300 group-hover:text-emerald-500 transition-colors">
+                    <Download :size="24" class="group-hover:animate-bounce" />
+                 </div>
+              </div>
+           </div>
+
+           <button @click="router.push('/downloads')" class="mt-auto relative w-full px-6 py-3 font-bold text-sm transition-all duration-300 rounded-xl flex items-center justify-center gap-2 overflow-hidden group shadow-[0_2px_10px_rgba(99,102,241,0.1)] hover:shadow-[0_8px_20px_rgba(99,102,241,0.2)] hover:-translate-y-0.5 active:translate-y-0 bg-gradient-primary text-white border border-transparent">
+              <span class="relative z-10 flex items-center gap-2">前往下载</span>
               <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
            </button>
         </div>
@@ -240,7 +423,12 @@ import {
   Database, 
   Layers, 
   Pickaxe, 
-  Box 
+  Box,
+  Hammer,
+  PenTool,
+  BarChart3,
+  FileSpreadsheet,
+  Download
 } from 'lucide-vue-next';
 
 const router = useRouter();
@@ -255,3 +443,4 @@ const totalMines = ref(5);
 <style scoped>
 /* Animations are inherited from global styles or Tailwind config */
 </style>
+
