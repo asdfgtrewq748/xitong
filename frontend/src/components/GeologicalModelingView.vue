@@ -1586,7 +1586,7 @@ onMounted(() => {
       yAxis3D: {},
       zAxis3D: {},
       grid3D: {},
-      series: []
+      series: [{ type: 'surface', data: [] }]
     };
     testChart.setOption(testOption);
     console.log('[onMounted] ✅ echarts-gl 3D支持可用');

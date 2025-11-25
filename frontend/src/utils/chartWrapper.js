@@ -702,7 +702,7 @@ export function generateScatterOption(data, config) {
       backgroundColor: bgColor,
       xAxis: { type: 'value' },
       yAxis: { type: 'value' },
-      series: []
+      series: [{ type: 'scatter', data: [] }]
     }
   }
   
@@ -1121,7 +1121,7 @@ export function generateLineOption(data, config) {
       backgroundColor,
       xAxis: { type: 'value' },
       yAxis: { type: 'value' },
-      series: []
+      series: [{ type: 'line', data: [] }]
     }
   }
   
@@ -1313,7 +1313,7 @@ export function generateHeatmapOption(data, config) {
       backgroundColor: bgColor,
       xAxis: { type: 'category', data: [] },
       yAxis: { type: 'category', data: [] },
-      series: []
+      series: [{ type: 'heatmap', data: [] }]
     }
   }
   
@@ -1438,7 +1438,7 @@ export function generateSurfaceOption(data, config) {
       yAxis3D: { type: 'value' },
       zAxis3D: { type: 'value' },
       grid3D: {},
-      series: []
+      series: [{ type: 'surface', data: [] }]
     }
   }
 
@@ -1615,7 +1615,7 @@ export function generateBarOption(data, config) {
       backgroundColor: bgColor,
       xAxis: { type: 'category', data: [] },
       yAxis: { type: 'value' },
-      series: []
+      series: [{ type: 'bar', data: [] }]
     }
   }
 
@@ -1701,7 +1701,7 @@ export function generateBarOption(data, config) {
       backgroundColor: bgColor,
       xAxis: { type: 'category', data: [] },
       yAxis: { type: 'value' },
-      series: []
+      series: [{ type: 'bar', data: [] }]
     }
   }
 
@@ -1855,7 +1855,7 @@ export function generateBoxPlotOption(data, config) {
       backgroundColor: bgColor,
       xAxis: { type: 'category', data: [] },
       yAxis: { type: 'value' },
-      series: []
+      series: [{ type: 'boxplot', data: [] }]
     }
   }
 
@@ -1876,7 +1876,7 @@ export function generateBoxPlotOption(data, config) {
       backgroundColor: bgColor,
       xAxis: { type: 'category', data: [] },
       yAxis: { type: 'value' },
-      series: []
+      series: [{ type: 'boxplot', data: [] }]
     }
   }
 
@@ -2056,7 +2056,7 @@ export function generateHistogramOption(data, config) {
       backgroundColor: bgColor,
       xAxis: { type: 'category', data: [] },
       yAxis: { type: 'value' },
-      series: []
+      series: [{ type: 'bar', data: [] }]
     }
   }
 
@@ -2072,7 +2072,7 @@ export function generateHistogramOption(data, config) {
       backgroundColor: bgColor,
       xAxis: { type: 'category', data: [] },
       yAxis: { type: 'value' },
-      series: []
+      series: [{ type: 'bar', data: [] }]
     }
   }
 

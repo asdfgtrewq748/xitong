@@ -395,7 +395,7 @@ const renderResidualHistogram = () => {
     histogram[binIndex]++
   })
 
-  const binCenters = histogram.map((_, i) => min + binWidth * (i + 0.5))
+  const binCenters = histogram.map((_, i) => (min + binWidth * (i + 0.5)).toFixed(2))
 
   const option = {
     title: {
@@ -405,7 +405,12 @@ const renderResidualHistogram = () => {
     },
     tooltip: {
       trigger: 'axis',
-      axisPointer: { type: 'shadow' }
+      axisPointer: { type: 'shadow' },
+      formatter: (params) => {
+        if (!params || params.length === 0) return ''
+        const p = params[0]
+        return `残差: ${p.name}<br/>频数: ${p.value}`
+      }
     },
     grid: {
       left: '10%',
@@ -414,9 +419,14 @@ const renderResidualHistogram = () => {
       containLabel: true
     },
     xAxis: {
-      type: 'value',
+      type: 'category',
+      data: binCenters,
       name: '残差',
-      nameTextStyle: { fontFamily: 'SimSun, "Times New Roman", serif' }
+      nameTextStyle: { fontFamily: 'SimSun, "Times New Roman", serif' },
+      axisLabel: {
+        rotate: 45,
+        fontSize: 10
+      }
     },
     yAxis: {
       type: 'value',
@@ -425,7 +435,7 @@ const renderResidualHistogram = () => {
     },
     series: [{
       type: 'bar',
-      data: binCenters.map((center, i) => [center, histogram[i]]),
+      data: histogram,
       itemStyle: { color: '#91cc75' },
       barWidth: '80%'
     }]

@@ -93,26 +93,78 @@
         </div>
      </div>
 
-     <!-- Global Data Import Section -->
+     <!-- Global Data Import Section - Hero Banner -->
      <div class="mb-12 animate-fadeIn" style="animation-delay: 50ms">
-        <div class="glass-panel p-8 rounded-[2rem] relative overflow-hidden group cursor-pointer hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-500" @click="router.push('/tools/data-management')">
-           <div class="absolute top-0 right-0 w-[400px] h-[400px] bg-gradient-to-bl from-indigo-500/10 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
+        <div class="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700 p-1 shadow-2xl shadow-indigo-500/25 group cursor-pointer" @click="router.push('/tools/data-management')">
+           <!-- Animated Background -->
+           <div class="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=%2260%22 height=%2260%22 viewBox=%220 0 60 60%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cg fill=%22none%22 fill-rule=%22evenodd%22%3E%3Cg fill=%22%23ffffff%22 fill-opacity=%220.05%22%3E%3Cpath d=%22M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-50"></div>
            
-           <div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
-              <div class="flex items-center gap-6">
-                 <div class="w-20 h-20 bg-gradient-primary rounded-3xl flex items-center justify-center text-white shadow-lg shadow-indigo-500/30 group-hover:scale-110 transition-transform duration-500">
-                    <Database :size="40" />
+           <!-- Glow Effects -->
+           <div class="absolute top-0 left-1/4 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
+           <div class="absolute bottom-0 right-1/4 w-64 h-64 bg-purple-300/20 rounded-full blur-3xl animate-pulse" style="animation-delay: 1s"></div>
+           
+           <!-- Inner Card -->
+           <div class="relative bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-[1.75rem] p-8 md:p-10">
+              <div class="flex flex-col lg:flex-row items-center justify-between gap-8">
+                 <!-- Left: Icon + Text -->
+                 <div class="flex items-center gap-6 md:gap-8">
+                    <!-- Animated Icon Container -->
+                    <div class="relative">
+                       <div class="absolute inset-0 bg-white/20 rounded-3xl blur-xl animate-pulse"></div>
+                       <div class="relative w-24 h-24 md:w-28 md:h-28 bg-white/20 backdrop-blur rounded-3xl flex items-center justify-center border border-white/30 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
+                          <Upload :size="48" class="text-white drop-shadow-lg" />
+                       </div>
+                       <!-- Floating particles -->
+                       <div class="absolute -top-2 -right-2 w-4 h-4 bg-yellow-400 rounded-full animate-bounce shadow-lg shadow-yellow-400/50"></div>
+                       <div class="absolute -bottom-1 -left-1 w-3 h-3 bg-cyan-400 rounded-full animate-bounce shadow-lg shadow-cyan-400/50" style="animation-delay: 0.5s"></div>
+                    </div>
+                    
+                    <!-- Text Content -->
+                    <div class="text-center lg:text-left">
+                       <div class="flex items-center gap-3 mb-2 justify-center lg:justify-start">
+                          <span class="px-3 py-1 bg-white/20 backdrop-blur rounded-full text-xs font-bold text-white/90 border border-white/20">
+                             ⚡ 核心功能
+                          </span>
+                          <span class="px-3 py-1 bg-emerald-400/20 backdrop-blur rounded-full text-xs font-bold text-emerald-300 border border-emerald-400/30 animate-pulse">
+                             推荐使用
+                          </span>
+                       </div>
+                       <h2 class="text-3xl md:text-4xl font-black text-white mb-3 drop-shadow-lg">
+                          全局数据导入中心
+                       </h2>
+                       <p class="text-white/80 text-lg max-w-xl leading-relaxed">
+                          统一管理钻孔数据、煤层信息与工程参数<br class="hidden md:block" />
+                          支持<span class="text-cyan-300 font-semibold">批量导入</span>、<span class="text-yellow-300 font-semibold">格式校验</span>与<span class="text-emerald-300 font-semibold">自动清洗</span>
+                       </p>
+                    </div>
                  </div>
-                 <div>
-                    <h2 class="text-2xl font-black text-slate-800 mb-2 group-hover:text-indigo-600 transition-colors">全局数据导入中心</h2>
-                    <p class="text-slate-500 text-lg max-w-xl">统一管理钻孔数据、煤层信息与工程参数。支持批量导入、格式校验与自动清洗。</p>
+                 
+                 <!-- Right: CTA Button -->
+                 <div class="flex flex-col items-center gap-3">
+                    <button class="relative px-10 py-5 bg-white text-indigo-600 font-black text-lg rounded-2xl shadow-xl shadow-black/20 hover:shadow-2xl hover:shadow-black/30 hover:-translate-y-1 active:translate-y-0 transition-all duration-300 flex items-center gap-3 group/btn overflow-hidden">
+                       <span class="relative z-10">立即导入数据</span>
+                       <ArrowRight :size="24" class="relative z-10 group-hover/btn:translate-x-1 transition-transform" />
+                       <div class="absolute inset-0 bg-gradient-to-r from-indigo-100 to-purple-100 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300"></div>
+                    </button>
+                    <span class="text-white/60 text-sm">支持 CSV、Excel、JSON 格式</span>
                  </div>
               </div>
               
-              <button class="px-8 py-4 bg-white text-indigo-600 font-bold rounded-xl shadow-sm border border-indigo-100 hover:bg-indigo-50 hover:border-indigo-200 transition-all flex items-center gap-3 group-hover:translate-x-2">
-                 <span class="text-lg">立即导入</span>
-                 <Database :size="20" />
-              </button>
+              <!-- Bottom Stats Bar -->
+              <div class="mt-8 pt-6 border-t border-white/10 grid grid-cols-3 gap-4">
+                 <div class="text-center">
+                    <div class="text-2xl font-black text-white">{{ totalBoreholes }}</div>
+                    <div class="text-white/60 text-sm">已导入钻孔</div>
+                 </div>
+                 <div class="text-center border-x border-white/10">
+                    <div class="text-2xl font-black text-white">{{ totalCoalSeams }}</div>
+                    <div class="text-white/60 text-sm">煤层数据</div>
+                 </div>
+                 <div class="text-center">
+                    <div class="text-2xl font-black text-white">99.8%</div>
+                    <div class="text-white/60 text-sm">数据完整率</div>
+                 </div>
+              </div>
            </div>
         </div>
      </div>
@@ -428,7 +480,9 @@ import {
   PenTool,
   BarChart3,
   FileSpreadsheet,
-  Download
+  Download,
+  Upload,
+  ArrowRight
 } from 'lucide-vue-next';
 
 const router = useRouter();

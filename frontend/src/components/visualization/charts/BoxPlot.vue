@@ -71,7 +71,7 @@ const updateChart = () => {
       title: { text: props.config.title || '箱线图', left: 'center' },
       xAxis: { type: 'category', data: [] },
       yAxis: { type: 'value' },
-      series: []
+      series: [{ type: 'boxplot', data: [] }]
     }, true)
     return
   }

@@ -72,7 +72,7 @@ const updateChart = () => {
       title: { text: props.config.title || '柱状图', left: 'center' },
       xAxis: { type: 'category', data: [] },
       yAxis: { type: 'value' },
-      series: []
+      series: [{ type: 'bar', data: [] }]
     }, true)
     return
   }
