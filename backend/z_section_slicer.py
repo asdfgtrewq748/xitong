@@ -124,65 +124,74 @@ def extract_z_section(
             mask = (bottom_flat <= z_coordinate) & (z_coordinate < top_flat)
             
             # 标记这些点的岩性
-        lithology_names[mask] = model.name
-        lithology_indices[mask] = layer_idx
-        z_values[mask] = z_coordinate
+            lithology_names[mask] = model.name
+            lithology_indices[mask] = layer_idx
+            z_values[mask] = z_coordinate
+            
+            n_hits = np.sum(mask)
+            if n_hits > 0:
+                print(f"[Z剖面] 岩层 '{model.name}' (索引={layer_idx}): {n_hits} 点")
         
-        n_hits = np.sum(mask)
-        if n_hits > 0:
-            print(f"[Z剖面] 岩层 '{model.name}' (索引={layer_idx}): {n_hits} 点")
-    
-    # 统计未分配岩性的点
-    unassigned_mask = lithology_indices == -1
-    n_unassigned = np.sum(unassigned_mask)
-    
-    if n_unassigned > 0:
-        # 对于未分配的点,标记为"无数据"
-        lithology_names[unassigned_mask] = "无数据"
-        lithology_indices[unassigned_mask] = len(block_models)  # 使用特殊索引
-        print(f"[Z剖面] 未分配岩性: {n_unassigned} 点 (可能在模型外)")
-    
-    # 构建图例
-    legend = []
-    unique_layers = {}
-    
-    for idx, model in enumerate(block_models):
-        if np.any(lithology_indices == idx):
-            unique_layers[idx] = model.name
+        # 统计未分配岩性的点
+        unassigned_mask = lithology_indices == -1
+        n_unassigned = np.sum(unassigned_mask)
+        
+        if n_unassigned > 0:
+            # 对于未分配的点,标记为"无数据"
+            lithology_names[unassigned_mask] = "无数据"
+            lithology_indices[unassigned_mask] = len(block_models)  # 使用特殊索引
+            print(f"[Z剖面] 未分配岩性: {n_unassigned} 点 (可能在模型外)")
+        
+        # 构建图例
+        legend = []
+        unique_layers = {}
+        
+        for idx, model in enumerate(block_models):
+            if np.any(lithology_indices == idx):
+                unique_layers[idx] = model.name
+                legend.append({
+                    'index': idx,
+                    'name': model.name,
+                    'color': _get_layer_color(model.name, idx)
+                })
+        
+        # 添加"无数据"图例
+        if n_unassigned > 0:
             legend.append({
-                'index': idx,
-                'name': model.name,
-                'color': _get_layer_color(model.name, idx)
+                'index': len(block_models),
+                'name': '无数据',
+                'color': '#CCCCCC'
             })
+        
+        print(f"[Z剖面] 图例包含 {len(legend)} 种岩性")
+        
+        # 将 lithology_index 重塑为 2D 网格，用于 heatmap 渲染
+        lithology_grid = lithology_indices.reshape((ny, nx))
+        
+        # 清理数据：将 NaN/inf 替换为有效值，确保 JSON 序列化成功
+        z_values_clean = np.where(np.isfinite(z_values), z_values, z_coordinate)
+        
+        return {
+            'z_coordinate': float(z_coordinate),
+            'x_coords': x_flat.tolist(),
+            'y_coords': y_flat.tolist(),
+            'lithology': lithology_names.tolist(),
+            'lithology_index': lithology_indices.tolist(),
+            'z_values': z_values_clean.tolist(),  # 使用清理后的值
+            'legend': legend,
+            'z_range': (float(z_min), float(z_max)),
+            'grid_shape': (int(ny), int(nx)),
+            # heatmap 渲染需要的网格数据 (使用匹配模型尺寸的坐标)
+            'grid_x': grid_x_matched.tolist(),
+            'grid_y': grid_y_matched.tolist(),
+            'lithology_grid': lithology_grid.tolist()  # 2D 数组 [ny][nx]
+        }
     
-    # 添加"无数据"图例
-    if n_unassigned > 0:
-        legend.append({
-            'index': len(block_models),
-            'name': '无数据',
-            'color': '#CCCCCC'
-        })
-    
-    print(f"[Z剖面] 图例包含 {len(legend)} 种岩性")
-    
-    # 将 lithology_index 重塑为 2D 网格，用于 heatmap 渲染
-    lithology_grid = lithology_indices.reshape((ny, nx))
-    
-    return {
-        'z_coordinate': float(z_coordinate),
-        'x_coords': x_flat.tolist(),
-        'y_coords': y_flat.tolist(),
-        'lithology': lithology_names.tolist(),
-        'lithology_index': lithology_indices.tolist(),
-        'z_values': z_values.tolist(),
-        'legend': legend,
-        'z_range': (z_min, z_max),
-        'grid_shape': (int(ny), int(nx)),
-        # heatmap 渲染需要的网格数据 (使用匹配模型尺寸的坐标)
-        'grid_x': grid_x_matched.tolist(),
-        'grid_y': grid_y_matched.tolist(),
-        'lithology_grid': lithology_grid.tolist()  # 2D 数组 [ny][nx]
-    }
+    except Exception as e:
+        print(f"[Z剖面] ❌ 提取失败: {e}")
+        import traceback
+        traceback.print_exc()
+        raise ValueError(f"Z剖面提取失败: {str(e)}")
 
 
 def get_z_range_from_models(block_models: List[BlockModel]) -> Tuple[float, float]:

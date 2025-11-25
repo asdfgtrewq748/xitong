@@ -248,20 +248,33 @@
               
               <el-divider content-position="left">渲染选项</el-divider>
               <el-form label-position="top" size="small">
-                <el-form-item label="着色模式">
+                <el-form-item label="渲染模式">
+                  <el-radio-group v-model="renderOptions.renderMode" @change="onRenderModeChange" size="small">
+                    <el-radio-button value="surface">曲面</el-radio-button>
+                    <el-radio-button value="wireframe">线框</el-radio-button>
+                    <el-radio-button value="points">点云</el-radio-button>
+                  </el-radio-group>
+                </el-form-item>
+                <el-form-item label="着色模式" v-if="renderOptions.renderMode === 'surface'">
                   <el-select v-model="renderOptions.shadingMode" @change="update3DView" class="full-width">
                     <el-option label="真实感 (Realistic)" value="realistic" />
                     <el-option label="朗伯 (Lambert)" value="lambert" />
                     <el-option label="纯色 (Color)" value="color" />
                   </el-select>
                 </el-form-item>
-                <el-form-item label="光照强度">
+                <el-form-item label="全局透明度">
+                  <el-slider v-model="renderOptions.globalOpacity" :min="0.1" :max="1" :step="0.05" @input="update3DView" :format-tooltip="(val) => `${Math.round(val * 100)}%`" />
+                </el-form-item>
+                <el-form-item label="点大小" v-if="renderOptions.renderMode === 'points'">
+                  <el-slider v-model="renderOptions.pointSize" :min="1" :max="20" :step="1" @input="update3DView" />
+                </el-form-item>
+                <el-form-item label="光照强度" v-if="renderOptions.renderMode === 'surface'">
                   <el-slider v-model="renderOptions.lightIntensity" :min="0.5" :max="3" :step="0.1" @input="update3DView" />
                 </el-form-item>
-                <el-form-item label="环境光强度">
+                <el-form-item label="环境光强度" v-if="renderOptions.renderMode === 'surface'">
                   <el-slider v-model="renderOptions.ambientIntensity" :min="0.2" :max="1.5" :step="0.1" @input="update3DView" />
                 </el-form-item>
-                <el-form-item label="阴影质量">
+                <el-form-item label="阴影质量" v-if="renderOptions.renderMode === 'surface'">
                   <el-select v-model="renderOptions.shadowQuality" @change="update3DView" class="full-width">
                     <el-option label="低" value="low" />
                     <el-option label="中" value="medium" />
@@ -269,11 +282,53 @@
                     <el-option label="超高" value="ultra" />
                   </el-select>
                 </el-form-item>
-                <el-form-item>
+                <el-form-item v-if="renderOptions.renderMode !== 'points'">
                   <el-checkbox v-model="renderOptions.showWireframe" @change="update3DView">显示网格线</el-checkbox>
                 </el-form-item>
                 <el-form-item>
                   <el-checkbox v-model="renderOptions.showAxisPointer" @change="update3DView">显示坐标指示器</el-checkbox>
+                </el-form-item>
+                <el-form-item>
+                  <el-checkbox v-model="renderOptions.showSides" @change="update3DView">显示侧面</el-checkbox>
+                </el-form-item>
+              </el-form>
+              
+              <!-- LOD性能优化面板 -->
+              <el-divider content-position="left">🚀 性能优化</el-divider>
+              <el-form label-position="top" size="small">
+                <el-form-item>
+                  <el-checkbox v-model="lodOptions.enableLOD" @change="onLODSettingChange">
+                    启用LOD自动调整
+                  </el-checkbox>
+                  <el-tooltip content="根据视距自动调整渲染精度，远距离时降低细节以提升性能" placement="right">
+                    <el-icon style="margin-left: 4px; color: #909399;"><QuestionFilled /></el-icon>
+                  </el-tooltip>
+                </el-form-item>
+                <el-form-item>
+                  <el-checkbox v-model="lodOptions.enableProgressive" @change="onLODSettingChange">
+                    渐进式渲染
+                  </el-checkbox>
+                  <el-tooltip content="先显示低精度预览，逐步提升细节，避免长时间等待" placement="right">
+                    <el-icon style="margin-left: 4px; color: #909399;"><QuestionFilled /></el-icon>
+                  </el-tooltip>
+                </el-form-item>
+                <el-form-item label="当前LOD级别">
+                  <el-select v-model="lodOptions.currentLevel" @change="onLODLevelChange" class="full-width" :disabled="lodOptions.autoAdjust">
+                    <el-option label="低精度 (快速)" value="LOW" />
+                    <el-option label="中精度 (平衡)" value="MEDIUM" />
+                    <el-option label="高精度 (默认)" value="HIGH" />
+                    <el-option label="超高精度 (慢)" value="ULTRA" />
+                  </el-select>
+                </el-form-item>
+                <el-form-item v-if="lodOptions.showPerformance">
+                  <div class="performance-stats">
+                    <span>FPS: {{ performanceStats.fps }}</span>
+                    <span>数据点: {{ performanceStats.dataPoints }}</span>
+                    <span>压缩比: {{ performanceStats.compressionRatio }}x</span>
+                  </div>
+                </el-form-item>
+                <el-form-item>
+                  <el-checkbox v-model="lodOptions.showPerformance">显示性能信息</el-checkbox>
                 </el-form-item>
               </el-form>
               
@@ -409,32 +464,59 @@
     </el-dialog>
 
     <!-- 图层控制对话框 -->
-    <el-dialog v-model="layerControlVisible" title="图层显示控制" width="50%">
-      <div v-for="layer in layerVisibility" :key="layer.name" class="layer-control-item">
-        <el-row :gutter="12" align="middle">
-          <el-col :span="1">
-            <el-checkbox v-model="layer.visible" @change="updateLayerVisibility" />
-          </el-col>
-          <el-col :span="8">
-            <span class="layer-control-name">{{ layer.name }}</span>
-          </el-col>
-          <el-col :span="6">
-            <el-color-picker 
-              v-model="layer.color" 
-              @change="updateLayerVisibility"
-              size="small"
-            />
-          </el-col>
-          <el-col :span="9">
-            <el-slider 
-              v-model="layer.opacity" 
-              :min="0" 
-              :max="100"
-              :format-tooltip="(val) => `${val}%`"
-              @input="updateLayerVisibility"
-            />
-          </el-col>
-        </el-row>
+    <el-dialog v-model="layerControlVisible" title="图层显示控制" width="55%">
+      <!-- 快捷操作按钮 -->
+      <div class="layer-quick-actions">
+        <el-button-group size="small">
+          <el-button @click="selectAllLayers">全选</el-button>
+          <el-button @click="deselectAllLayers">全不选</el-button>
+          <el-button @click="invertLayerSelection">反选</el-button>
+        </el-button-group>
+        <el-divider direction="vertical" />
+        <el-button-group size="small">
+          <el-button type="primary" @click="showOnlyCoalLayers">仅煤层</el-button>
+          <el-button type="warning" @click="showOnlyRockLayers">仅岩层</el-button>
+        </el-button-group>
+        <el-divider direction="vertical" />
+        <el-tag type="info" size="small">
+          已选: {{ visibleLayerCount }} / {{ layerVisibility.length }}
+        </el-tag>
+      </div>
+      
+      <!-- 图层列表 -->
+      <div class="layer-list-container">
+        <div v-for="layer in layerVisibility" :key="layer.name" class="layer-control-item" :class="{ 'is-coal': layer.name.includes('煤'), 'is-hidden': !layer.visible }">
+          <el-row :gutter="12" align="middle">
+            <el-col :span="1">
+              <el-checkbox v-model="layer.visible" @change="updateLayerVisibility" />
+            </el-col>
+            <el-col :span="8">
+              <span class="layer-control-name">
+                <el-tag v-if="layer.name.includes('煤')" type="danger" size="small" effect="dark" style="margin-right: 6px;">煤</el-tag>
+                {{ layer.name }}
+              </span>
+            </el-col>
+            <el-col :span="5">
+              <el-color-picker 
+                v-model="layer.color" 
+                @change="updateLayerVisibility"
+                size="small"
+              />
+            </el-col>
+            <el-col :span="10">
+              <div class="opacity-control">
+                <span class="opacity-label">透明度</span>
+                <el-slider 
+                  v-model="layer.opacity" 
+                  :min="0" 
+                  :max="100"
+                  :format-tooltip="(val) => `${val}%`"
+                  @input="updateLayerVisibility"
+                />
+              </div>
+            </el-col>
+          </el-row>
+        </div>
       </div>
       <template #footer>
         <el-button @click="resetLayers">重置</el-button>
@@ -453,6 +535,7 @@
             <el-radio label="csv">CSV 数据</el-radio>
             <el-divider direction="vertical" />
             <el-radio label="dxf">DXF (CAD)</el-radio>
+            <el-radio label="obj">OBJ (Blender)</el-radio>
             <el-radio label="flac3d">FLAC3D DAT 脚本</el-radio>
             <el-radio label="f3grid">FLAC3D 原生网格</el-radio>
             <el-radio label="stl_single">STL 单文件</el-radio>
@@ -803,6 +886,77 @@
           </el-form-item>
         </template>
         
+        <!-- OBJ 导出配置 -->
+        <template v-if="exportOptions.format === 'obj'">
+          <el-divider content-position="left">OBJ 导出配置 (Blender/3ds Max)</el-divider>
+          <el-alert 
+            type="success" 
+            :closable="false" 
+            show-icon
+            style="margin-bottom: 16px;"
+          >
+            <template #title>
+              <strong>🎨 OBJ格式 - 通用3D模型</strong>
+            </template>
+            <div style="font-size: 13px; line-height: 1.6;">
+              • <b>广泛兼容：</b>支持Blender、3ds Max、Maya、Cinema 4D等主流3D软件<br/>
+              • <b>材质支持：</b>自动生成MTL材质文件，保留地层颜色<br/>
+              • <b>分组导出：</b>每个地层作为独立对象，便于后期编辑
+            </div>
+          </el-alert>
+          
+          <el-form-item label="降采样倍数">
+            <el-slider 
+              v-model="exportOptions.obj_downsample" 
+              :min="1" 
+              :max="20" 
+              :step="1"
+              show-input
+              :marks="{1: '无', 5: '标准', 10: '高', 20: '极高'}"
+            />
+            <el-alert 
+              type="info" 
+              :closable="false" 
+              show-icon
+              style="margin-top: 8px;"
+            >
+              降采样可减少面片数量，提高导入速度。Blender建议使用标准(5x)或更高
+            </el-alert>
+          </el-form-item>
+          
+          <el-form-item label="坐标系">
+            <el-radio-group v-model="exportOptions.obj_y_up">
+              <el-radio :label="false">
+                <strong>Z轴朝上</strong>
+                <span style="font-size: 12px; color: #909399;">（Blender默认，推荐）</span>
+              </el-radio>
+              <el-radio :label="true">
+                <strong>Y轴朝上</strong>
+                <span style="font-size: 12px; color: #909399;">（3ds Max/Maya）</span>
+              </el-radio>
+            </el-radio-group>
+          </el-form-item>
+          
+          <el-form-item label="坐标归一化">
+            <el-switch 
+              v-model="exportOptions.obj_normalize" 
+              active-text="开启归一化（推荐）"
+              inactive-text="保留原始坐标"
+            />
+          </el-form-item>
+          
+          <el-form-item label="导出材质文件">
+            <el-switch 
+              v-model="exportOptions.obj_export_mtl" 
+              active-text="生成MTL材质"
+              inactive-text="仅OBJ几何"
+            />
+            <div style="font-size: 12px; color: #909399; margin-top: 4px;">
+              MTL文件包含地层颜色定义，导入时自动应用材质
+            </div>
+          </el-form-item>
+        </template>
+        
         <el-form-item v-if="exportOptions.format === 'png' || exportOptions.format === 'svg'" label="图片尺寸">
           <el-row :gutter="10">
             <el-col :span="11">
@@ -936,6 +1090,7 @@ import * as echarts from 'echarts';
 import 'echarts-gl'; // 必须导入 echarts-gl 以支持 3D 图表
 import { getApiBase } from '@/utils/api';
 import { useGlobalDataStore } from '@/stores/globalData';
+import { LOD3DManager, LODLevels, DataDownsampler } from '@/utils/lod3DManager';
 
 // 初始化store
 const globalDataStore = useGlobalDataStore();
@@ -1095,13 +1250,37 @@ const viewControl = reactive({
 
 // 渲染选项
 const renderOptions = reactive({
-  showWireframe: false, // 默认不显示网格线,性能更好
-  showAxisPointer: false, // 默认禁用以避免错误
-  shadingMode: 'lambert', // 使用lambert模式更稳定
+  renderMode: 'surface',      // 渲染模式: surface/wireframe/points
+  showWireframe: false,       // 默认不显示网格线,性能更好
+  showAxisPointer: false,     // 默认禁用以避免错误
+  shadingMode: 'lambert',     // 使用lambert模式更稳定
   lightIntensity: 1.5,
   ambientIntensity: 0.7,
   shadowQuality: 'medium',
-  showSides: true // 是否显示侧面
+  showSides: true,            // 是否显示侧面
+  globalOpacity: 0.85,        // 全局透明度
+  pointSize: 5                // 点云模式的点大小
+});
+
+// LOD (Level of Detail) 性能优化选项
+const lodOptions = reactive({
+  enableLOD: true,           // 启用LOD自动调整
+  enableProgressive: true,    // 启用渐进式渲染
+  currentLevel: 'HIGH',       // 当前LOD级别
+  autoAdjust: true,          // 自动根据视距调整
+  targetFPS: 30,             // 目标帧率
+  showPerformance: false     // 显示性能信息
+});
+
+// LOD管理器实例
+let lodManager = null;
+
+// 性能状态
+const performanceStats = reactive({
+  fps: 0,
+  renderTime: 0,
+  dataPoints: 0,
+  compressionRatio: 1
 });
 
 // 导出选项
@@ -1126,7 +1305,12 @@ const exportOptions = reactive({
   stl_normalize: true,       // STL坐标归一化，默认true
   // STL 分层导出 - 顶板配置
   add_top_plate: true,       // 自动添加顶板层，默认true
-  top_plate_thickness: 10    // 顶板厚度(m)，默认10m
+  top_plate_thickness: 10,   // 顶板厚度(m)，默认10m
+  // OBJ 专用配置 (Blender/3ds Max)
+  obj_downsample: 5,         // OBJ降采样倍数，默认5x
+  obj_normalize: true,       // OBJ坐标归一化，默认true
+  obj_y_up: false,           // Y轴朝上（false=Z轴朝上，适合Blender）
+  obj_export_mtl: true       // 导出MTL材质文件
 });
 
 function triggerBoreholeSelection() {
@@ -1946,12 +2130,27 @@ async function generate3DModel() {
       // 保存模型数据用于后续操作
       current3DModel.value = {
         models: res.models,
+        originalModels: res.models, // 保存原始模型数据供LOD使用
         series: series,
         xRange: { min: xMin, max: xMax },
         yRange: { min: yMin, max: yMax },
         zRange: { min: zMin, max: zMax },
         boxSize: { width: boxWidth, depth: boxDepth, height: boxHeight }
       };
+      
+      // 初始化LOD管理器
+      if (lodOptions.enableLOD) {
+        if (!lodManager) {
+          lodManager = new LOD3DManager(myChart, {
+            enableLOD: lodOptions.enableLOD,
+            enableProgressive: lodOptions.enableProgressive,
+            autoAdjustQuality: false
+          });
+        }
+        lodManager.setChartInstance(myChart);
+        lodManager.setOriginalModels(res.models);
+        console.log('[LOD] 管理器已初始化，原始模型数量:', res.models.length);
+      }
       
       // 初始化图层可见性控制
       layerVisibility.value = series.map((s) => ({
@@ -2398,8 +2597,299 @@ function update3DView() {
   nextTick(() => {
     if (myChart) {
       myChart.setOption(updateOption, { notMerge: false, lazyUpdate: false });
+      
+      // LOD: 检查是否需要根据视距调整精度
+      if (lodOptions.enableLOD && lodOptions.autoAdjust && lodManager) {
+        lodManager.updateLOD(viewControl.distance, generateLODOption);
+      }
     }
   });
+}
+
+// LOD设置变更处理
+function onLODSettingChange() {
+  if (lodManager) {
+    lodManager.options.enableLOD = lodOptions.enableLOD;
+    lodManager.options.enableProgressive = lodOptions.enableProgressive;
+  }
+  console.log('[LOD] 设置已更新:', lodOptions);
+}
+
+// LOD级别手动变更
+function onLODLevelChange() {
+  if (!current3DModel.value || !current3DModel.value.originalModels) return;
+  
+  const level = LODLevels[lodOptions.currentLevel];
+  console.log('[LOD] 手动切换到:', level.name);
+  
+  // 降采样并重新渲染
+  const downsampledModels = DataDownsampler.downsampleModels(
+    current3DModel.value.originalModels,
+    level.resolution
+  );
+  
+  // 更新性能统计
+  if (downsampledModels.length > 0 && downsampledModels[0]._lod) {
+    performanceStats.compressionRatio = downsampledModels[0]._lod.compressionRatio || 1;
+  }
+  
+  // 重新生成图表选项并渲染
+  regenerate3DWithLOD(downsampledModels, level);
+}
+
+// 使用LOD数据重新生成3D模型
+function regenerate3DWithLOD(models, lodLevel) {
+  if (!myChart || !models || models.length === 0) return;
+  
+  const series = [];
+  
+  models.forEach((model) => {
+    if (!model.grid_x || !model.grid_y || !model.top_surface_z || !model.bottom_surface_z) {
+      return;
+    }
+    
+    const layerColor = getColorForLayer(model.name);
+    const baseOpacity = model.name.includes('煤') ? 0.75 : 0.65;
+    
+    // 将Z矩阵展平
+    const topZFlat = [];
+    const bottomZFlat = [];
+    for (let i = 0; i < model.grid_y.length; i++) {
+      for (let j = 0; j < model.grid_x.length; j++) {
+        topZFlat.push(model.top_surface_z[i]?.[j] || 0);
+        bottomZFlat.push(model.bottom_surface_z[i]?.[j] || 0);
+      }
+    }
+    
+    // 顶面
+    series.push({
+      type: 'surface',
+      name: model.name,
+      data: topZFlat.map((z, idx) => {
+        const j = idx % model.grid_x.length;
+        const i = Math.floor(idx / model.grid_x.length);
+        return [model.grid_x[j], model.grid_y[i], z];
+      }),
+      dataShape: [model.grid_y.length, model.grid_x.length],
+      wireframe: { show: renderOptions.showWireframe, lineStyle: { color: 'rgba(0,0,0,0.1)', width: 0.5 } },
+      shading: renderOptions.shadingMode,
+      itemStyle: { color: layerColor, opacity: baseOpacity + 0.15 }
+    });
+    
+    // 底面
+    series.push({
+      type: 'surface',
+      name: model.name,
+      data: bottomZFlat.map((z, idx) => {
+        const j = idx % model.grid_x.length;
+        const i = Math.floor(idx / model.grid_x.length);
+        return [model.grid_x[j], model.grid_y[i], z];
+      }),
+      dataShape: [model.grid_y.length, model.grid_x.length],
+      wireframe: { show: renderOptions.showWireframe, lineStyle: { color: 'rgba(0,0,0,0.08)', width: 0.5 } },
+      shading: renderOptions.shadingMode,
+      itemStyle: { color: layerColor, opacity: baseOpacity - 0.1 }
+    });
+    
+    // 侧面 (LOD低精度时跳过)
+    if (renderOptions.showSides && !lodLevel.skipSides) {
+      const xLen = model.grid_x.length;
+      const yLen = model.grid_y.length;
+      
+      // 前侧面
+      series.push({
+        type: 'surface',
+        name: model.name,
+        parametric: true,
+        wireframe: { show: renderOptions.showWireframe },
+        parametricEquation: {
+          u: { min: 0, max: xLen - 1, step: 1 },
+          v: { min: 0, max: 1, step: 1 },
+          x: (u) => model.grid_x[Math.floor(u)],
+          y: () => model.grid_y[0],
+          z: (u, v) => v === 0 ? model.bottom_surface_z[0]?.[Math.floor(u)] || 0 : model.top_surface_z[0]?.[Math.floor(u)] || 0
+        },
+        shading: renderOptions.shadingMode,
+        itemStyle: { color: layerColor, opacity: baseOpacity * 0.7 }
+      });
+      
+      // 后侧面
+      series.push({
+        type: 'surface',
+        name: model.name,
+        parametric: true,
+        wireframe: { show: renderOptions.showWireframe },
+        parametricEquation: {
+          u: { min: 0, max: xLen - 1, step: 1 },
+          v: { min: 0, max: 1, step: 1 },
+          x: (u) => model.grid_x[Math.floor(u)],
+          y: () => model.grid_y[yLen - 1],
+          z: (u, v) => v === 0 ? model.bottom_surface_z[yLen - 1]?.[Math.floor(u)] || 0 : model.top_surface_z[yLen - 1]?.[Math.floor(u)] || 0
+        },
+        shading: renderOptions.shadingMode,
+        itemStyle: { color: layerColor, opacity: baseOpacity * 0.7 }
+      });
+    }
+  });
+  
+  // 计算数据点总数
+  performanceStats.dataPoints = series.reduce((sum, s) => sum + (s.data?.length || 0), 0);
+  
+  // 更新图表
+  myChart.setOption({
+    series: series
+  }, { replaceMerge: ['series'] });
+  
+  console.log(`[LOD] 渲染完成: ${series.length} 个surface, ${performanceStats.dataPoints} 个数据点`);
+}
+
+// 生成LOD选项的辅助函数
+function generateLODOption(models, lodLevel) {
+  // 此函数供LODManager调用
+  regenerate3DWithLOD(models, lodLevel);
+  return null; // 直接在内部更新，不需要返回option
+}
+
+// 渲染模式切换处理
+function onRenderModeChange() {
+  if (!myChart || !current3DModel.value) return;
+  
+  console.log('[渲染模式] 切换到:', renderOptions.renderMode);
+  
+  // 根据渲染模式重新生成图表
+  if (current3DModel.value.originalModels) {
+    regenerateWithRenderMode(current3DModel.value.originalModels);
+  }
+}
+
+// 使用指定渲染模式重新生成3D模型
+function regenerateWithRenderMode(models) {
+  if (!myChart || !models || models.length === 0) return;
+  
+  const series = [];
+  const mode = renderOptions.renderMode;
+  
+  models.forEach((model) => {
+    if (!model.grid_x || !model.grid_y || !model.top_surface_z) return;
+    
+    const layerColor = getColorForLayer(model.name);
+    const opacity = renderOptions.globalOpacity;
+    
+    if (mode === 'points') {
+      // 点云模式 - 使用scatter3D
+      const pointData = [];
+      for (let i = 0; i < model.grid_y.length; i++) {
+        for (let j = 0; j < model.grid_x.length; j++) {
+          const topZ = model.top_surface_z[i]?.[j];
+          if (topZ !== undefined && !isNaN(topZ)) {
+            pointData.push([model.grid_x[j], model.grid_y[i], topZ]);
+          }
+        }
+      }
+      
+      series.push({
+        type: 'scatter3D',
+        name: model.name,
+        data: pointData,
+        symbolSize: renderOptions.pointSize,
+        itemStyle: {
+          color: layerColor,
+          opacity: opacity
+        },
+        emphasis: {
+          itemStyle: {
+            color: layerColor,
+            opacity: 1
+          }
+        }
+      });
+    } else if (mode === 'wireframe') {
+      // 线框模式 - 使用surface但只显示wireframe
+      const topZFlat = [];
+      for (let i = 0; i < model.grid_y.length; i++) {
+        for (let j = 0; j < model.grid_x.length; j++) {
+          topZFlat.push(model.top_surface_z[i]?.[j] || 0);
+        }
+      }
+      
+      series.push({
+        type: 'surface',
+        name: model.name,
+        data: topZFlat.map((z, idx) => {
+          const j = idx % model.grid_x.length;
+          const i = Math.floor(idx / model.grid_x.length);
+          return [model.grid_x[j], model.grid_y[i], z];
+        }),
+        dataShape: [model.grid_y.length, model.grid_x.length],
+        wireframe: {
+          show: true,
+          lineStyle: {
+            color: layerColor,
+            width: 1.5,
+            opacity: opacity
+          }
+        },
+        shading: 'color',
+        itemStyle: {
+          color: 'transparent',
+          opacity: 0
+        }
+      });
+    } else {
+      // 曲面模式 - 默认模式
+      const topZFlat = [];
+      const bottomZFlat = [];
+      for (let i = 0; i < model.grid_y.length; i++) {
+        for (let j = 0; j < model.grid_x.length; j++) {
+          topZFlat.push(model.top_surface_z[i]?.[j] || 0);
+          bottomZFlat.push(model.bottom_surface_z?.[i]?.[j] || 0);
+        }
+      }
+      
+      // 顶面
+      series.push({
+        type: 'surface',
+        name: model.name,
+        data: topZFlat.map((z, idx) => {
+          const j = idx % model.grid_x.length;
+          const i = Math.floor(idx / model.grid_x.length);
+          return [model.grid_x[j], model.grid_y[i], z];
+        }),
+        dataShape: [model.grid_y.length, model.grid_x.length],
+        wireframe: { show: renderOptions.showWireframe, lineStyle: { color: 'rgba(0,0,0,0.1)', width: 0.5 } },
+        shading: renderOptions.shadingMode,
+        itemStyle: { color: layerColor, opacity: opacity }
+      });
+      
+      // 底面
+      if (model.bottom_surface_z) {
+        series.push({
+          type: 'surface',
+          name: model.name,
+          data: bottomZFlat.map((z, idx) => {
+            const j = idx % model.grid_x.length;
+            const i = Math.floor(idx / model.grid_x.length);
+            return [model.grid_x[j], model.grid_y[i], z];
+          }),
+          dataShape: [model.grid_y.length, model.grid_x.length],
+          wireframe: { show: renderOptions.showWireframe, lineStyle: { color: 'rgba(0,0,0,0.08)', width: 0.5 } },
+          shading: renderOptions.shadingMode,
+          itemStyle: { color: layerColor, opacity: opacity * 0.85 }
+        });
+      }
+    }
+  });
+  
+  // 更新图表
+  myChart.setOption({
+    series: series
+  }, { replaceMerge: ['series'] });
+  
+  // 更新保存的series数据
+  current3DModel.value.series = series;
+  
+  console.log(`[渲染模式] ${mode}: ${series.length} 个系列已更新`);
+  ElMessage.success(`已切换到${mode === 'surface' ? '曲面' : mode === 'wireframe' ? '线框' : '点云'}模式`);
 }
 
 // 重置视图
@@ -2544,6 +3034,52 @@ function resetLayers() {
   ElMessage.success('图层设置已重置');
 }
 
+// 计算可见图层数量
+const visibleLayerCount = computed(() => {
+  return layerVisibility.value.filter(l => l.visible).length;
+});
+
+// 全选图层
+function selectAllLayers() {
+  layerVisibility.value.forEach(l => l.visible = true);
+  updateLayerVisibility();
+  ElMessage.success('已选择所有图层');
+}
+
+// 全不选图层
+function deselectAllLayers() {
+  layerVisibility.value.forEach(l => l.visible = false);
+  updateLayerVisibility();
+  ElMessage.success('已取消所有图层');
+}
+
+// 反选图层
+function invertLayerSelection() {
+  layerVisibility.value.forEach(l => l.visible = !l.visible);
+  updateLayerVisibility();
+  ElMessage.success('已反选图层');
+}
+
+// 仅显示煤层
+function showOnlyCoalLayers() {
+  layerVisibility.value.forEach(l => {
+    l.visible = l.name.includes('煤');
+  });
+  updateLayerVisibility();
+  const coalCount = layerVisibility.value.filter(l => l.visible).length;
+  ElMessage.success(`已显示 ${coalCount} 个煤层`);
+}
+
+// 仅显示岩层（非煤层）
+function showOnlyRockLayers() {
+  layerVisibility.value.forEach(l => {
+    l.visible = !l.name.includes('煤');
+  });
+  updateLayerVisibility();
+  const rockCount = layerVisibility.value.filter(l => l.visible).length;
+  ElMessage.success(`已显示 ${rockCount} 个岩层`);
+}
+
 // 导出模型
 function exportModel() {
   if (!myChart && !current3DModel.value) {
@@ -2568,9 +3104,9 @@ async function confirmExport() {
     return;
   }
 
-  // 对于 DXF、FLAC3D 和 STL 导出，先验证建模可行性
+  // 对于 DXF、FLAC3D、STL 和 OBJ 导出，先验证建模可行性
   if (exportOptions.format === 'dxf' || exportOptions.format === 'flac3d' || exportOptions.format === 'f3grid' ||
-      exportOptions.format === 'stl_single' || exportOptions.format === 'stl_layered') {
+      exportOptions.format === 'stl_single' || exportOptions.format === 'stl_layered' || exportOptions.format === 'obj') {
     try {
       const validationResult = await validateModeling();
       if (!validationResult.valid) {
@@ -2615,12 +3151,13 @@ async function confirmExport() {
       case 'f3grid':
       case 'stl_single':
       case 'stl_layered':
+      case 'obj':
         await exportToBackend(exportOptions.format, filename);
         break;
     }
 
     if (exportOptions.format !== 'dxf' && exportOptions.format !== 'flac3d' && exportOptions.format !== 'f3grid' &&
-        exportOptions.format !== 'stl_single' && exportOptions.format !== 'stl_layered') {
+        exportOptions.format !== 'stl_single' && exportOptions.format !== 'stl_layered' && exportOptions.format !== 'obj') {
        ElMessage.success(`导出成功: ${filename}`);
     }
     exportDialogVisible.value = false;
@@ -2728,6 +3265,16 @@ async function exportToBackend(format, filename) {
     }
   }
   
+  // 如果是OBJ格式，添加OBJ专用配置
+  if (format === 'obj') {
+    exportParams.options = {
+      downsample_factor: exportOptions.obj_downsample,
+      normalize_coords: exportOptions.obj_normalize,
+      y_up: exportOptions.obj_y_up,
+      export_mtl: exportOptions.obj_export_mtl
+    };
+  }
+  
   try {
     // 优先尝试使用 REST API (适用于浏览器环境)
     const response = await fetch(`${API_BASE}/export`, {
@@ -2765,6 +3312,8 @@ async function exportToBackend(format, filename) {
         ext = '.stl';
       } else if (format === 'stl_layered') {
         ext = '.zip';
+      } else if (format === 'obj') {
+        ext = '.obj';
       }
       
       if (!downloadFilename.toLowerCase().endsWith(ext)) {
@@ -3907,8 +4456,92 @@ function exportCrossSection() {
   word-break: break-word;
   text-align: center;
 }
+
+/* 性能统计显示 */
+.performance-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border-radius: 8px;
+  font-size: 12px;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+}
+.performance-stats span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.performance-stats span::before {
+  content: '•';
+  color: #0ea5e9;
+}
+
 .el-form-item { margin-bottom: 12px; }
 h5 { margin: 0; font-size: 14px; color: #1f2937; }
+
+/* 图层控制面板样式 */
+.layer-quick-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 8px;
+  margin-bottom: 16px;
+  border: 1px solid #e2e8f0;
+}
+
+.layer-list-container {
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.layer-control-item {
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  transition: all 0.2s;
+}
+
+.layer-control-item:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+}
+
+.layer-control-item.is-coal {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-color: #f59e0b;
+}
+
+.layer-control-item.is-hidden {
+  opacity: 0.5;
+  background: #f9fafb;
+}
+
+.layer-control-name {
+  font-weight: 500;
+  color: #1f2937;
+  display: flex;
+  align-items: center;
+}
+
+.opacity-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.opacity-label {
+  font-size: 12px;
+  color: #6b7280;
+  min-width: 45px;
+}
 
 /* 快捷工具栏 */
 .quick-toolbar {

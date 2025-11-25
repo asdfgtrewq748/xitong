@@ -37,6 +37,7 @@
             </el-collapse-item>
 
             <el-collapse-item title="高级选项" name="advanced">
+              <style-panel ref="stylePanelRef" @apply-style="applyAcademicStyle" @validate="validateStyle" />
               <el-form label-position="top" size="small" class="compact-form">
                 <el-divider content-position="left">基础设置</el-divider>
                 <el-form-item label="图表标题">
@@ -127,6 +128,7 @@
               <span>热力图视图</span>
               <el-button-group size="small">
                 <el-button @click="resetView"><el-icon><RefreshLeft /></el-icon></el-button>
+                <el-button type="primary" @click="showExportDialog = true"><el-icon><Download /></el-icon> 导出</el-button>
               </el-button-group>
             </div>
           </template>
@@ -139,22 +141,28 @@
     </div>
 
     <help-dialog v-model="showHelp" />
+    <export-dialog v-model="showExportDialog" :chart-instance="chartInstance" @export-success="handleExportSuccess" />
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, computed } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Grid, QuestionFilled, RefreshLeft, DataLine, Document } from '@element-plus/icons-vue'
+import { Grid, QuestionFilled, RefreshLeft, DataLine, Document, Download } from '@element-plus/icons-vue'
 import ChartToolbar from '../ChartToolbar.vue'
 import HelpDialog from '../HelpDialog.vue'
+import ExportDialog from '../ExportDialog.vue'
+import StylePanel from '../StylePanel.vue'
 import HeatMap from '../charts/HeatMap.vue'
 import { useVisualizationStore } from '../../../stores/visualizationStore'
 import { adaptForChart } from '../../../utils/dataAdapter'
 
 const store = useVisualizationStore()
 const chartRef = ref(null)
+const stylePanelRef = ref(null)
 const showHelp = ref(false)
+const showExportDialog = ref(false)
+const chartInstance = computed(() => chartRef.value?.getChartInstance())
 
 const config = reactive({
   type: 'heatmap',
@@ -223,6 +231,64 @@ const updateChart = () => {
 const resetView = () => {
   if (chartRef.value?.resize) chartRef.value.resize()
   ElMessage.info('视图已重置')
+}
+
+const handleExportSuccess = (result) => {
+  console.log('高质量导出成功:', result)
+}
+
+const applyAcademicStyle = (styleConfig) => {
+  try {
+    import('@/utils/academicStyles').then(({ applyAcademicStyle: applyStyle }) => {
+      const instance = chartRef.value?.getChartInstance()
+      if (!instance) {
+        ElMessage.warning('请先生成图表')
+        return
+      }
+      
+      const currentOption = instance.getOption()
+      const styledOption = applyStyle(currentOption, styleConfig.mode, {
+        fontFamily: styleConfig.fontFamily !== 'default' ? styleConfig.fontFamily : undefined,
+        colorPalette: styleConfig.colorPalette,
+        showGridLines: styleConfig.showGridLines,
+        backgroundColor: styleConfig.backgroundColor
+      })
+      
+      instance.setOption(styledOption, true)
+      ElMessage.success('学术样式已应用')
+    })
+  } catch (error) {
+    console.error('应用样式失败:', error)
+    ElMessage.error('应用样式失败: ' + error.message)
+  }
+}
+
+const validateStyle = () => {
+  try {
+    import('@/utils/academicStyles').then(({ validateJournalStandards }) => {
+      const instance = chartRef.value?.getChartInstance()
+      if (!instance) {
+        ElMessage.warning('请先生成图表')
+        return
+      }
+      
+      const currentOption = instance.getOption()
+      const validation = validateJournalStandards(currentOption)
+      
+      if (stylePanelRef.value) {
+        stylePanelRef.value.setValidation(validation)
+      }
+      
+      if (validation.valid) {
+        ElMessage.success('✅ 符合期刊标准')
+      } else {
+        ElMessage.warning(`发现 ${validation.warnings.length} 个警告`)
+      }
+    })
+  } catch (error) {
+    console.error('验证失败:', error)
+    ElMessage.error('验证失败: ' + error.message)
+  }
 }
 
 // 统计计算

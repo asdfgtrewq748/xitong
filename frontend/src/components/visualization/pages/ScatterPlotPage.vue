@@ -48,6 +48,9 @@
 
             <el-collapse-item title="高级选项" name="advanced">
               <el-form label-position="top" size="small" class="compact-form">
+                <el-divider content-position="left">学术样式</el-divider>
+                <style-panel ref="stylePanelRef" @apply-style="applyAcademicStyle" @validate="validateStyle" />
+                
                 <el-divider content-position="left">点样式</el-divider>
                 <el-form-item label="点大小">
                   <el-slider v-model="config.pointSize" :min="2" :max="30" :step="1" show-input @change="updateChart" />
@@ -152,12 +155,18 @@
         <div class="chart-card">
           <div class="chart-actions">
             <el-button size="small" type="text" @click="resetView"><el-icon><RefreshLeft /></el-icon></el-button>
-            <el-dropdown @command="exportChart">
-              <el-button size="small"><el-icon><Download /></el-icon> 导出 <i class="el-icon-arrow-down el-icon--right"></i></el-button>
-              <el-dropdown-menu>
-                <el-dropdown-item command="png">PNG</el-dropdown-item>
-                <el-dropdown-item command="svg">SVG</el-dropdown-item>
-              </el-dropdown-menu>
+            <el-button size="small" type="primary" @click="showExportDialog = true">
+              <el-icon><Download /></el-icon> 高质量导出
+            </el-button>
+            <el-dropdown @command="exportChart" trigger="click">
+              <el-button size="small"><el-icon><Download /></el-icon> 快速导出 <i class="el-icon-arrow-down el-icon--right"></i></el-button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item command="png">PNG (标准)</el-dropdown-item>
+                  <el-dropdown-item command="svg">SVG (矢量)</el-dropdown-item>
+                  <el-dropdown-item command="jpg">JPG</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
             </el-dropdown>
           </div>
 
@@ -175,6 +184,7 @@
     </div>
 
     <help-dialog v-model="showHelp" />
+    <export-dialog v-model="showExportDialog" :chart-instance="chartInstance" @export-success="handleExportSuccess" />
   </div>
 </template>
 
@@ -184,13 +194,18 @@ import { ElMessage } from 'element-plus'
 import { TrendCharts, QuestionFilled, RefreshLeft, Download } from '@element-plus/icons-vue'
 import ChartToolbar from '../ChartToolbar.vue'
 import HelpDialog from '../HelpDialog.vue'
+import ExportDialog from '../ExportDialog.vue'
+import StylePanel from '../StylePanel.vue'
 import ScatterPlot from '../charts/ScatterPlot.vue'
 import { useVisualizationStore } from '../../../stores/visualizationStore'
 import { adaptForChart } from '../../../utils/dataAdapter'
 
 const store = useVisualizationStore()
 const chartRef = ref(null)
+const stylePanelRef = ref(null)
 const showHelp = ref(false)
+const showExportDialog = ref(false)
+const chartInstance = computed(() => chartRef.value?.getChartInstance())
 
 const config = reactive({
   type: 'scatter',
@@ -306,10 +321,88 @@ const exportChart = (format) => {
     return
   }
   try {
-    chartRef.value.exportChart?.({ type: fmt, filename: `scatter_${Date.now()}` })
-    ElMessage.success(`正在导出 ${fmt.toUpperCase()} 格式`)
+    const instance = chartRef.value.getChartInstance()
+    if (!instance) {
+      ElMessage.error('图表实例不存在')
+      return
+    }
+
+    // 使用新的快速导出工具
+    import('../../../utils/chartExporter').then(({ quickExport }) => {
+      quickExport(instance, fmt, 'print')
+      ElMessage.success(`正在导出 ${fmt.toUpperCase()} 格式`)
+    })
   } catch (error) {
     ElMessage.error('导出失败: ' + error.message)
+  }
+}
+
+const handleExportSuccess = (result) => {
+  console.log('高质量导出成功:', result)
+}
+
+const applyAcademicStyle = (styleConfig) => {
+  try {
+    // 应用学术样式到配置
+    import('@/utils/academicStyles').then(({ applyAcademicStyle: applyStyle }) => {
+      const instance = chartRef.value?.getChartInstance()
+      if (!instance) {
+        ElMessage.warning('请先生成图表')
+        return
+      }
+      
+      const currentOption = instance.getOption()
+      const styledOption = applyStyle(currentOption, styleConfig.mode, {
+        fontFamily: styleConfig.fontFamily !== 'default' ? styleConfig.fontFamily : undefined,
+        colorPalette: styleConfig.colorPalette,
+        showGridLines: styleConfig.showGridLines,
+        backgroundColor: styleConfig.backgroundColor
+      })
+      
+      // 应用线条和符号样式
+      if (styledOption.series) {
+        styledOption.series = styledOption.series.map(s => ({
+          ...s,
+          lineStyle: { ...s.lineStyle, width: styleConfig.lineWidth },
+          symbolSize: styleConfig.symbolSize
+        }))
+      }
+      
+      instance.setOption(styledOption, true)
+      ElMessage.success('学术样式已应用')
+    })
+  } catch (error) {
+    console.error('应用样式失败:', error)
+    ElMessage.error('应用样式失败: ' + error.message)
+  }
+}
+
+const validateStyle = () => {
+  try {
+    import('@/utils/academicStyles').then(({ validateJournalStandards }) => {
+      const instance = chartRef.value?.getChartInstance()
+      if (!instance) {
+        ElMessage.warning('请先生成图表')
+        return
+      }
+      
+      const currentOption = instance.getOption()
+      const validation = validateJournalStandards(currentOption)
+      
+      // 将验证结果传递给StylePanel
+      if (stylePanelRef.value) {
+        stylePanelRef.value.setValidation(validation)
+      }
+      
+      if (validation.valid) {
+        ElMessage.success('✅ 符合期刊标准')
+      } else {
+        ElMessage.warning(`发现 ${validation.warnings.length} 个警告`)
+      }
+    })
+  } catch (error) {
+    console.error('验证失败:', error)
+    ElMessage.error('验证失败: ' + error.message)
   }
 }
 

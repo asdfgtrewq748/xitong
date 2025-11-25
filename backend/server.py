@@ -3042,6 +3042,7 @@ async def export_model_endpoint(payload: ExportRequest):
     from exporters.stl_exporter import STLExporter
     from exporters.layered_stl_exporter import LayeredSTLExporter
     from exporters.tetra_f3grid_exporter import TetraF3GridExporter
+    from exporters.obj_exporter import OBJExporter
     from datetime import datetime
     import traceback
 
@@ -3058,6 +3059,8 @@ async def export_model_endpoint(payload: ExportRequest):
                 ext = 'stl'
             elif export_type == 'stl_layered':
                 ext = 'zip'
+            elif export_type == 'obj':
+                ext = 'obj'
             else:
                 ext = 'dxf'
             timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
@@ -3072,6 +3075,8 @@ async def export_model_endpoint(payload: ExportRequest):
             ext = 'stl'
         elif export_type == 'stl_layered':
             ext = 'zip'
+        elif export_type == 'obj':
+            ext = 'obj'
         else:
             ext = 'dxf'
         filename = f"geological_model_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{ext}"
@@ -3115,6 +3120,11 @@ async def export_model_endpoint(payload: ExportRequest):
             exporter = LayeredSTLExporter()
             print(f"[Export] 开始导出 STL 格式（分层），输出路径: {output_path}")
             final_path = exporter.export_layered(export_data, output_path, options=export_options)
+        elif export_type == 'obj':
+            # OBJ格式导出（用于Blender、3ds Max等）
+            exporter = OBJExporter()
+            print(f"[Export] 开始导出 OBJ 格式，输出路径: {output_path}")
+            final_path = exporter.export(export_data, output_path, options=export_options)
         else:
             raise HTTPException(status_code=400, detail=f"不支持的导出类型: {export_type}")
 
