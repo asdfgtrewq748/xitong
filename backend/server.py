@@ -1074,32 +1074,32 @@ async def generate_block_model(payload: BlockModelRequest):
 
 
 @app.post("/api/modeling/z_section")
-async def extract_z_section(payload: ZSectionRequest):
+async def extract_z_section_api(payload: ZSectionRequest):
     """
     提取 z 轴剖面
     
     根据指定的 z 坐标,从已建立的 3D 地质模型中提取水平剖面,
     识别每个网格点所属的岩性,并返回用于可视化的数据
     """
-    from z_section_slicer import extract_z_section, get_z_range_from_models
-    
-    # 确保已经生成了模型
-    modeling_state.ensure_models_ready()
-    
-    block_models = modeling_state.last_block_models
-    grid_x = modeling_state.last_grid_x
-    grid_y = modeling_state.last_grid_y
-    
-    print(f"\n[Z剖面API] ========== 提取 Z 剖面 ==========")
-    print(f"[Z剖面API] Z坐标: {payload.z_coordinate}")
-    print(f"[Z剖面API] 模型数量: {len(block_models)}")
-    print(f"[Z剖面API] 网格尺寸: X={len(grid_x)}, Y={len(grid_y)}")
-    
-    # 首先获取模型的 z 范围
-    z_min, z_max = get_z_range_from_models(block_models)
-    print(f"[Z剖面API] 模型 Z 范围: [{z_min:.2f}, {z_max:.2f}]")
-    
     try:
+        from z_section_slicer import extract_z_section, get_z_range_from_models
+        
+        # 确保已经生成了模型
+        modeling_state.ensure_models_ready()
+        
+        block_models = modeling_state.last_block_models
+        grid_x = modeling_state.last_grid_x
+        grid_y = modeling_state.last_grid_y
+        
+        print(f"\n[Z剖面API] ========== 提取 Z 剖面 ==========")
+        print(f"[Z剖面API] Z坐标: {payload.z_coordinate}")
+        print(f"[Z剖面API] 模型数量: {len(block_models)}")
+        print(f"[Z剖面API] 网格尺寸: X={len(grid_x)}, Y={len(grid_y)}")
+        
+        # 首先获取模型的 z 范围
+        z_min, z_max = get_z_range_from_models(block_models)
+        print(f"[Z剖面API] 模型 Z 范围: [{z_min:.2f}, {z_max:.2f}]")
+        
         # 提取剖面 (不降采样,保持完整网格密度)
         section_data = extract_z_section(
             block_models=block_models,
@@ -1133,7 +1133,7 @@ async def extract_z_section(payload: ZSectionRequest):
         print(f"[Z剖面API] ❌ 剖面提取失败: {exc}")
         import traceback
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(exc))
+        raise HTTPException(status_code=500, detail=f"Z剖面提取失败: {str(exc)}")
 
 
 @app.post("/api/modeling/comparison")

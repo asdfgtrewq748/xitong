@@ -13,7 +13,7 @@ def extract_z_section(
     grid_x: np.ndarray,
     grid_y: np.ndarray,
     z_coordinate: float,
-    sampling_step: int = 3
+    sampling_step: int = 1
 ) -> Dict:
     """
     根据指定 z 坐标提取水平剖面
@@ -23,89 +23,107 @@ def extract_z_section(
         grid_x: X 轴网格坐标 (1D 数组)
         grid_y: Y 轴网格坐标 (1D 数组)
         z_coordinate: 剖面的 z 坐标值
-        sampling_step: 采样步长 (默认3,即每3个点采样1个,减少数据量)
+        sampling_step: 采样步长 (默认1,即不降采样)
         
     Returns:
-        包含剖面数据的字典:
-        {
-            'z_coordinate': float,
-            'x_coords': List[float],  # 网格展开后的 x 坐标
-            'y_coords': List[float],  # 网格展开后的 y 坐标
-            'lithology': List[str],   # 每个点的岩性名称
-            'lithology_index': List[int],  # 岩性索引 (用于着色)
-            'z_values': List[float],  # 实际 z 值 (用于验证)
-            'legend': List[Dict],  # 图例信息
-            'z_range': Tuple[float, float]  # 模型的 z 范围
-        }
+        包含剖面数据的字典
     """
-    if not block_models:
-        raise ValueError("block_models 为空")
-    
-    if len(grid_x) == 0 or len(grid_y) == 0:
-        raise ValueError("grid_x 或 grid_y 为空")
-    
-    # 应用降采样减少数据量
-    if sampling_step > 1:
-        grid_x_sampled = grid_x[::sampling_step]
-        grid_y_sampled = grid_y[::sampling_step]
-        print(f"[Z剖面] 降采样: {len(grid_x)}x{len(grid_y)} -> {len(grid_x_sampled)}x{len(grid_y_sampled)} (步长={sampling_step})")
-    else:
-        grid_x_sampled = grid_x
-        grid_y_sampled = grid_y
-    
-    # 创建网格
-    XI, YI = np.meshgrid(grid_x_sampled, grid_y_sampled)
-    ny, nx = XI.shape
-    
-    # 展平坐标
-    x_flat = XI.flatten()
-    y_flat = YI.flatten()
-    total_points = len(x_flat)
-    
-    # 初始化结果数组
-    lithology_names = np.full(total_points, "", dtype=object)
-    lithology_indices = np.full(total_points, -1, dtype=int)
-    z_values = np.full(total_points, np.nan, dtype=float)
-    
-    # 计算模型的 z 范围
-    all_tops = np.concatenate([bm.top_surface.flatten() for bm in block_models])
-    all_bottoms = np.concatenate([bm.bottom_surface.flatten() for bm in block_models])
-    z_min = float(np.nanmin(all_bottoms))
-    z_max = float(np.nanmax(all_tops))
-    
-    print(f"\n[Z剖面] 提取 z={z_coordinate} 的剖面")
-    print(f"[Z剖面] 模型范围: z_min={z_min:.2f}, z_max={z_max:.2f}")
-    print(f"[Z剖面] 网格尺寸: {ny} x {nx} = {total_points} 点")
-    
-    # 检查 z_coordinate 是否在合理范围内
-    if z_coordinate < z_min or z_coordinate > z_max:
-        print(f"⚠️ [Z剖面] 警告: z={z_coordinate} 超出模型范围 [{z_min:.2f}, {z_max:.2f}]")
-    
-    # 为每个网格点确定所在岩层
-    # 从下到上遍历岩层,找到包含 z_coordinate 的岩层
-    for layer_idx, model in enumerate(block_models):
-        # 对模型表面数据也进行降采样
-        if sampling_step > 1:
-            # model.top_surface 和 model.bottom_surface 是 2D 数组 (ny_orig, nx_orig)
-            top_sampled = model.top_surface[::sampling_step, ::sampling_step]
-            bottom_sampled = model.bottom_surface[::sampling_step, ::sampling_step]
-        else:
-            top_sampled = model.top_surface
-            bottom_sampled = model.bottom_surface
+    try:
+        if not block_models:
+            raise ValueError("block_models 为空")
         
-        top_flat = top_sampled.flatten()
-        bottom_flat = bottom_sampled.flatten()
+        if len(grid_x) == 0 or len(grid_y) == 0:
+            raise ValueError("grid_x 或 grid_y 为空")
         
-        # 确保尺寸匹配
-        if len(top_flat) != total_points:
-            print(f"⚠️ [Z剖面] 尺寸不匹配: top_flat={len(top_flat)}, total_points={total_points}")
-            continue
+        # 确保是 numpy 数组
+        grid_x = np.asarray(grid_x)
+        grid_y = np.asarray(grid_y)
         
-        # 找到 z_coordinate 位于该岩层内的点
-        # bottom <= z_coordinate < top
-        mask = (bottom_flat <= z_coordinate) & (z_coordinate < top_flat)
+        # 获取第一个模型的表面尺寸作为参考
+        ref_model = block_models[0]
         
-        # 标记这些点的岩性
+        # 验证模型数据
+        if not hasattr(ref_model, 'top_surface') or not hasattr(ref_model, 'bottom_surface'):
+            raise ValueError(f"模型 '{ref_model.name}' 缺少 top_surface 或 bottom_surface 属性")
+        
+        if ref_model.top_surface is None or ref_model.bottom_surface is None:
+            raise ValueError(f"模型 '{ref_model.name}' 的表面数据为 None")
+        
+        model_ny, model_nx = ref_model.top_surface.shape
+        
+        print(f"[Z剖面] 网格尺寸: grid_x={len(grid_x)}, grid_y={len(grid_y)}")
+        print(f"[Z剖面] 模型表面尺寸: ny={model_ny}, nx={model_nx}")
+        
+        # 使用模型表面的实际尺寸，而不是 grid_x/grid_y 的长度
+        # 因为模型可能已经在建模时做了降采样
+        ny, nx = model_ny, model_nx
+        
+        # 重新生成匹配模型尺寸的网格坐标
+        x_min, x_max = float(grid_x.min()), float(grid_x.max())
+        y_min, y_max = float(grid_y.min()), float(grid_y.max())
+        
+        grid_x_matched = np.linspace(x_min, x_max, nx)
+        grid_y_matched = np.linspace(y_min, y_max, ny)
+        
+        # 创建网格
+        XI, YI = np.meshgrid(grid_x_matched, grid_y_matched)
+        
+        # 展平坐标
+        x_flat = XI.flatten()
+        y_flat = YI.flatten()
+        total_points = len(x_flat)
+        
+        # 初始化结果数组
+        lithology_names = np.full(total_points, "", dtype=object)
+        lithology_indices = np.full(total_points, -1, dtype=int)
+        z_values = np.full(total_points, np.nan, dtype=float)
+        
+        # 计算模型的 z 范围
+        all_tops = []
+        all_bottoms = []
+        
+        for bm in block_models:
+            if bm.top_surface is not None:
+                all_tops.append(bm.top_surface.flatten())
+            if bm.bottom_surface is not None:
+                all_bottoms.append(bm.bottom_surface.flatten())
+        
+        if not all_tops or not all_bottoms:
+            raise ValueError("所有模型的表面数据均为 None")
+        
+        all_tops_arr = np.concatenate(all_tops)
+        all_bottoms_arr = np.concatenate(all_bottoms)
+        z_min = float(np.nanmin(all_bottoms_arr))
+        z_max = float(np.nanmax(all_tops_arr))
+        
+        print(f"\n[Z剖面] 提取 z={z_coordinate:.2f} 的剖面")
+        print(f"[Z剖面] 模型范围: z_min={z_min:.2f}, z_max={z_max:.2f}")
+        print(f"[Z剖面] 实际网格尺寸: {ny} x {nx} = {total_points} 点")
+        
+        # 检查 z_coordinate 是否在合理范围内
+        if z_coordinate < z_min or z_coordinate > z_max:
+            print(f"⚠️ [Z剖面] 警告: z={z_coordinate:.2f} 超出模型范围 [{z_min:.2f}, {z_max:.2f}]")
+        
+        # 为每个网格点确定所在岩层
+        for layer_idx, model in enumerate(block_models):
+            if model.top_surface is None or model.bottom_surface is None:
+                print(f"⚠️ [Z剖面] 跳过模型 '{model.name}': 表面数据为 None")
+                continue
+            
+            # 直接使用模型表面数据（已经是正确尺寸）
+            top_flat = model.top_surface.flatten()
+            bottom_flat = model.bottom_surface.flatten()
+            
+            # 确保尺寸匹配
+            if len(top_flat) != total_points:
+                print(f"⚠️ [Z剖面] 尺寸不匹配: 岩层'{model.name}' top_flat={len(top_flat)}, total_points={total_points}")
+                continue
+            
+            # 找到 z_coordinate 位于该岩层内的点
+            # bottom <= z_coordinate < top
+            mask = (bottom_flat <= z_coordinate) & (z_coordinate < top_flat)
+            
+            # 标记这些点的岩性
         lithology_names[mask] = model.name
         lithology_indices[mask] = layer_idx
         z_values[mask] = z_coordinate
@@ -147,6 +165,9 @@ def extract_z_section(
     
     print(f"[Z剖面] 图例包含 {len(legend)} 种岩性")
     
+    # 将 lithology_index 重塑为 2D 网格，用于 heatmap 渲染
+    lithology_grid = lithology_indices.reshape((ny, nx))
+    
     return {
         'z_coordinate': float(z_coordinate),
         'x_coords': x_flat.tolist(),
@@ -156,7 +177,11 @@ def extract_z_section(
         'z_values': z_values.tolist(),
         'legend': legend,
         'z_range': (z_min, z_max),
-        'grid_shape': (int(ny), int(nx))
+        'grid_shape': (int(ny), int(nx)),
+        # heatmap 渲染需要的网格数据 (使用匹配模型尺寸的坐标)
+        'grid_x': grid_x_matched.tolist(),
+        'grid_y': grid_y_matched.tolist(),
+        'lithology_grid': lithology_grid.tolist()  # 2D 数组 [ny][nx]
     }
 
 

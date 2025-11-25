@@ -138,6 +138,7 @@ class EnhancedInterpolation:
                          variogram_model: str = 'spherical') -> np.ndarray:
         """
         普通克里金插值 (真实实现)
+        添加性能限制以防止服务器内存溢出
 
         Args:
             x, y, z: 已知数据点
@@ -147,13 +148,28 @@ class EnhancedInterpolation:
         Returns:
             插值结果
         """
+        # 性能限制：克里金复杂度为 O(n³)，限制数据点数量
+        MAX_KRIGING_POINTS = 500  # 服务器安全限制
+        
+        if len(x) > MAX_KRIGING_POINTS:
+            print(f"[KRIGING] ⚠️ 数据点过多({len(x)} > {MAX_KRIGING_POINTS})，使用降采样")
+            warnings.warn(f"克里金数据点过多({len(x)})，降采样到{MAX_KRIGING_POINTS}点")
+            
+            # 随机降采样
+            indices = np.random.choice(len(x), MAX_KRIGING_POINTS, replace=False)
+            x, y, z = x[indices], y[indices], z[indices]
+            print(f"[KRIGING] ✓ 降采样完成，使用{len(x)}个数据点")
+        
         if not self.has_pykrige:
             # 回退到高斯RBF近似
-            warnings.warn("使用高斯RBF近似克里金插值")
+            print("[KRIGING] ⚠️ pykrige未安装，使用高斯RBF近似")
+            warnings.warn("pykrige未安装，使用高斯RBF近似克里金插值")
             return self._kriging_rbf_fallback(x, y, z, xi, yi)
 
         try:
             from pykrige.ok import OrdinaryKriging
+            
+            print(f"[KRIGING] 🔧 使用{variogram_model}变差模型，数据点={len(x)}")
 
             # 创建克里金对象
             OK = OrdinaryKriging(
@@ -171,10 +187,16 @@ class EnhancedInterpolation:
             else:
                 # 网格
                 z_pred, ss = OK.execute('grid', xi, yi)
-
+            
+            print(f"[KRIGING] ✓ 克里金插值完成")
             return z_pred
 
+        except MemoryError as e:
+            print(f"[KRIGING] ❌ 内存不足: {e}")
+            warnings.warn(f"克里金插值内存不足，回退到RBF")
+            return self._kriging_rbf_fallback(x, y, z, xi, yi)
         except Exception as e:
+            print(f"[KRIGING] ❌ 克里金失败: {e}")
             warnings.warn(f"克里金插值失败: {e}, 回退到RBF")
             return self._kriging_rbf_fallback(x, y, z, xi, yi)
 
@@ -182,9 +204,29 @@ class EnhancedInterpolation:
                                xi: np.ndarray, yi: np.ndarray) -> np.ndarray:
         """克里金的RBF回退方案"""
         try:
-            rbf = Rbf(x, y, z, function='gaussian')
-            return rbf(xi, yi)
-        except Exception:
+            print(f"[KRIGING-FALLBACK] 使用高斯RBF近似，数据点={len(x)}")
+            
+            # 计算数据范围用于结果验证
+            z_min, z_max = np.min(z), np.max(z)
+            z_range = z_max - z_min
+            
+            # 自适应smooth参数
+            smooth_factor = max(0.5, z_range * 0.05)
+            rbf = Rbf(x, y, z, function='gaussian', smooth=smooth_factor)
+            result = rbf(xi, yi)
+            
+            # 验证并裁剪结果
+            safe_min = z_min - z_range * 0.5
+            safe_max = z_max + z_range * 0.5
+            
+            outliers = (result < safe_min) | (result > safe_max)
+            if np.any(outliers):
+                print(f"[KRIGING-FALLBACK] ⚠️ 裁剪{np.sum(outliers)}个异常值")
+                result = np.clip(result, safe_min, safe_max)
+            
+            return result
+        except Exception as e:
+            print(f"[KRIGING-FALLBACK] ❌ RBF失败: {e}，回退到线性插值")
             # 最终回退到线性插值
             return griddata((x, y), z, (xi, yi), method='linear')
 
@@ -403,7 +445,7 @@ class EnhancedInterpolation:
                          power: float = 2.0) -> np.ndarray:
         """
         修正谢泼德插值 (Modified Shepard)
-        IDW的改进版本,添加异常值保护
+        IDW的改进版本,添加异常值保护和性能限制
 
         Args:
             x, y, z: 已知数据点
@@ -413,6 +455,14 @@ class EnhancedInterpolation:
         Returns:
             插值结果
         """
+        # 性能限制
+        MAX_SHEPARD_POINTS = 1000
+        if len(x) > MAX_SHEPARD_POINTS:
+            print(f"[SHEPARD] ⚠️ 数据点过多({len(x)} > {MAX_SHEPARD_POINTS})，使用降采样")
+            indices = np.random.choice(len(x), MAX_SHEPARD_POINTS, replace=False)
+            x, y, z = x[indices], y[indices], z[indices]
+            print(f"[SHEPARD] ✓ 降采样完成，使用{len(x)}个数据点")
+        
         xi_flat = xi.flatten() if len(xi.shape) > 1 else xi
         yi_flat = yi.flatten() if len(yi.shape) > 1 else yi
 
@@ -457,7 +507,7 @@ class EnhancedInterpolation:
                                function: str = 'multiquadric') -> np.ndarray:
         """
         径向基函数插值 (Radial Basis Function)
-        添加了结果验证,防止外推产生异常值
+        添加了结果验证和性能限制,防止外推产生异常值
 
         Args:
             x, y, z: 已知数据点
@@ -467,6 +517,14 @@ class EnhancedInterpolation:
         Returns:
             插值结果
         """
+        # 性能限制：RBF复杂度也是O(n³)
+        MAX_RBF_POINTS = 800
+        if len(x) > MAX_RBF_POINTS:
+            print(f"[RBF] ⚠️ 数据点过多({len(x)} > {MAX_RBF_POINTS})，使用降采样")
+            indices = np.random.choice(len(x), MAX_RBF_POINTS, replace=False)
+            x, y, z = x[indices], y[indices], z[indices]
+            print(f"[RBF] ✓ 降采样完成，使用{len(x)}个数据点")
+        
         try:
             # 计算原始数据的合理范围
             z_min, z_max = np.min(z), np.max(z)

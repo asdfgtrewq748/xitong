@@ -3467,11 +3467,16 @@ async function generateZSectionFromBackend() {
     if (!response.ok) {
       let errorMsg = '获取 Z 剖面失败';
       try {
-        const errorData = await response.json();
+        // 克隆 response 以避免 "body stream already read" 错误
+        const errorData = await response.clone().json();
         errorMsg = errorData.detail || errorMsg;
       } catch (e) {
         // 如果返回的不是JSON,读取纯文本
-        errorMsg = await response.text() || errorMsg;
+        try {
+          errorMsg = await response.text() || errorMsg;
+        } catch (textError) {
+          errorMsg = `HTTP ${response.status}: ${response.statusText}`;
+        }
       }
       throw new Error(errorMsg);
     }

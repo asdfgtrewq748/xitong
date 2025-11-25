@@ -40,7 +40,7 @@ defineProps({
   title: String,
   value: String,
   sub: String,
-  icon: Object,
+  icon: [Object, Function], // 支持组件（函数）和对象
   delay: {
     type: Number,
     default: 0
