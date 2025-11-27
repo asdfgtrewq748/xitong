@@ -14,12 +14,13 @@
 - 🔧 **[错误修复](docs/错误修复说明.md)** - 常见问题解决
 - ⚡ **[性能优化](docs/backend/PERFORMANCE_GUIDE.md)** - 性能优化指南
 - 📜 **[部署脚本](docs/scripts/)** - 自动化部署脚本
+- 🖥️ **[演示网站独立指南](demo-site/docs/DEMO_SITE_GUIDE.md)** - demo-site 目录下的静态展示站说明
 
 ---
 
 ## 1. 项目长什么样？
 
-该文件夹里包含一个“后端” (FastAPI + Python) 和一个“前端” (Vue3 + JavaScript)。整体目录大致如下：
+该文件夹里包含一个“后端” (FastAPI + Python) 和一个“前端” (Vue3 + JavaScript)。另外，`demo-site/` 目录保存完全独立的演示站，不依赖主站后端。整体目录大致如下：
 
 ```
 MiningSystem/
@@ -32,6 +33,7 @@ MiningSystem/
 │   └── src/                # Vue 页面和组件
 ├── data/
 │   └── input/              # SQLite 或 CSV 数据
+├── demo-site/              # 演示网站（前端 + 数据 + 脚本）
 └── README.md               # 你正在看的文档
 ```
 

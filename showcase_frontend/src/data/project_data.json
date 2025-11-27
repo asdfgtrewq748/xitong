@@ -1,0 +1,1837 @@
+[
+  {
+    "id": "BK-1",
+    "x": 523656.2,
+    "y": 4371034.33,
+    "strata": [
+      {
+        "name": "黄土",
+        "thickness": 91.57,
+        "depth": 0.0,
+        "type": "Rock"
+      },
+      {
+        "name": "粗粒砂岩",
+        "thickness": 12.17,
+        "depth": 91.57,
+        "type": "Rock"
+      },
+      {
+        "name": "黄土、断层",
+        "thickness": 9.52,
+        "depth": 103.74,
+        "type": "Rock"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 8.7,
+        "depth": 113.25999999999999,
+        "type": "Rock"
+      },
+      {
+        "name": "细粒砂岩",
+        "thickness": 5.21,
+        "depth": 121.96,
+        "type": "Rock"
+      },
+      {
+        "name": "中粒砂岩",
+        "thickness": 13.37,
+        "depth": 127.16999999999999,
+        "type": "Rock"
+      },
+      {
+        "name": "泥岩",
+        "thickness": 2.7,
+        "depth": 140.54,
+        "type": "Rock"
+      },
+      {
+        "name": "煤",
+        "thickness": 3.59,
+        "depth": 143.23999999999998,
+        "type": "Coal"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 3.03,
+        "depth": 146.82999999999998,
+        "type": "Rock"
+      },
+      {
+        "name": "炭质泥岩",
+        "thickness": 1.3,
+        "depth": 149.85999999999999,
+        "type": "Rock"
+      },
+      {
+        "name": "6煤",
+        "thickness": 3.52,
+        "depth": 151.16,
+        "type": "Coal"
+      }
+    ],
+    "key_strata": [
+      {
+        "name": "黄土、断层",
+        "thickness": 9.52,
+        "label": "SK1"
+      },
+      {
+        "name": "粗粒砂岩",
+        "thickness": 12.17,
+        "label": "SK2(PKS)"
+      }
+    ],
+    "feasibility": {}
+  },
+  {
+    "id": "BK-2",
+    "x": 523484.16,
+    "y": 4371392.21,
+    "strata": [
+      {
+        "name": "黄土",
+        "thickness": 105.14,
+        "depth": 0.0,
+        "type": "Rock"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 7.7,
+        "depth": 105.14,
+        "type": "Rock"
+      },
+      {
+        "name": "中粒砂岩",
+        "thickness": 3.53,
+        "depth": 112.84,
+        "type": "Rock"
+      },
+      {
+        "name": "高岭质泥岩",
+        "thickness": 3.05,
+        "depth": 116.37,
+        "type": "Rock"
+      },
+      {
+        "name": "6煤",
+        "thickness": 4.6,
+        "depth": 119.42,
+        "type": "Coal"
+      }
+    ],
+    "key_strata": [
+      {
+        "name": "中粒砂岩",
+        "thickness": 3.53,
+        "label": "SK1(PKS)"
+      }
+    ],
+    "feasibility": {}
+  },
+  {
+    "id": "BK-3",
+    "x": 525091.64,
+    "y": 4371062.91,
+    "strata": [
+      {
+        "name": "黄土",
+        "thickness": 70.33,
+        "depth": 0.0,
+        "type": "Rock"
+      },
+      {
+        "name": "粗粒砂岩",
+        "thickness": 5.65,
+        "depth": 70.33,
+        "type": "Rock"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 11.14,
+        "depth": 75.98,
+        "type": "Rock"
+      },
+      {
+        "name": "中粒砂岩",
+        "thickness": 12.88,
+        "depth": 87.12,
+        "type": "Rock"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 12.63,
+        "depth": 100.0,
+        "type": "Rock"
+      },
+      {
+        "name": "中粒砂岩",
+        "thickness": 2.59,
+        "depth": 112.63,
+        "type": "Rock"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 3.48,
+        "depth": 115.22,
+        "type": "Rock"
+      },
+      {
+        "name": "中粒砂岩",
+        "thickness": 8.95,
+        "depth": 118.7,
+        "type": "Rock"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 2.57,
+        "depth": 127.65,
+        "type": "Rock"
+      },
+      {
+        "name": "含砾粗粒砂岩",
+        "thickness": 2.46,
+        "depth": 130.22,
+        "type": "Rock"
+      },
+      {
+        "name": "4号风化煤",
+        "thickness": 3.11,
+        "depth": 132.68,
+        "type": "Coal"
+      },
+      {
+        "name": "炭质泥岩",
+        "thickness": 2.95,
+        "depth": 135.79000000000002,
+        "type": "Rock"
+      },
+      {
+        "name": "煤线",
+        "thickness": 1.66,
+        "depth": 138.74,
+        "type": "Coal"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 2.72,
+        "depth": 140.4,
+        "type": "Rock"
+      },
+      {
+        "name": "含砾粗砂岩",
+        "thickness": 9.84,
+        "depth": 143.12,
+        "type": "Rock"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 4.93,
+        "depth": 152.96,
+        "type": "Rock"
+      },
+      {
+        "name": "煤线",
+        "thickness": 0.4,
+        "depth": 157.89000000000001,
+        "type": "Coal"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 2.21,
+        "depth": 158.29000000000002,
+        "type": "Rock"
+      },
+      {
+        "name": "5煤",
+        "thickness": 4.22,
+        "depth": 160.50000000000003,
+        "type": "Coal"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 3.73,
+        "depth": 164.72000000000003,
+        "type": "Rock"
+      },
+      {
+        "name": "粗粒砂岩",
+        "thickness": 17.21,
+        "depth": 168.45000000000002,
+        "type": "Rock"
+      },
+      {
+        "name": "炭质泥岩",
+        "thickness": 1.88,
+        "depth": 185.66000000000003,
+        "type": "Rock"
+      },
+      {
+        "name": "6-1煤",
+        "thickness": 7.78,
+        "depth": 187.54000000000002,
+        "type": "Coal"
+      }
+    ],
+    "key_strata": [
+      {
+        "name": "中粒砂岩",
+        "thickness": 2.59,
+        "label": "SK1"
+      },
+      {
+        "name": "粗粒砂岩",
+        "thickness": 5.65,
+        "label": "SK2(PKS)"
+      }
+    ],
+    "feasibility": {}
+  },
+  {
+    "id": "BK-4",
+    "x": 523975.24,
+    "y": 4371159.01,
+    "strata": [
+      {
+        "name": "黄土",
+        "thickness": 102.15,
+        "depth": 0.0,
+        "type": "Rock"
+      },
+      {
+        "name": "中粒砂岩",
+        "thickness": 3.69,
+        "depth": 102.15,
+        "type": "Rock"
+      },
+      {
+        "name": "高岭质泥岩",
+        "thickness": 5.23,
+        "depth": 105.84,
+        "type": "Rock"
+      },
+      {
+        "name": "泥岩",
+        "thickness": 1.32,
+        "depth": 111.07000000000001,
+        "type": "Rock"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 2.56,
+        "depth": 112.39,
+        "type": "Rock"
+      },
+      {
+        "name": "高岭质泥岩",
+        "thickness": 3.51,
+        "depth": 114.95,
+        "type": "Rock"
+      },
+      {
+        "name": "中粒砂岩",
+        "thickness": 20.92,
+        "depth": 118.46000000000001,
+        "type": "Rock"
+      },
+      {
+        "name": "泥岩",
+        "thickness": 3.32,
+        "depth": 139.38,
+        "type": "Rock"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 2.74,
+        "depth": 142.7,
+        "type": "Rock"
+      },
+      {
+        "name": "粗粒砂岩",
+        "thickness": 17.02,
+        "depth": 145.44,
+        "type": "Rock"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 1.96,
+        "depth": 162.46,
+        "type": "Rock"
+      },
+      {
+        "name": "6煤",
+        "thickness": 14.82,
+        "depth": 164.42000000000002,
+        "type": "Coal"
+      }
+    ],
+    "key_strata": [
+      {
+        "name": "中粒砂岩",
+        "thickness": 3.69,
+        "label": "SK1(PKS)"
+      }
+    ],
+    "feasibility": {}
+  },
+  {
+    "id": "BK-5",
+    "x": 524311.42,
+    "y": 4371281.15,
+    "strata": [
+      {
+        "name": "黄土",
+        "thickness": 116.99,
+        "depth": 0.0,
+        "type": "Rock"
+      },
+      {
+        "name": "高岭岩",
+        "thickness": 5.38,
+        "depth": 116.99,
+        "type": "Rock"
+      },
+      {
+        "name": "细粒砂岩",
+        "thickness": 3.04,
+        "depth": 122.36999999999999,
+        "type": "Rock"
+      },
+      {
+        "name": "含砾粗砂岩",
+        "thickness": 1.74,
+        "depth": 125.41,
+        "type": "Rock"
+      },
+      {
+        "name": "高岭岩",
+        "thickness": 5.36,
+        "depth": 127.14999999999999,
+        "type": "Rock"
+      },
+      {
+        "name": "中粒砂岩",
+        "thickness": 1.24,
+        "depth": 132.51,
+        "type": "Rock"
+      },
+      {
+        "name": "高岭岩",
+        "thickness": 3.77,
+        "depth": 133.75,
+        "type": "Rock"
+      },
+      {
+        "name": "粗粒砂岩",
+        "thickness": 4.81,
+        "depth": 137.52,
+        "type": "Rock"
+      },
+      {
+        "name": "风化煤",
+        "thickness": 6.82,
+        "depth": 142.33,
+        "type": "Coal"
+      },
+      {
+        "name": "粉砂岩",
+        "thickness": 3.73,
+        "depth": 149.15,
+        "type": "Rock"
+      },
+      {
+        "name": "粗粒砂岩",
+        "thickness": 7.87,
+        "depth": 152.88,
+        "type": "Rock"
+      },
+      {
+        "name": "含砾粗砂岩",
+        "thickness": 15.15,
+        "depth": 160.75,
+        "type": "Rock"
+      },
+      {
+        "name": "5煤",
+        "thickness": 3.55,
+        "depth": 175.9,
+        "type": "Coal"
+      },
+      {
+        "name": "高岭岩",
+        "thickness": 3.14,
+        "depth": 179.45000000000002,
+        "type": "Rock"
+      },
+      {
+        "name": "中粒砂岩",
+        "thickness": 8.66,
+        "depth": 182.59,
+        "type": "Rock"
+      },
+      {
+        "name": "粗粒砂岩",
+        "thickness": 3.25,
+        "depth": 191.25,
+        "type": "Rock"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 2.24,
+        "depth": 194.5,
+        "type": "Rock"
+      },
+      {
+        "name": "6-1煤",
+        "thickness": 7.31,
+        "depth": 196.74,
+        "type": "Coal"
+      }
+    ],
+    "key_strata": [
+      {
+        "name": "粗粒砂岩",
+        "thickness": 3.25,
+        "label": "SK1"
+      },
+      {
+        "name": "5煤",
+        "thickness": 3.55,
+        "label": "SK2(PKS)"
+      },
+      {
+        "name": "高岭岩",
+        "thickness": 5.38,
+        "label": "SK3"
+      }
+    ],
+    "feasibility": {}
+  },
+  {
+    "id": "BK-7",
+    "x": 523130.55,
+    "y": 4371061.01,
+    "strata": [
+      {
+        "name": "黄土",
+        "thickness": 95.79,
+        "depth": 0.0,
+        "type": "Rock"
+      },
+      {
+        "name": "粗粒砂岩",
+        "thickness": 10.2,
+        "depth": 95.79,
+        "type": "Rock"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 7.65,
+        "depth": 105.99000000000001,
+        "type": "Rock"
+      },
+      {
+        "name": "中粒砂岩",
+        "thickness": 4.37,
+        "depth": 113.64000000000001,
+        "type": "Rock"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 3.42,
+        "depth": 118.01000000000002,
+        "type": "Rock"
+      },
+      {
+        "name": "粗粒砂岩",
+        "thickness": 4.36,
+        "depth": 121.43000000000002,
+        "type": "Rock"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 1.41,
+        "depth": 125.79000000000002,
+        "type": "Rock"
+      },
+      {
+        "name": "中粒砂岩",
+        "thickness": 3.72,
+        "depth": 127.20000000000002,
+        "type": "Rock"
+      },
+      {
+        "name": "粉砂岩",
+        "thickness": 3.1,
+        "depth": 130.92000000000002,
+        "type": "Rock"
+      },
+      {
+        "name": "粗粒砂岩",
+        "thickness": 8.92,
+        "depth": 134.02,
+        "type": "Rock"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 4.26,
+        "depth": 142.94,
+        "type": "Rock"
+      },
+      {
+        "name": "粉砂岩",
+        "thickness": 0.91,
+        "depth": 147.2,
+        "type": "Rock"
+      },
+      {
+        "name": "含砾粗粒砂岩",
+        "thickness": 6.24,
+        "depth": 148.10999999999999,
+        "type": "Rock"
+      },
+      {
+        "name": "粉砂岩",
+        "thickness": 3.54,
+        "depth": 154.35,
+        "type": "Rock"
+      },
+      {
+        "name": "4煤",
+        "thickness": 7.82,
+        "depth": 157.89,
+        "type": "Coal"
+      },
+      {
+        "name": "粉砂岩",
+        "thickness": 1.27,
+        "depth": 165.70999999999998,
+        "type": "Rock"
+      },
+      {
+        "name": "含砾粗粒砂岩",
+        "thickness": 11.48,
+        "depth": 166.98,
+        "type": "Rock"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 5.94,
+        "depth": 178.45999999999998,
+        "type": "Rock"
+      },
+      {
+        "name": "粉砂岩",
+        "thickness": 4.1,
+        "depth": 184.39999999999998,
+        "type": "Rock"
+      },
+      {
+        "name": "5煤",
+        "thickness": 3.77,
+        "depth": 188.49999999999997,
+        "type": "Coal"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 1.34,
+        "depth": 192.26999999999998,
+        "type": "Rock"
+      },
+      {
+        "name": "粗粒砂岩",
+        "thickness": 14.1,
+        "depth": 193.60999999999999,
+        "type": "Rock"
+      },
+      {
+        "name": "含砾粗粒砂岩",
+        "thickness": 2.92,
+        "depth": 207.70999999999998,
+        "type": "Rock"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 1.82,
+        "depth": 210.62999999999997,
+        "type": "Rock"
+      },
+      {
+        "name": "6-1煤",
+        "thickness": 6.9,
+        "depth": 212.44999999999996,
+        "type": "Coal"
+      }
+    ],
+    "key_strata": [
+      {
+        "name": "含砾粗粒砂岩",
+        "thickness": 2.92,
+        "label": "SK1"
+      },
+      {
+        "name": "粗粒砂岩",
+        "thickness": 10.2,
+        "label": "SK2(PKS)"
+      }
+    ],
+    "feasibility": {}
+  },
+  {
+    "id": "BK-9",
+    "x": 523156.19,
+    "y": 4371080.11,
+    "strata": [
+      {
+        "name": "黄土",
+        "thickness": 84.37,
+        "depth": 0.0,
+        "type": "Rock"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 2.34,
+        "depth": 84.37,
+        "type": "Rock"
+      },
+      {
+        "name": "粗粒砂岩",
+        "thickness": 6.81,
+        "depth": 86.71000000000001,
+        "type": "Rock"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 4.75,
+        "depth": 93.52000000000001,
+        "type": "Rock"
+      },
+      {
+        "name": "中粒砂岩",
+        "thickness": 2.9,
+        "depth": 98.27000000000001,
+        "type": "Rock"
+      },
+      {
+        "name": "含砾粗砂岩",
+        "thickness": 5.93,
+        "depth": 101.17000000000002,
+        "type": "Rock"
+      },
+      {
+        "name": "粗粒砂岩",
+        "thickness": 10.73,
+        "depth": 107.10000000000002,
+        "type": "Rock"
+      },
+      {
+        "name": "中粒砂岩",
+        "thickness": 2.94,
+        "depth": 117.83000000000003,
+        "type": "Rock"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 4.05,
+        "depth": 120.77000000000002,
+        "type": "Rock"
+      },
+      {
+        "name": "中粒砂岩",
+        "thickness": 8.78,
+        "depth": 124.82000000000002,
+        "type": "Rock"
+      },
+      {
+        "name": "粗粒砂岩",
+        "thickness": 12.2,
+        "depth": 133.60000000000002,
+        "type": "Rock"
+      },
+      {
+        "name": "中粒砂岩",
+        "thickness": 3.69,
+        "depth": 145.8,
+        "type": "Rock"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 1.0,
+        "depth": 149.49,
+        "type": "Rock"
+      },
+      {
+        "name": "泥岩",
+        "thickness": 1.63,
+        "depth": 150.49,
+        "type": "Rock"
+      },
+      {
+        "name": "风化煤",
+        "thickness": 2.29,
+        "depth": 152.12,
+        "type": "Coal"
+      },
+      {
+        "name": "6煤",
+        "thickness": 12.15,
+        "depth": 154.41,
+        "type": "Coal"
+      }
+    ],
+    "key_strata": [
+      {
+        "name": "中粒砂岩",
+        "thickness": 3.69,
+        "label": "SK1"
+      },
+      {
+        "name": "中粒砂岩",
+        "thickness": 2.94,
+        "label": "SK2(PKS)"
+      }
+    ],
+    "feasibility": {}
+  },
+  {
+    "id": "BK-12",
+    "x": 523885.61,
+    "y": 4370914.16,
+    "strata": [
+      {
+        "name": "黄土",
+        "thickness": 102.97,
+        "depth": 0.0,
+        "type": "Rock"
+      },
+      {
+        "name": "含砾粗砂岩",
+        "thickness": 15.24,
+        "depth": 102.97,
+        "type": "Rock"
+      },
+      {
+        "name": "粗粒砂岩",
+        "thickness": 2.73,
+        "depth": 118.21,
+        "type": "Rock"
+      },
+      {
+        "name": "高岭质泥岩",
+        "thickness": 5.73,
+        "depth": 120.94,
+        "type": "Rock"
+      },
+      {
+        "name": "细粒砂岩",
+        "thickness": 11.18,
+        "depth": 126.67,
+        "type": "Rock"
+      },
+      {
+        "name": "中粒砂岩",
+        "thickness": 7.64,
+        "depth": 137.85,
+        "type": "Rock"
+      },
+      {
+        "name": "粗粒砂岩",
+        "thickness": 9.96,
+        "depth": 145.48999999999998,
+        "type": "Rock"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 1.56,
+        "depth": 155.45,
+        "type": "Rock"
+      },
+      {
+        "name": "风化煤",
+        "thickness": 3.89,
+        "depth": 157.01,
+        "type": "Coal"
+      },
+      {
+        "name": "6煤",
+        "thickness": 11.09,
+        "depth": 160.89999999999998,
+        "type": "Coal"
+      }
+    ],
+    "key_strata": [
+      {
+        "name": "粗粒砂岩",
+        "thickness": 9.96,
+        "label": "SK1"
+      },
+      {
+        "name": "粗粒砂岩",
+        "thickness": 2.73,
+        "label": "SK2(PKS)"
+      },
+      {
+        "name": "含砾粗砂岩",
+        "thickness": 15.24,
+        "label": "SK3"
+      }
+    ],
+    "feasibility": {}
+  },
+  {
+    "id": "BK-19",
+    "x": 524656.98,
+    "y": 4371547.13,
+    "strata": [
+      {
+        "name": "黄土",
+        "thickness": 100.7,
+        "depth": 0.0,
+        "type": "Rock"
+      },
+      {
+        "name": "中粒砂岩",
+        "thickness": 8.67,
+        "depth": 100.7,
+        "type": "Rock"
+      },
+      {
+        "name": "泥岩",
+        "thickness": 4.4,
+        "depth": 109.37,
+        "type": "Rock"
+      },
+      {
+        "name": "中粒砂岩",
+        "thickness": 6.93,
+        "depth": 113.77000000000001,
+        "type": "Rock"
+      },
+      {
+        "name": "粗粒砂岩",
+        "thickness": 5.69,
+        "depth": 120.70000000000002,
+        "type": "Rock"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 6.5,
+        "depth": 126.39000000000001,
+        "type": "Rock"
+      },
+      {
+        "name": "粉砂岩",
+        "thickness": 1.64,
+        "depth": 132.89000000000001,
+        "type": "Rock"
+      },
+      {
+        "name": "粗粒砂岩",
+        "thickness": 11.07,
+        "depth": 134.53,
+        "type": "Rock"
+      },
+      {
+        "name": "粉砂岩",
+        "thickness": 7.44,
+        "depth": 145.6,
+        "type": "Rock"
+      },
+      {
+        "name": "4煤",
+        "thickness": 5.07,
+        "depth": 153.04,
+        "type": "Coal"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 0.89,
+        "depth": 158.10999999999999,
+        "type": "Rock"
+      },
+      {
+        "name": "粉砂岩",
+        "thickness": 1.4,
+        "depth": 158.99999999999997,
+        "type": "Rock"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 2.15,
+        "depth": 160.39999999999998,
+        "type": "Rock"
+      },
+      {
+        "name": "中粒砂岩",
+        "thickness": 20.95,
+        "depth": 162.54999999999998,
+        "type": "Rock"
+      },
+      {
+        "name": "含砾粗粒砂岩",
+        "thickness": 11.85,
+        "depth": 183.49999999999997,
+        "type": "Rock"
+      },
+      {
+        "name": "炭质泥岩",
+        "thickness": 0.68,
+        "depth": 195.34999999999997,
+        "type": "Rock"
+      },
+      {
+        "name": "中粒砂岩",
+        "thickness": 8.63,
+        "depth": 196.02999999999997,
+        "type": "Rock"
+      },
+      {
+        "name": "粗粒砂岩",
+        "thickness": 9.78,
+        "depth": 204.65999999999997,
+        "type": "Rock"
+      },
+      {
+        "name": "粉砂岩",
+        "thickness": 1.17,
+        "depth": 214.43999999999997,
+        "type": "Rock"
+      },
+      {
+        "name": "6-1煤",
+        "thickness": 7.32,
+        "depth": 215.60999999999996,
+        "type": "Coal"
+      }
+    ],
+    "key_strata": [
+      {
+        "name": "粉砂岩",
+        "thickness": 1.17,
+        "label": "SK1"
+      },
+      {
+        "name": "粗粒砂岩",
+        "thickness": 9.78,
+        "label": "SK2"
+      },
+      {
+        "name": "含砾粗粒砂岩",
+        "thickness": 11.85,
+        "label": "SK3"
+      },
+      {
+        "name": "中粒砂岩",
+        "thickness": 8.67,
+        "label": "SK4(PKS)"
+      }
+    ],
+    "feasibility": {}
+  },
+  {
+    "id": "BK-21",
+    "x": 523843.87,
+    "y": 4371505.82,
+    "strata": [
+      {
+        "name": "黄土",
+        "thickness": 126.1,
+        "depth": 0.0,
+        "type": "Rock"
+      },
+      {
+        "name": "中粒砂岩",
+        "thickness": 4.35,
+        "depth": 126.1,
+        "type": "Rock"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 7.2,
+        "depth": 130.45,
+        "type": "Rock"
+      },
+      {
+        "name": "高岭质泥岩",
+        "thickness": 5.9,
+        "depth": 137.64999999999998,
+        "type": "Rock"
+      },
+      {
+        "name": "中粒砂岩",
+        "thickness": 3.4,
+        "depth": 143.54999999999998,
+        "type": "Rock"
+      },
+      {
+        "name": "细粒砂岩",
+        "thickness": 1.73,
+        "depth": 146.95,
+        "type": "Rock"
+      },
+      {
+        "name": "高岭质泥岩",
+        "thickness": 8.12,
+        "depth": 148.67999999999998,
+        "type": "Rock"
+      },
+      {
+        "name": "细粒砂岩",
+        "thickness": 2.22,
+        "depth": 156.79999999999998,
+        "type": "Rock"
+      },
+      {
+        "name": "高岭质泥岩",
+        "thickness": 6.43,
+        "depth": 159.01999999999998,
+        "type": "Rock"
+      },
+      {
+        "name": "中粒砂岩",
+        "thickness": 4.3,
+        "depth": 165.45,
+        "type": "Rock"
+      },
+      {
+        "name": "粗粒砂岩",
+        "thickness": 24.27,
+        "depth": 169.75,
+        "type": "Rock"
+      },
+      {
+        "name": "高岭质泥岩",
+        "thickness": 5.2,
+        "depth": 194.02,
+        "type": "Rock"
+      },
+      {
+        "name": "中粒砂岩",
+        "thickness": 18.91,
+        "depth": 199.22,
+        "type": "Rock"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 1.75,
+        "depth": 218.13,
+        "type": "Rock"
+      },
+      {
+        "name": "6煤",
+        "thickness": 17.29,
+        "depth": 219.88,
+        "type": "Coal"
+      }
+    ],
+    "key_strata": [
+      {
+        "name": "中粒砂岩",
+        "thickness": 4.35,
+        "label": "SK1(PKS)"
+      }
+    ],
+    "feasibility": {}
+  },
+  {
+    "id": "BK-31",
+    "x": 523981.45,
+    "y": 4371057.38,
+    "strata": [
+      {
+        "name": "黄土",
+        "thickness": 101.19,
+        "depth": 0.0,
+        "type": "Rock"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 3.8,
+        "depth": 101.19,
+        "type": "Rock"
+      },
+      {
+        "name": "高岭质泥岩",
+        "thickness": 4.46,
+        "depth": 104.99,
+        "type": "Rock"
+      },
+      {
+        "name": "粗粒砂岩",
+        "thickness": 11.72,
+        "depth": 109.44999999999999,
+        "type": "Rock"
+      },
+      {
+        "name": "砾岩",
+        "thickness": 10.93,
+        "depth": 121.16999999999999,
+        "type": "Rock"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 3.64,
+        "depth": 132.1,
+        "type": "Rock"
+      },
+      {
+        "name": "粗粒砂岩",
+        "thickness": 18.26,
+        "depth": 135.73999999999998,
+        "type": "Rock"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 3.4,
+        "depth": 153.99999999999997,
+        "type": "Rock"
+      },
+      {
+        "name": "6煤",
+        "thickness": 14.34,
+        "depth": 157.39999999999998,
+        "type": "Coal"
+      }
+    ],
+    "key_strata": [],
+    "feasibility": {}
+  },
+  {
+    "id": "BK-32",
+    "x": 523766.89,
+    "y": 4371123.03,
+    "strata": [
+      {
+        "name": "黄土",
+        "thickness": 98.17,
+        "depth": 0.0,
+        "type": "Rock"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 22.07,
+        "depth": 98.17,
+        "type": "Rock"
+      },
+      {
+        "name": "粗粒砂岩",
+        "thickness": 5.02,
+        "depth": 120.24000000000001,
+        "type": "Rock"
+      },
+      {
+        "name": "含砾粗粒砂岩",
+        "thickness": 17.72,
+        "depth": 125.26,
+        "type": "Rock"
+      },
+      {
+        "name": "高岭质泥岩",
+        "thickness": 7.84,
+        "depth": 142.98000000000002,
+        "type": "Rock"
+      },
+      {
+        "name": "中粒砂岩",
+        "thickness": 19.56,
+        "depth": 150.82000000000002,
+        "type": "Rock"
+      },
+      {
+        "name": "高岭质泥岩",
+        "thickness": 0.8,
+        "depth": 170.38000000000002,
+        "type": "Rock"
+      },
+      {
+        "name": "6-1煤",
+        "thickness": 8.77,
+        "depth": 171.18000000000004,
+        "type": "Coal"
+      }
+    ],
+    "key_strata": [],
+    "feasibility": {}
+  },
+  {
+    "id": "BK-35",
+    "x": 523518.23,
+    "y": 4371564.17,
+    "strata": [
+      {
+        "name": "黄土",
+        "thickness": 114.75,
+        "depth": 0.0,
+        "type": "Rock"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 6.75,
+        "depth": 114.75,
+        "type": "Rock"
+      },
+      {
+        "name": "细粒砂岩",
+        "thickness": 4.15,
+        "depth": 121.5,
+        "type": "Rock"
+      },
+      {
+        "name": "高岭质泥岩",
+        "thickness": 1.13,
+        "depth": 125.65,
+        "type": "Rock"
+      },
+      {
+        "name": "中粒砂岩",
+        "thickness": 5.73,
+        "depth": 126.78,
+        "type": "Rock"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 5.97,
+        "depth": 132.51,
+        "type": "Rock"
+      },
+      {
+        "name": "粉砂岩",
+        "thickness": 2.01,
+        "depth": 138.48,
+        "type": "Rock"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 12.03,
+        "depth": 140.48999999999998,
+        "type": "Rock"
+      },
+      {
+        "name": "炭质泥岩",
+        "thickness": 1.53,
+        "depth": 152.51999999999998,
+        "type": "Rock"
+      },
+      {
+        "name": "粉砂岩",
+        "thickness": 0.42,
+        "depth": 154.04999999999998,
+        "type": "Rock"
+      },
+      {
+        "name": "4煤",
+        "thickness": 3.81,
+        "depth": 154.46999999999997,
+        "type": "Coal"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 3.82,
+        "depth": 158.27999999999997,
+        "type": "Rock"
+      },
+      {
+        "name": "砾岩",
+        "thickness": 3.73,
+        "depth": 162.09999999999997,
+        "type": "Rock"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 9.08,
+        "depth": 165.82999999999996,
+        "type": "Rock"
+      },
+      {
+        "name": "粗粒砂岩",
+        "thickness": 14.66,
+        "depth": 174.90999999999997,
+        "type": "Rock"
+      },
+      {
+        "name": "风化煤",
+        "thickness": 1.62,
+        "depth": 189.56999999999996,
+        "type": "Coal"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 4.35,
+        "depth": 191.18999999999997,
+        "type": "Rock"
+      },
+      {
+        "name": "粗粒砂岩",
+        "thickness": 18.92,
+        "depth": 195.53999999999996,
+        "type": "Rock"
+      },
+      {
+        "name": "粉砂岩",
+        "thickness": 1.46,
+        "depth": 214.45999999999998,
+        "type": "Rock"
+      },
+      {
+        "name": "炭质泥岩",
+        "thickness": 0.6,
+        "depth": 215.92,
+        "type": "Rock"
+      },
+      {
+        "name": "6煤",
+        "thickness": 17.59,
+        "depth": 216.51999999999998,
+        "type": "Coal"
+      }
+    ],
+    "key_strata": [
+      {
+        "name": "粉砂岩",
+        "thickness": 1.46,
+        "label": "SK1(PKS)"
+      }
+    ],
+    "feasibility": {}
+  },
+  {
+    "id": "BK-42",
+    "x": 523531.75,
+    "y": 4370958.11,
+    "strata": [
+      {
+        "name": "黄土",
+        "thickness": 74.88,
+        "depth": 0.0,
+        "type": "Rock"
+      },
+      {
+        "name": "含砾中砂岩",
+        "thickness": 12.42,
+        "depth": 74.88,
+        "type": "Rock"
+      },
+      {
+        "name": "高岭质泥岩",
+        "thickness": 11.35,
+        "depth": 87.3,
+        "type": "Rock"
+      },
+      {
+        "name": "中粒砂岩",
+        "thickness": 11.15,
+        "depth": 98.64999999999999,
+        "type": "Rock"
+      },
+      {
+        "name": "含砾中砂岩",
+        "thickness": 2.3,
+        "depth": 109.8,
+        "type": "Rock"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 6.04,
+        "depth": 112.1,
+        "type": "Rock"
+      },
+      {
+        "name": "6-1煤",
+        "thickness": 5.35,
+        "depth": 118.14,
+        "type": "Coal"
+      }
+    ],
+    "key_strata": [
+      {
+        "name": "含砾中砂岩",
+        "thickness": 2.3,
+        "label": "SK1"
+      },
+      {
+        "name": "含砾中砂岩",
+        "thickness": 12.42,
+        "label": "SK2(PKS)"
+      }
+    ],
+    "feasibility": {}
+  },
+  {
+    "id": "BK-43",
+    "x": 523802.0,
+    "y": 4370926.0,
+    "strata": [
+      {
+        "name": "黄土",
+        "thickness": 94.5,
+        "depth": 0.0,
+        "type": "Rock"
+      },
+      {
+        "name": "含砾中砂岩",
+        "thickness": 14.2,
+        "depth": 94.5,
+        "type": "Rock"
+      },
+      {
+        "name": "中粒砂岩",
+        "thickness": 4.03,
+        "depth": 108.7,
+        "type": "Rock"
+      },
+      {
+        "name": "高岭质泥岩",
+        "thickness": 6.68,
+        "depth": 112.73,
+        "type": "Rock"
+      },
+      {
+        "name": "中粒砂岩",
+        "thickness": 16.53,
+        "depth": 119.41,
+        "type": "Rock"
+      },
+      {
+        "name": "细粒砂岩",
+        "thickness": 4.28,
+        "depth": 135.94,
+        "type": "Rock"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 3.32,
+        "depth": 140.22,
+        "type": "Rock"
+      },
+      {
+        "name": "6-1煤",
+        "thickness": 8.88,
+        "depth": 143.54,
+        "type": "Coal"
+      }
+    ],
+    "key_strata": [
+      {
+        "name": "细粒砂岩",
+        "thickness": 4.28,
+        "label": "SK1"
+      },
+      {
+        "name": "中粒砂岩",
+        "thickness": 4.03,
+        "label": "SK2(PKS)"
+      },
+      {
+        "name": "含砾中砂岩",
+        "thickness": 14.2,
+        "label": "SK3"
+      }
+    ],
+    "feasibility": {}
+  },
+  {
+    "id": "BK-60",
+    "x": 523253.25,
+    "y": 4371251.74,
+    "strata": [
+      {
+        "name": "黄土",
+        "thickness": 103.0,
+        "depth": 0.0,
+        "type": "Rock"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 13.56,
+        "depth": 103.0,
+        "type": "Rock"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 4.73,
+        "depth": 116.56,
+        "type": "Rock"
+      },
+      {
+        "name": "细粒砂岩",
+        "thickness": 18.15,
+        "depth": 121.29,
+        "type": "Rock"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 4.7,
+        "depth": 139.44,
+        "type": "Rock"
+      },
+      {
+        "name": "中粒砂岩",
+        "thickness": 18.72,
+        "depth": 144.14,
+        "type": "Rock"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 4.04,
+        "depth": 162.85999999999999,
+        "type": "Rock"
+      },
+      {
+        "name": "6煤",
+        "thickness": 13.16,
+        "depth": 166.89999999999998,
+        "type": "Coal"
+      }
+    ],
+    "key_strata": [],
+    "feasibility": {}
+  },
+  {
+    "id": "BK-61",
+    "x": 523543.62,
+    "y": 4371270.06,
+    "strata": [
+      {
+        "name": "黄土",
+        "thickness": 112.17,
+        "depth": 0.0,
+        "type": "Rock"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 7.52,
+        "depth": 112.17,
+        "type": "Rock"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 13.01,
+        "depth": 119.69,
+        "type": "Rock"
+      },
+      {
+        "name": "粉砂岩",
+        "thickness": 3.21,
+        "depth": 132.7,
+        "type": "Rock"
+      },
+      {
+        "name": "粗粒砂岩",
+        "thickness": 6.7,
+        "depth": 135.91,
+        "type": "Rock"
+      },
+      {
+        "name": "含砾粗砂岩",
+        "thickness": 12.09,
+        "depth": 142.60999999999999,
+        "type": "Rock"
+      },
+      {
+        "name": "泥岩",
+        "thickness": 1.8,
+        "depth": 154.7,
+        "type": "Rock"
+      },
+      {
+        "name": "中粒砂岩",
+        "thickness": 29.02,
+        "depth": 156.5,
+        "type": "Rock"
+      },
+      {
+        "name": "5煤",
+        "thickness": 9.4,
+        "depth": 185.52,
+        "type": "Coal"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 7.66,
+        "depth": 194.92000000000002,
+        "type": "Rock"
+      },
+      {
+        "name": "风化煤",
+        "thickness": 1.89,
+        "depth": 202.58,
+        "type": "Coal"
+      },
+      {
+        "name": "6煤",
+        "thickness": 5.53,
+        "depth": 204.47,
+        "type": "Coal"
+      }
+    ],
+    "key_strata": [
+      {
+        "name": "风化煤",
+        "thickness": 1.89,
+        "label": "SK1"
+      },
+      {
+        "name": "5煤",
+        "thickness": 9.4,
+        "label": "SK2(PKS)"
+      }
+    ],
+    "feasibility": {}
+  },
+  {
+    "id": "BK-62",
+    "x": 523051.371,
+    "y": 4371304.118,
+    "strata": [
+      {
+        "name": "黄土",
+        "thickness": 83.0,
+        "depth": 0.0,
+        "type": "Rock"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 1.15,
+        "depth": 83.0,
+        "type": "Rock"
+      },
+      {
+        "name": "中粒砂岩",
+        "thickness": 3.28,
+        "depth": 84.15,
+        "type": "Rock"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 4.7,
+        "depth": 87.43,
+        "type": "Rock"
+      },
+      {
+        "name": "粗粒砂岩",
+        "thickness": 5.37,
+        "depth": 92.13000000000001,
+        "type": "Rock"
+      },
+      {
+        "name": "粉砂岩",
+        "thickness": 3.98,
+        "depth": 97.50000000000001,
+        "type": "Rock"
+      },
+      {
+        "name": "粗粒砂岩",
+        "thickness": 18.65,
+        "depth": 101.48000000000002,
+        "type": "Rock"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 9.64,
+        "depth": 120.13000000000002,
+        "type": "Rock"
+      },
+      {
+        "name": "中粒砂岩",
+        "thickness": 5.25,
+        "depth": 129.77000000000004,
+        "type": "Rock"
+      },
+      {
+        "name": "粉砂岩",
+        "thickness": 4.44,
+        "depth": 135.02000000000004,
+        "type": "Rock"
+      },
+      {
+        "name": "细粒砂岩",
+        "thickness": 5.34,
+        "depth": 139.46000000000004,
+        "type": "Rock"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 3.72,
+        "depth": 144.80000000000004,
+        "type": "Rock"
+      },
+      {
+        "name": "6煤",
+        "thickness": 16.09,
+        "depth": 148.52000000000004,
+        "type": "Coal"
+      }
+    ],
+    "key_strata": [
+      {
+        "name": "粉砂岩",
+        "thickness": 4.44,
+        "label": "SK1"
+      },
+      {
+        "name": "中粒砂岩",
+        "thickness": 5.25,
+        "label": "SK2(PKS)"
+      }
+    ],
+    "feasibility": {}
+  },
+  {
+    "id": "BK-63",
+    "x": 523430.13,
+    "y": 4371287.14,
+    "strata": [
+      {
+        "name": "黄土",
+        "thickness": 91.5,
+        "depth": 0.0,
+        "type": "Rock"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 9.71,
+        "depth": 91.5,
+        "type": "Rock"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 12.09,
+        "depth": 101.21000000000001,
+        "type": "Rock"
+      },
+      {
+        "name": "细粒砂岩",
+        "thickness": 11.32,
+        "depth": 113.30000000000001,
+        "type": "Rock"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 9.31,
+        "depth": 124.62,
+        "type": "Rock"
+      },
+      {
+        "name": "中粒砂岩",
+        "thickness": 16.27,
+        "depth": 133.93,
+        "type": "Rock"
+      },
+      {
+        "name": "砂质泥岩",
+        "thickness": 4.3,
+        "depth": 150.20000000000002,
+        "type": "Rock"
+      },
+      {
+        "name": "6煤",
+        "thickness": 14.8,
+        "depth": 154.50000000000003,
+        "type": "Coal"
+      }
+    ],
+    "key_strata": [],
+    "feasibility": {}
+  }
+]

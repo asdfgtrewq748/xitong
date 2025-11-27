@@ -3109,6 +3109,32 @@ async def export_model_endpoint(payload: ExportRequest):
                 "grid_x": XI,
                 "grid_y": YI,
             }
+            # 可选：为 f3grid 导出添加平顶封顶层（synthetic BlockModel）
+            if export_options.get('add_top_cap') or export_options.get('top_cap'):
+                try:
+                    top_cap_thickness = float(export_options.get('top_cap_thickness', 1.0))
+                except Exception:
+                    top_cap_thickness = 1.0
+                top_cap_z = export_options.get('top_cap_z', None)
+                top_cap_name = export_options.get('top_cap_name', 'TopCap')
+
+                top_bm = block_models_objs[-1]
+                top_surface = np.asarray(top_bm.top_surface, dtype=float)
+                if top_cap_z is not None:
+                    try:
+                        cap_top_value = float(top_cap_z)
+                        cap_top = np.full_like(top_surface, cap_top_value, dtype=float)
+                    except Exception:
+                        cap_top = top_surface + top_cap_thickness
+                else:
+                    cap_top = top_surface + top_cap_thickness
+                cap_bottom = top_surface.copy()
+
+                from coal_seam_blocks.modeling import BlockModel
+                cap_bm = BlockModel(name=top_cap_name, points=0, top_surface=cap_top, bottom_surface=cap_bottom)
+                tet_payload['block_models'] = list(block_models_objs) + [cap_bm]
+                print(f"[Export] Added top cap BlockModel '{top_cap_name}' thickness ~{top_cap_thickness} m for f3grid export")
+
             final_path = exporter.export(tet_payload, output_path, options=export_options)
         elif export_type in ['stl', 'stl_single']:
             # 单文件STL导出（所有地层合并）

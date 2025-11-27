@@ -19,13 +19,13 @@
                  <span class="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"></span>
               </span>
            </div>
-           <h3 class="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">钻孔数据</h3>
+           <h3 class="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">钻孔数量</h3>
            <div class="flex items-baseline gap-2">
               <div class="text-3xl font-black text-slate-800 mb-2 tracking-tight">{{ totalBoreholes }}</div>
            </div>
            <div class="flex items-center justify-between">
               <div class="text-xs text-slate-500 font-medium bg-slate-50/80 inline-block px-2 py-1 rounded-md border border-slate-100">
-                 已导入
+                 内置 BK 测线
               </div>
               <span class="text-xs font-bold text-emerald-500 flex items-center">+12% <Activity :size="10" class="ml-1"/></span>
            </div>
@@ -40,13 +40,13 @@
                  <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
               </span>
            </div>
-           <h3 class="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">煤层层数</h3>
+           <h3 class="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">煤层段数</h3>
            <div class="flex items-baseline gap-2">
               <div class="text-3xl font-black text-slate-800 mb-2 tracking-tight">{{ totalCoalSeams }}</div>
            </div>
            <div class="flex items-center justify-between">
               <div class="text-xs text-slate-500 font-medium bg-slate-50/80 inline-block px-2 py-1 rounded-md border border-slate-100">
-                 结构完整
+                 自动分类完成
               </div>
            </div>
         </div>
@@ -60,13 +60,13 @@
                  <span class="relative inline-flex rounded-full h-3 w-3 bg-violet-500"></span>
               </span>
            </div>
-           <h3 class="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">矿井数量</h3>
+           <h3 class="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">平均剖面厚度</h3>
            <div class="flex items-baseline gap-2">
-              <div class="text-3xl font-black text-slate-800 mb-2 tracking-tight">{{ totalMines }}</div>
+              <div class="text-3xl font-black text-slate-800 mb-2 tracking-tight">{{ averageThickness.toFixed(1) }}m</div>
            </div>
            <div class="flex items-center justify-between">
               <div class="text-xs text-slate-500 font-medium bg-slate-50/80 inline-block px-2 py-1 rounded-md border border-slate-100">
-                 运行中
+                 概率积分基准
               </div>
            </div>
         </div>
@@ -81,13 +81,13 @@
                  <span class="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
               </span>
            </div>
-           <h3 class="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">系统负载</h3>
+           <h3 class="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">最大剖面厚度</h3>
            <div class="flex items-baseline gap-2">
-              <div class="text-3xl font-black text-slate-800 mb-2 tracking-tight">24%</div>
+              <div class="text-3xl font-black text-slate-800 mb-2 tracking-tight">{{ maxThickness.toFixed(1) }}m</div>
            </div>
            <div class="flex items-center justify-between">
               <div class="text-xs text-slate-500 font-medium bg-slate-50/80 inline-block px-2 py-1 rounded-md border border-slate-100">
-                 计算节点正常
+                 顶板加固参考
               </div>
            </div>
         </div>
@@ -414,7 +414,6 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { 
   Activity, 
@@ -430,13 +429,14 @@ import {
   FileSpreadsheet,
   Download
 } from 'lucide-vue-next';
+import { summary as datasetSummary } from '@/data';
 
 const router = useRouter();
 
-// Mock Data
-const totalBoreholes = ref(12);
-const totalCoalSeams = ref(8);
-const totalMines = ref(5);
+const totalBoreholes = datasetSummary.boreholeCount;
+const totalCoalSeams = datasetSummary.totalCoalLayers;
+const averageThickness = datasetSummary.averageThickness;
+const maxThickness = datasetSummary.maxThickness;
 
 </script>
 

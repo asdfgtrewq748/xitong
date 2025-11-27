@@ -114,6 +114,40 @@ class F3GridExporter(BaseExporter):
         if not layers:
             raise ValueError("No layers found in data")
 
+        # 可选：在最上层外添加一个平顶封顶层，避免.f3grid导入时没有封顶面
+        add_top_cap = bool(options.get('add_top_cap') or options.get('top_cap', False))
+        top_cap_thickness = float(options.get('top_cap_thickness', 1.0))
+        top_cap_z = options.get('top_cap_z', None)  # 如果提供绝对高度则优先使用
+        top_cap_name = options.get('top_cap_name', 'TopCap')
+        if add_top_cap:
+            # 假定输入layers按从下到上排序
+            top_layer = layers[-1]
+            gx = np.asarray(top_layer['grid_x'], dtype=float)
+            gy = np.asarray(top_layer['grid_y'], dtype=float)
+            top_surface = np.asarray(top_layer['top_surface_z'], dtype=float)
+
+            # 计算封顶层的顶面高度：如果提供top_cap_z则使用该常数，否则使用top_surface + thickness
+            if top_cap_z is not None:
+                try:
+                    cap_top_value = float(top_cap_z)
+                    cap_top = np.full_like(top_surface, cap_top_value, dtype=float)
+                except Exception:
+                    cap_top = top_surface + top_cap_thickness
+            else:
+                cap_top = top_surface + top_cap_thickness
+
+            cap_bottom = top_surface.copy()
+
+            cap_layer = {
+                'name': top_cap_name,
+                'grid_x': gx,
+                'grid_y': gy,
+                'top_surface_z': cap_top,
+                'bottom_surface_z': cap_bottom,
+            }
+            layers = list(layers) + [cap_layer]
+            print(f"[F3GRID Export] Added top cap layer '{top_cap_name}' thickness ~{top_cap_thickness} m")
+
         if raw_offset is not None:
             if len(raw_offset) != 3:
                 raise ValueError("coordinate_offset 必须是长度为3的(x,y,z)序列")

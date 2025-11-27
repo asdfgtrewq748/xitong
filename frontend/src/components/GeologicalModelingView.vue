@@ -708,6 +708,53 @@
               大地坐标（如X=3940000）会导致FLAC3D精度丢失，强烈建议开启归一化
             </el-alert>
           </el-form-item>
+
+          <!-- 顶封配置 -->
+          <el-form-item label="添加顶封层">
+            <el-switch 
+              v-model="exportOptions.f3grid_add_top_cap" 
+              active-text="添加顶封"
+              inactive-text="不封顶"
+            />
+            <el-alert 
+              type="info" 
+              :closable="false" 
+              show-icon
+              style="margin-top: 8px;"
+            >
+              开启后会在模型最上层之上自动生成一个平顶封顶层，使 .f3grid 文件拥有封闭的顶面，便于 FLAC3D 施加载荷。
+            </el-alert>
+          </el-form-item>
+
+          <template v-if="exportOptions.f3grid_add_top_cap">
+            <el-form-item label="顶封层厚度 (m)">
+              <el-input-number 
+                v-model="exportOptions.f3grid_top_cap_thickness" 
+                :min="0.1" 
+                :max="100" 
+                :step="0.5"
+                :precision="1"
+              />
+              <span style="margin-left: 8px; color: #909399;">若下方未设置绝对高度，则以最上层顶面 + 此厚度作为封顶面</span>
+            </el-form-item>
+
+            <el-form-item label="顶封层绝对高度 (m)">
+              <el-input 
+                v-model.number="exportOptions.f3grid_top_cap_z" 
+                type="number"
+                placeholder="留空则按厚度自动计算"
+                clearable
+              />
+              <span style="margin-left: 8px; color: #909399;">若填入，则整个顶封层顶面采用该绝对高度（优先于厚度）</span>
+            </el-form-item>
+
+            <el-form-item label="顶封层名称">
+              <el-input 
+                v-model="exportOptions.f3grid_top_cap_name" 
+                placeholder="TopCap"
+              />
+            </el-form-item>
+          </template>
         </template>
         
         <!-- STL 分层导出配置 -->
@@ -1299,6 +1346,11 @@ const exportOptions = reactive({
   // F3GRID 专用配置
   f3grid_min_tet_volume: 1e-6, // F3GRID最小四面体体积，默认1e-6 m³
   f3grid_normalize: true,    // F3GRID坐标归一化，默认true
+  // F3GRID 顶封配置
+  f3grid_add_top_cap: false,  // 是否添加顶封层（默认 false）
+  f3grid_top_cap_thickness: 1.0, // 顶封层厚度（m），默认1.0
+  f3grid_top_cap_z: null,     // 顶封层绝对高度（优先），若设置则使用该值
+  f3grid_top_cap_name: 'TopCap', // 顶封层名称
   // STL 专用配置
   stl_downsample: 5,         // STL降采样倍数，默认5x
   stl_format: 'binary',      // STL格式：binary或ascii
@@ -3246,7 +3298,11 @@ async function exportToBackend(format, filename) {
   if (format === 'f3grid') {
     exportParams.options = {
       min_tet_volume: exportOptions.f3grid_min_tet_volume || 1e-6,
-      normalize_coords: exportOptions.f3grid_normalize
+      normalize_coords: exportOptions.f3grid_normalize,
+      add_top_cap: exportOptions.f3grid_add_top_cap,
+      top_cap_thickness: exportOptions.f3grid_top_cap_thickness,
+      top_cap_z: exportOptions.f3grid_top_cap_z,
+      top_cap_name: exportOptions.f3grid_top_cap_name
     };
   }
   
