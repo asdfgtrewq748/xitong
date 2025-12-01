@@ -56,6 +56,10 @@
                 <el-icon><Odometer /></el-icon>
                 <template #title>巷道支护计算</template>
               </el-menu-item>
+              <el-menu-item index="/tools/roof-pressure">
+                <el-icon><Platform /></el-icon>
+                <template #title>支架阻力计算</template>
+              </el-menu-item>
               <el-menu-item index="/tools/borehole-analysis">
                 <el-icon><Location /></el-icon>
                 <template #title>钻孔数据分析</template>
@@ -166,7 +170,7 @@ import { useRoute } from 'vue-router';
 import {
   House, DataLine, Document, Operation, Grid,
   TrendCharts, Location, Menu, Odometer,
-  Histogram, Box, Expand, Fold, Sunny, Moon, Edit
+  Histogram, Box, Expand, Fold, Sunny, Moon, Edit, Platform
 } from '@element-plus/icons-vue';
 
 const route = useRoute();

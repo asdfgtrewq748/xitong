@@ -30,6 +30,7 @@ const BoxPlotPage = () => import(/* webpackChunkName: "box" */ '../components/vi
 const HistogramPage = () => import(/* webpackChunkName: "histogram" */ '../components/visualization/pages/HistogramPage.vue')
 const StatisticalAnalysisPage = () => import(/* webpackChunkName: "statistics" */ '../components/visualization/pages/StatisticalAnalysisPage.vue')
 const TunnelSupportView = () => import(/* webpackChunkName: "tunnel-support" */ '../components/TunnelSupportView.vue')
+const RoofPressureView = () => import(/* webpackChunkName: "roof-pressure" */ '../components/RoofPressureView.vue')
 
 const routes = [
   {
@@ -65,6 +66,12 @@ const routes = [
         name: 'TunnelSupport',
         component: TunnelSupportView,
         meta: { title: '巷道支护计算' }
+      },
+      {
+        path: 'roof-pressure',
+        name: 'RoofPressure',
+        component: RoofPressureView,
+        meta: { title: '支架阻力计算' }
       },
       {
         path: 'borehole-analysis',

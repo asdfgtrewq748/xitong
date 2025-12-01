@@ -304,7 +304,7 @@
           <div class="flex-1 bg-slate-100 relative flex items-center justify-center p-8 overflow-hidden">
             <!-- 0.87m 模型：散体给定载荷平衡结构 -->
             <div v-if="currentModel === '0.87m'" class="w-full h-full flex flex-col items-center justify-center">
-              <img src="@/assets/images/model-0.87m.png" alt="散体给定载荷平衡结构" class="w-full h-auto max-h-[400px] object-contain drop-shadow-lg rounded-lg" />
+              <img :src="require('@/assets/images/model-0.87m.png')" alt="散体给定载荷平衡结构" class="w-full h-auto max-h-[400px] object-contain drop-shadow-lg rounded-lg" />
               <p class="text-sm text-slate-600 mt-4 font-medium bg-white/50 px-4 py-2 rounded-full border border-slate-200">
                 模型说明：支架载荷 = 直接顶重量 + 散体拱内岩重 + 煤柱应力传递
               </p>
@@ -312,7 +312,7 @@
 
             <!-- 10.47m 模型：块-散平衡结构 -->
             <div v-else-if="currentModel === '10.47m'" class="w-full h-full flex flex-col items-center justify-center">
-              <img src="@/assets/images/model-10.47m.png" alt="块-散平衡结构" class="w-full h-auto max-h-[400px] object-contain drop-shadow-lg rounded-lg" />
+              <img :src="require('@/assets/images/model-10.47m.png')" alt="块-散平衡结构" class="w-full h-auto max-h-[400px] object-contain drop-shadow-lg rounded-lg" />
               <p class="text-sm text-slate-600 mt-4 font-medium bg-white/50 px-4 py-2 rounded-full border border-slate-200">
                 模型说明：支架载荷 = 直接顶 + 结构系数 × (基本顶 + 散体)
               </p>
@@ -320,7 +320,7 @@
 
             <!-- 18.03m 模型：砌体梁承载结构 -->
             <div v-else class="w-full h-full flex flex-col items-center justify-center">
-              <img src="@/assets/images/model-18.03m.png" alt="砌体梁承载结构" class="w-full h-auto max-h-[400px] object-contain drop-shadow-lg rounded-lg" />
+              <img :src="require('@/assets/images/model-18.03m.png')" alt="砌体梁承载结构" class="w-full h-auto max-h-[400px] object-contain drop-shadow-lg rounded-lg" />
               <p class="text-sm text-slate-600 mt-4 font-medium bg-white/50 px-4 py-2 rounded-full border border-slate-200">
                 模型说明：支架载荷 = 直接顶 + 结构系数 × 基本顶 (形成稳定砌体梁)
               </p>
