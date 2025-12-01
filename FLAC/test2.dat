@@ -1,2 +1,3 @@
 model new
 zone import "D:/xitong/data/output/geological_model_20251124_124538.f3grid"
+model save 'F3moxing.sav'
