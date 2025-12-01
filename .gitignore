@@ -47,6 +47,9 @@ test_output/
 frontend/node_modules/
 frontend/dist/
 frontend/.DS_Store
+demo-site/frontend/node_modules/
+demo-site/frontend/dist/
+demo-site/frontend/.DS_Store
 
 # Docker
 *.dockerignore

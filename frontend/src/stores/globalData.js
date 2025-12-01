@@ -3,6 +3,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { getApiBase } from '@/utils/api'
 import { normalizeData, validateRecords } from '@/utils/dataNormalizer'
+import demoDataset from '@/data/boreholes.json'
 
 export const useGlobalDataStore = defineStore('globalData', () => {
   // ========== 状态定义 ==========
@@ -23,6 +24,49 @@ export const useGlobalDataStore = defineStore('globalData', () => {
     keyStratumRecordCount: 0,
     keyStratumLastUpdated: null,
   })
+
+  // 静态演示数据
+  const staticRecords = []
+  const staticColumnsSet = new Set([
+    '钻孔名',
+    '岩层',
+    '岩层名称',
+    '序号',
+    '厚度/m',
+    '累计深度/m',
+    '弹性模量/GPa',
+    '容重/kN*m-3',
+    '抗拉强度/MPa',
+    '机械指数',
+    'X坐标',
+    'Y坐标',
+    '煤层',
+  ])
+
+  if (demoDataset?.boreholes) {
+    demoDataset.boreholes.forEach((hole) => {
+      (hole.layers || []).forEach((layer) => {
+        staticRecords.push({
+          钻孔名: hole.id,
+          岩层: layer.name,
+          岩层名称: layer.name,
+          序号: layer.order,
+          '厚度/m': layer.thickness,
+          '累计深度/m': layer.cumulativeDepth,
+          '弹性模量/GPa': layer.elasticModulus,
+          '容重/kN*m-3': layer.density,
+          '抗拉强度/MPa': layer.tensileStrength,
+          机械指数: layer.mechanicalIndex,
+          X坐标: hole.coordinate?.x ?? null,
+          Y坐标: hole.coordinate?.y ?? null,
+          煤层: layer.name?.includes('煤') ? layer.name : null,
+        })
+      })
+    })
+  }
+
+  const staticColumns = Array.from(staticColumnsSet)
+  let hasBootstrappedStatic = false
 
   // 导入历史记录
   const importHistory = ref([])
@@ -109,6 +153,17 @@ export const useGlobalDataStore = defineStore('globalData', () => {
     keyStratumColumns.value = normalized.columns
     metadata.value.keyStratumRecordCount = validation.validRecords.length
     metadata.value.keyStratumLastUpdated = new Date().toLocaleString('zh-CN')
+  }
+
+  function bootstrapStaticDataset() {
+    if (hasBootstrappedStatic || staticRecords.length === 0) {
+      return
+    }
+    loadBoreholeData(staticRecords, staticColumns)
+    loadKeyStratumData(staticRecords, staticColumns)
+    metadata.value.boreholeFileCount = 1
+    metadata.value.keyStratumFileCount = 1
+    hasBootstrappedStatic = true
   }
 
   // ========== 数据合并方法 ==========
@@ -293,6 +348,9 @@ export const useGlobalDataStore = defineStore('globalData', () => {
     }
   }
 
+  // 初始化内置演示数据
+  bootstrapStaticDataset()
+
   // ========== 返回 store ==========
   return {
     // 状态
@@ -323,5 +381,6 @@ export const useGlobalDataStore = defineStore('globalData', () => {
     rollbackToHistory,
     clearHistory,
     deleteHistoryItem,
+    bootstrapStaticDataset,
   }
 })
