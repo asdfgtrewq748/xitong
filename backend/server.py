@@ -2509,6 +2509,7 @@ class TunnelSupportInput(BaseModel):
     C: float  # 粘聚力 (MPa)
     phi: float  # 内摩擦角 (度)
     f_top: Optional[float] = 2.0  # 顶板普氏系数 (默认 2.0)
+    constants: Optional[Dict[str, float]] = None  # 自定义常量
 
 
 class TunnelSupportBatchRequest(BaseModel):
@@ -2529,8 +2530,9 @@ async def calculate_tunnel_support(params: TunnelSupportInput):
         params_dict = params.dict()
         print(f"[DEBUG] 接收到的参数: {params_dict}")
         print(f"[DEBUG] f_top 值: {params_dict.get('f_top', '未提供')}")
-        
-        calculator = TunnelSupportCalculator()
+
+        custom_constants = params_dict.pop('constants', None)
+        calculator = TunnelSupportCalculator(custom_constants)
         result = calculator.calculate_complete(params_dict)
         
         # 调试：打印计算结果中的 hat
@@ -2637,6 +2639,69 @@ async def get_default_constants():
             "n": "根数"
         }
     }
+
+
+class MaterialMatchRequest(BaseModel):
+    """支护材料匹配性分析请求"""
+    # 锚杆参数
+    rod_diameter_mm: float  # 锚杆直径 (mm)
+    rod_grade: str  # 锚杆牌号
+    rod_yield_strength: float  # 锚杆屈服强度 (MPa)
+    plate_capacity_rod: float  # 锚杆托盘承载力 (kN)
+    # 锚索参数
+    anchor_Nt: float  # 锚索设计承载力 Nt (kN)，可由前端传入或后端计算
+    plate_capacity_anchor: float  # 锚索托板承载力 (kN)
+    # 可选：覆盖常量
+    constants: Optional[Dict[str, float]] = None
+
+
+@app.post("/api/tunnel-support/material-match")
+async def material_match_analysis(request: MaterialMatchRequest):
+    """
+    支护材料匹配性分析
+
+    检查锚杆与托盘、锚索与托板的匹配性
+    """
+    try:
+        import math
+
+        # (1) 锚杆与托盘匹配性
+        d = request.rod_diameter_mm  # mm
+        sigma0 = request.rod_yield_strength  # MPa
+
+        # Q_锚 = (1/4) * π * d² * σ₀  (单位: N)
+        Q_rod_N = 0.25 * math.pi * (d ** 2) * sigma0
+        Q_rod_kN = Q_rod_N / 1000.0
+
+        # 托盘最低要求: 1.3 * Q_锚
+        plate_required_rod = 1.3 * Q_rod_kN
+        rod_match = request.plate_capacity_rod >= plate_required_rod
+
+        # (2) 锚索与托板匹配性
+        Nt = request.anchor_Nt  # kN
+        plate_required_anchor = 1.5 * Nt
+        anchor_match = request.plate_capacity_anchor >= plate_required_anchor
+
+        return {
+            "status": "success",
+            "rod": {
+                "diameter_mm": d,
+                "grade": request.rod_grade,
+                "yield_strength_MPa": sigma0,
+                "rod_yield_force_kN": round(Q_rod_kN, 2),
+                "plate_required_kN": round(plate_required_rod, 2),
+                "plate_actual_kN": request.plate_capacity_rod,
+                "matched": rod_match
+            },
+            "anchor": {
+                "Nt_kN": Nt,
+                "plate_required_kN": round(plate_required_anchor, 2),
+                "plate_actual_kN": request.plate_capacity_anchor,
+                "matched": anchor_match
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"材料匹配分析失败: {str(e)}")
 
 
 # ============================================================================

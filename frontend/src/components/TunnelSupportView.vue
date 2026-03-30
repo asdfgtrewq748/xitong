@@ -12,7 +12,7 @@
         </el-button>
         <el-button type="success" size="small" @click="showConstantsDialog">
           <el-icon><Setting /></el-icon>
-          查看常量
+          常量设置
         </el-button>
         <el-button type="warning" size="small" @click="showTemplateDialog" v-if="false">
           <el-icon><Document /></el-icon>
@@ -222,22 +222,146 @@
         </el-col>
       </el-row>
 
-      <!-- 常量查看对话框 -->
-      <el-dialog v-model="constantsDialogVisible" title="默认计算常量" width="600px">
-        <el-descriptions :column="2" border v-if="constants">
-          <el-descriptions-item label="Sn (mm²)">{{ constants.Sn }}</el-descriptions-item>
-          <el-descriptions-item label="安全系数 K">{{ constants.safety_K }}</el-descriptions-item>
-          <el-descriptions-item label="锚索抗拉强度 (MPa)">{{ constants.Rm_anchor }}</el-descriptions-item>
-          <el-descriptions-item label="锚杆抗拉强度 (MPa)">{{ constants.Rm_rod }}</el-descriptions-item>
-          <el-descriptions-item label="锚索设计荷载 (kN)">{{ constants.Q_anchor }}</el-descriptions-item>
-          <el-descriptions-item label="锚杆设计荷载 (kN)">{{ constants.Q_rod }}</el-descriptions-item>
-          <el-descriptions-item label="树脂锚固力 (MPa)">{{ constants.c0 }}</el-descriptions-item>
-          <el-descriptions-item label="锚杆锚固力 (MPa)">{{ constants.tau_rod }}</el-descriptions-item>
-          <el-descriptions-item label="锚索半径 (mm)">{{ constants.R_mm }}</el-descriptions-item>
-          <el-descriptions-item label="锚杆直径 (mm)">{{ constants.D_mm }}</el-descriptions-item>
-          <el-descriptions-item label="工作状态系数 m">{{ constants.m }}</el-descriptions-item>
-          <el-descriptions-item label="根数 n">{{ constants.n }}</el-descriptions-item>
-        </el-descriptions>
+      <!-- 锚杆材质参考表 -->
+      <el-card shadow="never" style="margin-top: 16px">
+        <h3 style="margin: 0 0 12px 0">锚杆材质及性质参考表</h3>
+        <el-table :data="anchorMaterialData" border stripe size="small">
+          <el-table-column prop="grade" label="牌号" align="center" />
+          <el-table-column prop="diameter" label="公称直径 / mm" align="center" />
+          <el-table-column prop="yieldStrength" label="屈服强度 / MPa" align="center" />
+          <el-table-column prop="tensileStrength" label="抗拉强度 / MPa" align="center" />
+          <el-table-column prop="elongation" label="伸长率 / %" align="center" />
+        </el-table>
+      </el-card>
+
+      <!-- 支护材料匹配性分析 -->
+      <el-card shadow="never" style="margin-top: 16px">
+        <h3 style="margin: 0 0 8px 0">支护材料匹配性分析</h3>
+        <p style="color: #888; font-size: 13px; margin: 0 0 16px 0">
+          根据锚杆牌号与托盘承载力、锚索设计承载力与托板承载力的匹配关系，检验支护材料是否满足要求。
+        </p>
+
+        <el-row :gutter="24">
+          <!-- 锚杆与托盘匹配 -->
+          <el-col :span="12">
+            <el-card shadow="never" class="match-sub-card">
+              <template #header>
+                <span style="font-weight: 600">锚杆与托盘匹配性</span>
+              </template>
+              <el-form :model="matchForm" label-width="150px" size="small">
+                <el-form-item label="锚杆直径 (mm)">
+                  <el-input-number v-model="matchForm.rodDiameter" :step="1" :min="4" style="width:100%" />
+                </el-form-item>
+                <el-form-item label="锚杆牌号">
+                  <el-select v-model="matchForm.rodGrade" placeholder="选择牌号" style="width:100%" @change="onRodGradeChange">
+                    <el-option v-for="item in anchorMaterialData" :key="item.grade" :label="item.grade" :value="item.grade" />
+                  </el-select>
+                </el-form-item>
+                <el-form-item label="屈服强度 (MPa)">
+                  <el-input-number v-model="matchForm.rodYieldStrength" :step="5" :min="0" style="width:100%" />
+                </el-form-item>
+                <el-form-item label="托盘承载力 (kN)">
+                  <el-input-number v-model="matchForm.plateCapacityRod" :step="5" :min="0" style="width:100%" />
+                </el-form-item>
+              </el-form>
+              <div v-if="matchResult && matchResult.rod" class="match-result">
+                <el-descriptions :column="1" border size="small">
+                  <el-descriptions-item label="锚杆屈服力 Q_锚">{{ matchResult.rod.rod_yield_force_kN }} kN</el-descriptions-item>
+                  <el-descriptions-item label="托盘最低要求">{{ matchResult.rod.plate_required_kN }} kN</el-descriptions-item>
+                  <el-descriptions-item label="实际托盘承载力">{{ matchResult.rod.plate_actual_kN }} kN</el-descriptions-item>
+                  <el-descriptions-item label="匹配结果">
+                    <el-tag :type="matchResult.rod.matched ? 'success' : 'danger'" size="small">
+                      {{ matchResult.rod.matched ? '匹配' : '不匹配' }}
+                    </el-tag>
+                  </el-descriptions-item>
+                </el-descriptions>
+              </div>
+            </el-card>
+          </el-col>
+
+          <!-- 锚索与托板匹配 -->
+          <el-col :span="12">
+            <el-card shadow="never" class="match-sub-card">
+              <template #header>
+                <span style="font-weight: 600">锚索与托板匹配性</span>
+              </template>
+              <el-form :model="matchForm" label-width="150px" size="small">
+                <el-form-item label="锚索设计承载力 Nt (kN)">
+                  <el-input-number v-model="matchForm.anchorNt" :step="5" :min="0" style="width:100%" />
+                </el-form-item>
+                <el-form-item label="托板承载力 Tb (kN)">
+                  <el-input-number v-model="matchForm.plateCapacityAnchor" :step="5" :min="0" style="width:100%" />
+                </el-form-item>
+              </el-form>
+              <div v-if="matchResult && matchResult.anchor" class="match-result">
+                <el-descriptions :column="1" border size="small">
+                  <el-descriptions-item label="锚索设计承载力 Nt">{{ matchResult.anchor.Nt_kN }} kN</el-descriptions-item>
+                  <el-descriptions-item label="托板最低要求">{{ matchResult.anchor.plate_required_kN }} kN</el-descriptions-item>
+                  <el-descriptions-item label="实际托板承载力">{{ matchResult.anchor.plate_actual_kN }} kN</el-descriptions-item>
+                  <el-descriptions-item label="匹配结果">
+                    <el-tag :type="matchResult.anchor.matched ? 'success' : 'danger'" size="small">
+                      {{ matchResult.anchor.matched ? '匹配' : '不匹配' }}
+                    </el-tag>
+                  </el-descriptions-item>
+                </el-descriptions>
+              </div>
+            </el-card>
+          </el-col>
+        </el-row>
+
+        <div style="margin-top: 16px; text-align: center">
+          <el-button type="primary" @click="calculateMaterialMatch" :loading="matchLoading">
+            分析匹配性
+          </el-button>
+          <el-button @click="resetMatchForm">重置</el-button>
+        </div>
+      </el-card>
+
+      <!-- 常量编辑对话框 -->
+      <el-dialog v-model="constantsDialogVisible" title="计算常量设置" width="680px">
+        <el-form :model="editingConstants" label-width="170px" v-if="editingConstants">
+          <el-form-item label="锚索截面积 Sn (mm²)">
+            <el-input-number v-model="editingConstants.Sn" :step="1" :min="0" style="width:100%" />
+          </el-form-item>
+          <el-form-item label="安全系数 K">
+            <el-input-number v-model="editingConstants.safety_K" :step="0.1" :min="0.1" style="width:100%" />
+          </el-form-item>
+          <el-form-item label="锚索抗拉强度 (MPa)">
+            <el-input-number v-model="editingConstants.Rm_anchor" :step="10" :min="0" style="width:100%" />
+          </el-form-item>
+          <el-form-item label="锚杆抗拉强度 (MPa)">
+            <el-input-number v-model="editingConstants.Rm_rod" :step="10" :min="0" style="width:100%" />
+          </el-form-item>
+          <el-form-item label="锚索设计荷载 (kN)">
+            <el-input-number v-model="editingConstants.Q_anchor" :step="10" :min="0" style="width:100%" />
+          </el-form-item>
+          <el-form-item label="锚杆设计荷载 (kN)">
+            <el-input-number v-model="editingConstants.Q_rod" :step="5" :min="0" style="width:100%" />
+          </el-form-item>
+          <el-form-item label="树脂锚固力 (MPa)">
+            <el-input-number v-model="editingConstants.c0" :step="0.1" :min="0" style="width:100%" />
+          </el-form-item>
+          <el-form-item label="锚杆锚固力 (MPa)">
+            <el-input-number v-model="editingConstants.tau_rod" :step="0.1" :min="0" style="width:100%" />
+          </el-form-item>
+          <el-form-item label="锚索半径 (mm)">
+            <el-input-number v-model="editingConstants.R_mm" :step="1" :min="0" style="width:100%" />
+          </el-form-item>
+          <el-form-item label="锚杆直径 (mm)">
+            <el-input-number v-model="editingConstants.D_mm" :step="1" :min="0" style="width:100%" />
+          </el-form-item>
+          <el-form-item label="工作状态系数 m">
+            <el-input-number v-model="editingConstants.m" :step="0.1" :min="0" :max="1" style="width:100%" />
+          </el-form-item>
+          <el-form-item label="根数 n">
+            <el-input-number v-model="editingConstants.n" :step="1" :min="1" style="width:100%" />
+          </el-form-item>
+        </el-form>
+        <template #footer>
+          <el-button @click="resetConstants">恢复默认</el-button>
+          <el-button @click="constantsDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="saveConstants">保存</el-button>
+        </template>
       </el-dialog>
 
       <!-- 统计信息对话框 -->
@@ -306,10 +430,82 @@ const statisticsDialogVisible = ref(false)
 const compareDialogVisible = ref(false)
 const detailDialogVisible = ref(false)
 const constants = ref(null)
+const editingConstants = ref(null)
 const searchText = ref('')
 const selectedRows = ref([])
 const detailRow = ref(null)
 const statistics = ref(null)
+
+const anchorMaterialData = [
+  { grade: 'Q235', diameter: '4~20', yieldStrength: 235, tensileStrength: 380, elongation: 25 },
+  { grade: 'BHRB335', diameter: '16~22', yieldStrength: 335, tensileStrength: 490, elongation: 22 },
+  { grade: 'BHRB400', diameter: '16~22', yieldStrength: 400, tensileStrength: 570, elongation: 22 },
+  { grade: 'BHRB500', diameter: '16~25', yieldStrength: 500, tensileStrength: 670, elongation: 20 },
+  { grade: 'BHRB600', diameter: '16~25', yieldStrength: 600, tensileStrength: 780, elongation: 18 },
+  { grade: 'BHTB600', diameter: '16~25', yieldStrength: 600, tensileStrength: 780, elongation: 25 },
+  { grade: 'BHRB700', diameter: '16~25', yieldStrength: 700, tensileStrength: 870, elongation: 21 },
+  { grade: '预应力钢棒', diameter: '14~20', yieldStrength: 1140, tensileStrength: 1270, elongation: 15 },
+]
+
+// 支护材料匹配性分析
+const matchForm = ref({
+  rodDiameter: 20,
+  rodGrade: 'BHRB400',
+  rodYieldStrength: 400,
+  plateCapacityRod: 200,
+  anchorNt: 349.3,
+  plateCapacityAnchor: 600,
+})
+const matchResult = ref(null)
+const matchLoading = ref(false)
+
+function onRodGradeChange(grade) {
+  const item = anchorMaterialData.find(m => m.grade === grade)
+  if (item) {
+    matchForm.value.rodYieldStrength = item.yieldStrength
+  }
+}
+
+async function calculateMaterialMatch() {
+  try {
+    matchLoading.value = true
+    const resp = await fetch('/api/tunnel-support/material-match', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        rod_diameter_mm: matchForm.value.rodDiameter,
+        rod_grade: matchForm.value.rodGrade,
+        rod_yield_strength: matchForm.value.rodYieldStrength,
+        plate_capacity_rod: matchForm.value.plateCapacityRod,
+        anchor_Nt: matchForm.value.anchorNt,
+        plate_capacity_anchor: matchForm.value.plateCapacityAnchor,
+      })
+    })
+    const data = await resp.json()
+    if (resp.ok && data.status === 'success') {
+      matchResult.value = data
+      ElMessage.success('匹配性分析完成')
+    } else {
+      ElMessage.error(data.detail || '分析失败')
+    }
+  } catch (err) {
+    ElMessage.error('请求失败: ' + err)
+  } finally {
+    matchLoading.value = false
+  }
+}
+
+function resetMatchForm() {
+  matchForm.value = {
+    rodDiameter: 20,
+    rodGrade: 'BHRB400',
+    rodYieldStrength: 400,
+    plateCapacityRod: 200,
+    anchorNt: 349.3,
+    plateCapacityAnchor: 600,
+  }
+  matchResult.value = null
+}
 
 // 过滤批量结果
 const filteredBatchResults = computed(() => {
@@ -323,17 +519,29 @@ const filteredBatchResults = computed(() => {
 })
 
 onMounted(async () => {
-  // 加载默认常量
+  // 先尝试从本地存储加载已保存的常量
   try {
-    const resp = await fetch('/api/tunnel-support/default-constants')
-    const data = await resp.json()
-    if (resp.ok) {
-      constants.value = data.constants
+    const savedConstants = localStorage.getItem('tunnel_support_constants')
+    if (savedConstants) {
+      constants.value = JSON.parse(savedConstants)
     }
   } catch (err) {
-    console.error('加载常量失败:', err)
+    console.error('加载保存的常量失败:', err)
   }
-  
+
+  // 如果没有保存的常量，从后端获取默认常量
+  if (!constants.value) {
+    try {
+      const resp = await fetch('/api/tunnel-support/default-constants')
+      const data = await resp.json()
+      if (resp.ok) {
+        constants.value = data.constants
+      }
+    } catch (err) {
+      console.error('加载常量失败:', err)
+    }
+  }
+
   // 从本地存储加载历史
   loadHistory()
 })
@@ -517,7 +725,7 @@ async function batchCalculate(dataList) {
     const resp = await fetch('/api/tunnel-support/batch-calculate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ data: dataList })
+      body: JSON.stringify({ data: dataList, constants: constants.value })
     })
     const data = await resp.json()
     if (resp.ok && data.status === 'success') {
@@ -541,7 +749,7 @@ async function calculate() {
     const resp = await fetch('/api/tunnel-support/calculate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form.value)
+      body: JSON.stringify({ ...form.value, constants: constants.value })
     })
     const data = await resp.json()
     
@@ -569,7 +777,31 @@ function resetForm() {
 }
 
 function showConstantsDialog() {
+  editingConstants.value = { ...constants.value }
   constantsDialogVisible.value = true
+}
+
+function saveConstants() {
+  constants.value = { ...editingConstants.value }
+  try {
+    localStorage.setItem('tunnel_support_constants', JSON.stringify(constants.value))
+  } catch (err) {
+    console.error('保存常量失败:', err)
+  }
+  constantsDialogVisible.value = false
+  ElMessage.success('常量已保存')
+}
+
+async function resetConstants() {
+  try {
+    const resp = await fetch('/api/tunnel-support/default-constants')
+    const data = await resp.json()
+    if (resp.ok) {
+      editingConstants.value = { ...data.constants }
+    }
+  } catch (err) {
+    console.error('重置常量失败:', err)
+  }
 }
 
 function exportCsv() {
@@ -728,5 +960,18 @@ function copyToClipboard() {
   margin: 0;
   font-size: 14px;
   color: #606266;
+}
+
+.match-sub-card {
+  min-height: 100%;
+}
+
+.match-sub-card :deep(.el-card__header) {
+  padding: 12px 16px;
+  background: #f5f7fa;
+}
+
+.match-result {
+  margin-top: 12px;
 }
 </style>

@@ -11,7 +11,9 @@
       "Bash(dir:*)",
       "Bash(npm install:*)",
       "Bash(npm uninstall:*)",
-      "Bash(npm run lint)"
+      "Bash(npm run lint)",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -File ./install.ps1 --profile full)",
+      "Read(//d/xiangmu/xitong/$HOME/.claude/**)"
     ],
     "deny": [],
     "ask": []
