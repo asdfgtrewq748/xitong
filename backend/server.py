@@ -2526,18 +2526,11 @@ async def calculate_tunnel_support(params: TunnelSupportInput):
     基于《巷道支护理论公式.docx》实现完整计算流程
     """
     try:
-        # 调试：打印接收到的参数
         params_dict = params.dict()
-        print(f"[DEBUG] 接收到的参数: {params_dict}")
-        print(f"[DEBUG] f_top 值: {params_dict.get('f_top', '未提供')}")
-
         custom_constants = params_dict.pop('constants', None)
         calculator = TunnelSupportCalculator(custom_constants)
         result = calculator.calculate_complete(params_dict)
-        
-        # 调试：打印计算结果中的 hat
-        print(f"[DEBUG] 计算结果 hat: {result['basic']['hat']}")
-        
+
         return {
             "status": "success",
             "result": result
@@ -2554,7 +2547,11 @@ async def batch_calculate_tunnel_support_api(request: TunnelSupportBatchRequest)
     支持批量处理多组参数，可自定义计算常量
     """
     try:
-        data_list = [item.dict() for item in request.data]
+        data_list = []
+        for item in request.data:
+            payload = item.dict()
+            payload.pop('constants', None)
+            data_list.append(payload)
         
         df_result = batch_calculate_tunnel_support(data_list, request.constants)
         
@@ -2627,15 +2624,18 @@ async def get_default_constants():
         "descriptions": {
             "Sn": "锚索截面积 (mm²)",
             "Rm_anchor": "锚索抗拉强度 (MPa)",
-            "Rm_rod": "锚杆抗拉强度 (MPa)",
-            "Q_anchor": "锚索设计荷载 (kN)",
-            "Q_rod": "锚杆设计荷载 (kN)",
-            "c0": "树脂锚固力 (MPa)",
-            "tau_rod": "锚杆锚固力 (MPa)",
-            "R_mm": "锚索半径 (mm)",
-            "D_mm": "锚杆直径 (mm)",
+            "anchor_hole_radius_mm": "锚索钻孔半径 (mm)",
+            "anchor_resin_radius_mm": "锚索树脂半径 (mm)",
+            "Rm_rod": "锚杆屈服强度 (MPa)",
+            "rod_diameter_mm": "锚杆直径 (mm)",
+            "rod_hole_radius_mm": "锚杆钻孔半径 (mm)",
+            "rod_resin_radius_mm": "锚杆树脂半径 (mm)",
+            "c0": "树脂锚固剂粘结强度 (MPa)",
+            "anchor_plate_thickness_m": "锚索托板及锚具厚度 (m)",
+            "anchor_exposed_length_m": "锚索外露张拉长度 (m)",
+            "rod_exposed_length_m": "锚杆外露张拉长度 (m)",
             "safety_K": "安全系数",
-            "m": "锚杆(索)工作状态系数",
+            "m": "锚索张拉力控制系数",
             "n": "根数"
         }
     }
