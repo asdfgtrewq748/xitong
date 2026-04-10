@@ -1826,7 +1826,7 @@ const handleKeydown = (e) => {
 /* ========== 整体容器 ========== */
 .data-management-container {
   padding: 20px;
-  background-color: #f0f2f5;
+  background-color: #f8fafc;
   min-height: 100vh;
 }
 
@@ -1931,7 +1931,7 @@ const handleKeydown = (e) => {
 
 .stat-label {
   font-size: 13px;
-  color: #909399;
+  color: #94a3b8;
   margin-bottom: 6px;
 }
 
@@ -2019,7 +2019,7 @@ const handleKeydown = (e) => {
 }
 
 .upload-area :deep(.el-upload-dragger):hover {
-  border-color: #409EFF;
+  border-color: #059669;
   background-color: rgba(64, 158, 255, 0.05);
   transform: translateY(-2px);
 }
@@ -2036,12 +2036,12 @@ const handleKeydown = (e) => {
 .upload-text p {
   margin: 8px 0 0 0;
   font-size: 13px;
-  color: #909399;
+  color: #94a3b8;
 }
 
 .el-icon--upload {
   font-size: 64px;
-  color: #409EFF;
+  color: #059669;
   margin-bottom: 16px;
 }
 
@@ -2051,7 +2051,7 @@ const handleKeydown = (e) => {
   align-items: center;
   margin-top: 16px;
   padding: 16px;
-  background: linear-gradient(135deg, #f8fafc 0%, #e8ecf0 100%);
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   border-radius: 8px;
 }
 
@@ -2193,13 +2193,13 @@ const handleKeydown = (e) => {
 }
 
 .field-mapping-dialog :deep(.el-card) {
-  border: 1px solid #e4e7ed;
+  border: 1px solid #e2e8f0;
 }
 
 .field-mapping-dialog :deep(.el-card__header) {
   background: #f8fafc;
   padding: 12px 20px;
-  border-bottom: 1px solid #e4e7ed;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .field-mapping-dialog :deep(.el-steps) {
@@ -2267,7 +2267,7 @@ const handleKeydown = (e) => {
 .progress-bar-wrapper {
   margin-top: 16px;
   padding: 20px;
-  background: linear-gradient(135deg, #f8fafc 0%, #e8ecf0 100%);
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   border-radius: 12px;
   box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.05);
 }
@@ -2452,7 +2452,7 @@ const handleKeydown = (e) => {
 /* ========== 无障碍支持 ========== */
 /* 键盘焦点增强 */
 *:focus-visible {
-  outline: 2px solid #409EFF;
+  outline: 2px solid #059669;
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -2505,12 +2505,12 @@ const handleKeydown = (e) => {
   }
   
   .el-card {
-    background-color: #2a2a2a;
+    background-color: #1e293b;
     border-color: #3a3a3a;
   }
   
   .progress-bar-wrapper {
-    background: linear-gradient(135deg, #2a2a2a 0%, #333333 100%);
+    background: linear-gradient(135deg, #1e293b 0%, #333333 100%);
   }
 }
 
