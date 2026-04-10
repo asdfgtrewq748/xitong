@@ -1,0 +1,3717 @@
+{
+  "summary": {
+    "boreholeCount": 19,
+    "averageThickness": 182.157,
+    "maxThickness": 237.17,
+    "minThickness": 123.49,
+    "totalCoalLayers": 35
+  },
+  "boreholes": [
+    {
+      "id": "BK-1",
+      "coordinate": {
+        "x": 523656.2,
+        "y": 4371034.33
+      },
+      "totalThickness": 154.68,
+      "coalLayerCount": 2,
+      "coalThickness": 7.11,
+      "layers": [
+        {
+          "order": 10,
+          "name": "黄土",
+          "thickness": 91.57,
+          "elasticModulus": 0.54,
+          "density": 1800.0,
+          "tensileStrength": 0.0,
+          "mechanicalIndex": 49.4478,
+          "cumulativeDepth": 91.57
+        },
+        {
+          "order": 9,
+          "name": "粗粒砂岩",
+          "thickness": 12.17,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 3.075,
+          "mechanicalIndex": 139.8333,
+          "cumulativeDepth": 103.74
+        },
+        {
+          "order": 8,
+          "name": "黄土、断层",
+          "thickness": 9.52,
+          "elasticModulus": 0.54,
+          "density": 1800.0,
+          "tensileStrength": 0.0,
+          "mechanicalIndex": 5.1408,
+          "cumulativeDepth": 113.26
+        },
+        {
+          "order": 7,
+          "name": "砂质泥岩",
+          "thickness": 8.7,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 62.379,
+          "cumulativeDepth": 121.96
+        },
+        {
+          "order": 6,
+          "name": "细粒砂岩",
+          "thickness": 5.21,
+          "elasticModulus": 9.54,
+          "density": 2830.0,
+          "tensileStrength": 2.05,
+          "mechanicalIndex": 49.7034,
+          "cumulativeDepth": 127.17
+        },
+        {
+          "order": 5,
+          "name": "中粒砂岩",
+          "thickness": 13.37,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 267.4,
+          "cumulativeDepth": 140.54
+        },
+        {
+          "order": 4,
+          "name": "泥岩",
+          "thickness": 2.7,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 19.359,
+          "cumulativeDepth": 143.24
+        },
+        {
+          "order": 3,
+          "name": "煤",
+          "thickness": 3.59,
+          "elasticModulus": 2.72,
+          "density": 1410.0,
+          "tensileStrength": 0.83,
+          "mechanicalIndex": 9.7648,
+          "cumulativeDepth": 146.83
+        },
+        {
+          "order": 2,
+          "name": "砂质泥岩",
+          "thickness": 3.03,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 21.7251,
+          "cumulativeDepth": 149.86
+        },
+        {
+          "order": 1,
+          "name": "炭质泥岩",
+          "thickness": 1.3,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 9.321,
+          "cumulativeDepth": 151.16
+        },
+        {
+          "order": 0,
+          "name": "6煤",
+          "thickness": 3.52,
+          "elasticModulus": 2.72,
+          "density": 1410.0,
+          "tensileStrength": 0.83,
+          "mechanicalIndex": 9.5744,
+          "cumulativeDepth": 154.68
+        }
+      ],
+      "keyStrataCandidates": [
+        {
+          "order": 5,
+          "name": "中粒砂岩",
+          "thickness": 13.37,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 267.4,
+          "cumulativeDepth": 140.54
+        },
+        {
+          "order": 9,
+          "name": "粗粒砂岩",
+          "thickness": 12.17,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 3.075,
+          "mechanicalIndex": 139.8333,
+          "cumulativeDepth": 103.74
+        },
+        {
+          "order": 7,
+          "name": "砂质泥岩",
+          "thickness": 8.7,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 62.379,
+          "cumulativeDepth": 121.96
+        },
+        {
+          "order": 6,
+          "name": "细粒砂岩",
+          "thickness": 5.21,
+          "elasticModulus": 9.54,
+          "density": 2830.0,
+          "tensileStrength": 2.05,
+          "mechanicalIndex": 49.7034,
+          "cumulativeDepth": 127.17
+        },
+        {
+          "order": 10,
+          "name": "黄土",
+          "thickness": 91.57,
+          "elasticModulus": 0.54,
+          "density": 1800.0,
+          "tensileStrength": 0.0,
+          "mechanicalIndex": 49.4478,
+          "cumulativeDepth": 91.57
+        }
+      ]
+    },
+    {
+      "id": "BK-12",
+      "coordinate": {
+        "x": 523885.61,
+        "y": 4370914.16
+      },
+      "totalThickness": 171.99,
+      "coalLayerCount": 2,
+      "coalThickness": 14.98,
+      "layers": [
+        {
+          "order": 9,
+          "name": "黄土",
+          "thickness": 102.97,
+          "elasticModulus": 0.54,
+          "density": 1800.0,
+          "tensileStrength": 0.0,
+          "mechanicalIndex": 55.6038,
+          "cumulativeDepth": 102.97
+        },
+        {
+          "order": 8,
+          "name": "含砾粗砂岩",
+          "thickness": 15.24,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 1.44,
+          "mechanicalIndex": 175.1076,
+          "cumulativeDepth": 118.21
+        },
+        {
+          "order": 7,
+          "name": "粗粒砂岩",
+          "thickness": 2.73,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 3.075,
+          "mechanicalIndex": 31.3677,
+          "cumulativeDepth": 120.94
+        },
+        {
+          "order": 6,
+          "name": "高岭质泥岩",
+          "thickness": 5.73,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.04,
+          "mechanicalIndex": 41.0841,
+          "cumulativeDepth": 126.67
+        },
+        {
+          "order": 5,
+          "name": "细粒砂岩",
+          "thickness": 11.18,
+          "elasticModulus": 9.54,
+          "density": 2830.0,
+          "tensileStrength": 2.05,
+          "mechanicalIndex": 106.6572,
+          "cumulativeDepth": 137.85
+        },
+        {
+          "order": 4,
+          "name": "中粒砂岩",
+          "thickness": 7.64,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 152.8,
+          "cumulativeDepth": 145.49
+        },
+        {
+          "order": 3,
+          "name": "粗粒砂岩",
+          "thickness": 9.96,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 3.075,
+          "mechanicalIndex": 114.4404,
+          "cumulativeDepth": 155.45
+        },
+        {
+          "order": 2,
+          "name": "砂质泥岩",
+          "thickness": 1.56,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 11.1852,
+          "cumulativeDepth": 157.01
+        },
+        {
+          "order": 1,
+          "name": "风化煤",
+          "thickness": 3.89,
+          "elasticModulus": 2.72,
+          "density": 1410.0,
+          "tensileStrength": 0.83,
+          "mechanicalIndex": 10.5808,
+          "cumulativeDepth": 160.9
+        },
+        {
+          "order": 0,
+          "name": "6煤",
+          "thickness": 11.09,
+          "elasticModulus": 2.72,
+          "density": 1410.0,
+          "tensileStrength": 0.83,
+          "mechanicalIndex": 30.1648,
+          "cumulativeDepth": 171.99
+        }
+      ],
+      "keyStrataCandidates": [
+        {
+          "order": 8,
+          "name": "含砾粗砂岩",
+          "thickness": 15.24,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 1.44,
+          "mechanicalIndex": 175.1076,
+          "cumulativeDepth": 118.21
+        },
+        {
+          "order": 4,
+          "name": "中粒砂岩",
+          "thickness": 7.64,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 152.8,
+          "cumulativeDepth": 145.49
+        },
+        {
+          "order": 3,
+          "name": "粗粒砂岩",
+          "thickness": 9.96,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 3.075,
+          "mechanicalIndex": 114.4404,
+          "cumulativeDepth": 155.45
+        },
+        {
+          "order": 5,
+          "name": "细粒砂岩",
+          "thickness": 11.18,
+          "elasticModulus": 9.54,
+          "density": 2830.0,
+          "tensileStrength": 2.05,
+          "mechanicalIndex": 106.6572,
+          "cumulativeDepth": 137.85
+        },
+        {
+          "order": 9,
+          "name": "黄土",
+          "thickness": 102.97,
+          "elasticModulus": 0.54,
+          "density": 1800.0,
+          "tensileStrength": 0.0,
+          "mechanicalIndex": 55.6038,
+          "cumulativeDepth": 102.97
+        }
+      ]
+    },
+    {
+      "id": "BK-19",
+      "coordinate": {
+        "x": 524656.98,
+        "y": 4371547.13
+      },
+      "totalThickness": 222.93,
+      "coalLayerCount": 2,
+      "coalThickness": 12.39,
+      "layers": [
+        {
+          "order": 19,
+          "name": "黄土",
+          "thickness": 100.7,
+          "elasticModulus": 0.54,
+          "density": 1800.0,
+          "tensileStrength": 0.0,
+          "mechanicalIndex": 54.378,
+          "cumulativeDepth": 100.7
+        },
+        {
+          "order": 18,
+          "name": "中粒砂岩",
+          "thickness": 8.67,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 173.4,
+          "cumulativeDepth": 109.37
+        },
+        {
+          "order": 17,
+          "name": "泥岩",
+          "thickness": 4.4,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 31.548,
+          "cumulativeDepth": 113.77
+        },
+        {
+          "order": 16,
+          "name": "中粒砂岩",
+          "thickness": 6.93,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 138.6,
+          "cumulativeDepth": 120.7
+        },
+        {
+          "order": 15,
+          "name": "粗粒砂岩",
+          "thickness": 5.69,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 3.075,
+          "mechanicalIndex": 65.3781,
+          "cumulativeDepth": 126.39
+        },
+        {
+          "order": 14,
+          "name": "砂质泥岩",
+          "thickness": 6.5,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 46.605,
+          "cumulativeDepth": 132.89
+        },
+        {
+          "order": 13,
+          "name": "粉砂岩",
+          "thickness": 1.64,
+          "elasticModulus": 10.2,
+          "density": 2590.0,
+          "tensileStrength": 2.6,
+          "mechanicalIndex": 16.728,
+          "cumulativeDepth": 134.53
+        },
+        {
+          "order": 12,
+          "name": "粗粒砂岩",
+          "thickness": 11.07,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 3.075,
+          "mechanicalIndex": 127.1943,
+          "cumulativeDepth": 145.6
+        },
+        {
+          "order": 11,
+          "name": "粉砂岩",
+          "thickness": 7.44,
+          "elasticModulus": 10.2,
+          "density": 2590.0,
+          "tensileStrength": 2.6,
+          "mechanicalIndex": 75.888,
+          "cumulativeDepth": 153.04
+        },
+        {
+          "order": 10,
+          "name": "4煤",
+          "thickness": 5.07,
+          "elasticModulus": 2.72,
+          "density": 1410.0,
+          "tensileStrength": 0.83,
+          "mechanicalIndex": 13.7904,
+          "cumulativeDepth": 158.11
+        },
+        {
+          "order": 9,
+          "name": "砂质泥岩",
+          "thickness": 0.89,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 6.3813,
+          "cumulativeDepth": 159.0
+        },
+        {
+          "order": 8,
+          "name": "粉砂岩",
+          "thickness": 1.4,
+          "elasticModulus": 10.2,
+          "density": 2590.0,
+          "tensileStrength": 2.6,
+          "mechanicalIndex": 14.28,
+          "cumulativeDepth": 160.4
+        },
+        {
+          "order": 7,
+          "name": "砂质泥岩",
+          "thickness": 2.15,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 15.4155,
+          "cumulativeDepth": 162.55
+        },
+        {
+          "order": 6,
+          "name": "中粒砂岩",
+          "thickness": 20.95,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 419.0,
+          "cumulativeDepth": 183.5
+        },
+        {
+          "order": 5,
+          "name": "含砾粗粒砂岩",
+          "thickness": 11.85,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 1.44,
+          "mechanicalIndex": 136.1565,
+          "cumulativeDepth": 195.35
+        },
+        {
+          "order": 4,
+          "name": "炭质泥岩",
+          "thickness": 0.68,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 4.8756,
+          "cumulativeDepth": 196.03
+        },
+        {
+          "order": 3,
+          "name": "中粒砂岩",
+          "thickness": 8.63,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 172.6,
+          "cumulativeDepth": 204.66
+        },
+        {
+          "order": 2,
+          "name": "粗粒砂岩",
+          "thickness": 9.78,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 3.075,
+          "mechanicalIndex": 112.3722,
+          "cumulativeDepth": 214.44
+        },
+        {
+          "order": 1,
+          "name": "粉砂岩",
+          "thickness": 1.17,
+          "elasticModulus": 10.2,
+          "density": 2590.0,
+          "tensileStrength": 2.6,
+          "mechanicalIndex": 11.934,
+          "cumulativeDepth": 215.61
+        },
+        {
+          "order": 0,
+          "name": "6-1煤",
+          "thickness": 7.32,
+          "elasticModulus": 2.72,
+          "density": 1410.0,
+          "tensileStrength": 0.83,
+          "mechanicalIndex": 19.9104,
+          "cumulativeDepth": 222.93
+        }
+      ],
+      "keyStrataCandidates": [
+        {
+          "order": 6,
+          "name": "中粒砂岩",
+          "thickness": 20.95,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 419.0,
+          "cumulativeDepth": 183.5
+        },
+        {
+          "order": 18,
+          "name": "中粒砂岩",
+          "thickness": 8.67,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 173.4,
+          "cumulativeDepth": 109.37
+        },
+        {
+          "order": 3,
+          "name": "中粒砂岩",
+          "thickness": 8.63,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 172.6,
+          "cumulativeDepth": 204.66
+        },
+        {
+          "order": 16,
+          "name": "中粒砂岩",
+          "thickness": 6.93,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 138.6,
+          "cumulativeDepth": 120.7
+        },
+        {
+          "order": 5,
+          "name": "含砾粗粒砂岩",
+          "thickness": 11.85,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 1.44,
+          "mechanicalIndex": 136.1565,
+          "cumulativeDepth": 195.35
+        }
+      ]
+    },
+    {
+      "id": "BK-2",
+      "coordinate": {
+        "x": 523484.16,
+        "y": 4371392.21
+      },
+      "totalThickness": 124.02,
+      "coalLayerCount": 1,
+      "coalThickness": 4.6,
+      "layers": [
+        {
+          "order": 4,
+          "name": "黄土",
+          "thickness": 105.14,
+          "elasticModulus": 0.54,
+          "density": 1800.0,
+          "tensileStrength": 0.0,
+          "mechanicalIndex": 56.7756,
+          "cumulativeDepth": 105.14
+        },
+        {
+          "order": 3,
+          "name": "砂质泥岩",
+          "thickness": 7.7,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 55.209,
+          "cumulativeDepth": 112.84
+        },
+        {
+          "order": 2,
+          "name": "中粒砂岩",
+          "thickness": 3.53,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 70.6,
+          "cumulativeDepth": 116.37
+        },
+        {
+          "order": 1,
+          "name": "高岭质泥岩",
+          "thickness": 3.05,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.04,
+          "mechanicalIndex": 21.8685,
+          "cumulativeDepth": 119.42
+        },
+        {
+          "order": 0,
+          "name": "6煤",
+          "thickness": 4.6,
+          "elasticModulus": 2.72,
+          "density": 1410.0,
+          "tensileStrength": 0.83,
+          "mechanicalIndex": 12.512,
+          "cumulativeDepth": 124.02
+        }
+      ],
+      "keyStrataCandidates": [
+        {
+          "order": 2,
+          "name": "中粒砂岩",
+          "thickness": 3.53,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 70.6,
+          "cumulativeDepth": 116.37
+        },
+        {
+          "order": 4,
+          "name": "黄土",
+          "thickness": 105.14,
+          "elasticModulus": 0.54,
+          "density": 1800.0,
+          "tensileStrength": 0.0,
+          "mechanicalIndex": 56.7756,
+          "cumulativeDepth": 105.14
+        },
+        {
+          "order": 3,
+          "name": "砂质泥岩",
+          "thickness": 7.7,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 55.209,
+          "cumulativeDepth": 112.84
+        },
+        {
+          "order": 1,
+          "name": "高岭质泥岩",
+          "thickness": 3.05,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.04,
+          "mechanicalIndex": 21.8685,
+          "cumulativeDepth": 119.42
+        },
+        {
+          "order": 0,
+          "name": "6煤",
+          "thickness": 4.6,
+          "elasticModulus": 2.72,
+          "density": 1410.0,
+          "tensileStrength": 0.83,
+          "mechanicalIndex": 12.512,
+          "cumulativeDepth": 124.02
+        }
+      ]
+    },
+    {
+      "id": "BK-21",
+      "coordinate": {
+        "x": 523843.87,
+        "y": 4371505.82
+      },
+      "totalThickness": 237.17,
+      "coalLayerCount": 1,
+      "coalThickness": 17.29,
+      "layers": [
+        {
+          "order": 14,
+          "name": "黄土",
+          "thickness": 126.1,
+          "elasticModulus": 0.54,
+          "density": 1800.0,
+          "tensileStrength": 0.0,
+          "mechanicalIndex": 68.094,
+          "cumulativeDepth": 126.1
+        },
+        {
+          "order": 13,
+          "name": "中粒砂岩",
+          "thickness": 4.35,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 87.0,
+          "cumulativeDepth": 130.45
+        },
+        {
+          "order": 12,
+          "name": "砂质泥岩",
+          "thickness": 7.2,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 51.624,
+          "cumulativeDepth": 137.65
+        },
+        {
+          "order": 11,
+          "name": "高岭质泥岩",
+          "thickness": 5.9,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.04,
+          "mechanicalIndex": 42.303,
+          "cumulativeDepth": 143.55
+        },
+        {
+          "order": 10,
+          "name": "中粒砂岩",
+          "thickness": 3.4,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 68.0,
+          "cumulativeDepth": 146.95
+        },
+        {
+          "order": 9,
+          "name": "细粒砂岩",
+          "thickness": 1.73,
+          "elasticModulus": 9.54,
+          "density": 2830.0,
+          "tensileStrength": 2.05,
+          "mechanicalIndex": 16.5042,
+          "cumulativeDepth": 148.68
+        },
+        {
+          "order": 8,
+          "name": "高岭质泥岩",
+          "thickness": 8.12,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.04,
+          "mechanicalIndex": 58.2204,
+          "cumulativeDepth": 156.8
+        },
+        {
+          "order": 7,
+          "name": "细粒砂岩",
+          "thickness": 2.22,
+          "elasticModulus": 9.54,
+          "density": 2830.0,
+          "tensileStrength": 2.05,
+          "mechanicalIndex": 21.1788,
+          "cumulativeDepth": 159.02
+        },
+        {
+          "order": 6,
+          "name": "高岭质泥岩",
+          "thickness": 6.43,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.04,
+          "mechanicalIndex": 46.1031,
+          "cumulativeDepth": 165.45
+        },
+        {
+          "order": 5,
+          "name": "中粒砂岩",
+          "thickness": 4.3,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 86.0,
+          "cumulativeDepth": 169.75
+        },
+        {
+          "order": 4,
+          "name": "粗粒砂岩",
+          "thickness": 24.27,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 3.075,
+          "mechanicalIndex": 278.8623,
+          "cumulativeDepth": 194.02
+        },
+        {
+          "order": 3,
+          "name": "高岭质泥岩",
+          "thickness": 5.2,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.04,
+          "mechanicalIndex": 37.284,
+          "cumulativeDepth": 199.22
+        },
+        {
+          "order": 2,
+          "name": "中粒砂岩",
+          "thickness": 18.91,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 378.2,
+          "cumulativeDepth": 218.13
+        },
+        {
+          "order": 1,
+          "name": "砂质泥岩",
+          "thickness": 1.75,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 12.5475,
+          "cumulativeDepth": 219.88
+        },
+        {
+          "order": 0,
+          "name": "6煤",
+          "thickness": 17.29,
+          "elasticModulus": 2.72,
+          "density": 1410.0,
+          "tensileStrength": 0.83,
+          "mechanicalIndex": 47.0288,
+          "cumulativeDepth": 237.17
+        }
+      ],
+      "keyStrataCandidates": [
+        {
+          "order": 2,
+          "name": "中粒砂岩",
+          "thickness": 18.91,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 378.2,
+          "cumulativeDepth": 218.13
+        },
+        {
+          "order": 4,
+          "name": "粗粒砂岩",
+          "thickness": 24.27,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 3.075,
+          "mechanicalIndex": 278.8623,
+          "cumulativeDepth": 194.02
+        },
+        {
+          "order": 13,
+          "name": "中粒砂岩",
+          "thickness": 4.35,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 87.0,
+          "cumulativeDepth": 130.45
+        },
+        {
+          "order": 5,
+          "name": "中粒砂岩",
+          "thickness": 4.3,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 86.0,
+          "cumulativeDepth": 169.75
+        },
+        {
+          "order": 14,
+          "name": "黄土",
+          "thickness": 126.1,
+          "elasticModulus": 0.54,
+          "density": 1800.0,
+          "tensileStrength": 0.0,
+          "mechanicalIndex": 68.094,
+          "cumulativeDepth": 126.1
+        }
+      ]
+    },
+    {
+      "id": "BK-3",
+      "coordinate": {
+        "x": 525091.64,
+        "y": 4371062.91
+      },
+      "totalThickness": 195.32,
+      "coalLayerCount": 5,
+      "coalThickness": 17.17,
+      "layers": [
+        {
+          "order": 22,
+          "name": "黄土",
+          "thickness": 70.33,
+          "elasticModulus": 0.54,
+          "density": 1800.0,
+          "tensileStrength": 0.0,
+          "mechanicalIndex": 37.9782,
+          "cumulativeDepth": 70.33
+        },
+        {
+          "order": 21,
+          "name": "粗粒砂岩",
+          "thickness": 5.65,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 3.075,
+          "mechanicalIndex": 64.9185,
+          "cumulativeDepth": 75.98
+        },
+        {
+          "order": 20,
+          "name": "砂质泥岩",
+          "thickness": 11.14,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 79.8738,
+          "cumulativeDepth": 87.12
+        },
+        {
+          "order": 19,
+          "name": "中粒砂岩",
+          "thickness": 12.88,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 257.6,
+          "cumulativeDepth": 100.0
+        },
+        {
+          "order": 18,
+          "name": "砂质泥岩",
+          "thickness": 12.63,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 90.5571,
+          "cumulativeDepth": 112.63
+        },
+        {
+          "order": 17,
+          "name": "中粒砂岩",
+          "thickness": 2.59,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 51.8,
+          "cumulativeDepth": 115.22
+        },
+        {
+          "order": 16,
+          "name": "砂质泥岩",
+          "thickness": 3.48,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 24.9516,
+          "cumulativeDepth": 118.7
+        },
+        {
+          "order": 15,
+          "name": "中粒砂岩",
+          "thickness": 8.95,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 179.0,
+          "cumulativeDepth": 127.65
+        },
+        {
+          "order": 14,
+          "name": "砂质泥岩",
+          "thickness": 2.57,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 18.4269,
+          "cumulativeDepth": 130.22
+        },
+        {
+          "order": 13,
+          "name": "含砾粗粒砂岩",
+          "thickness": 2.46,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 1.44,
+          "mechanicalIndex": 28.2654,
+          "cumulativeDepth": 132.68
+        },
+        {
+          "order": 12,
+          "name": "4号风化煤",
+          "thickness": 3.11,
+          "elasticModulus": 2.72,
+          "density": 1410.0,
+          "tensileStrength": 0.83,
+          "mechanicalIndex": 8.4592,
+          "cumulativeDepth": 135.79
+        },
+        {
+          "order": 11,
+          "name": "炭质泥岩",
+          "thickness": 2.95,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 21.1515,
+          "cumulativeDepth": 138.74
+        },
+        {
+          "order": 10,
+          "name": "煤线",
+          "thickness": 1.66,
+          "elasticModulus": 2.72,
+          "density": 1410.0,
+          "tensileStrength": 0.83,
+          "mechanicalIndex": 4.5152,
+          "cumulativeDepth": 140.4
+        },
+        {
+          "order": 9,
+          "name": "砂质泥岩",
+          "thickness": 2.72,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 19.5024,
+          "cumulativeDepth": 143.12
+        },
+        {
+          "order": 8,
+          "name": "含砾粗砂岩",
+          "thickness": 9.84,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 1.44,
+          "mechanicalIndex": 113.0616,
+          "cumulativeDepth": 152.96
+        },
+        {
+          "order": 7,
+          "name": "砂质泥岩",
+          "thickness": 4.93,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 35.3481,
+          "cumulativeDepth": 157.89
+        },
+        {
+          "order": 6,
+          "name": "煤线",
+          "thickness": 0.4,
+          "elasticModulus": 2.72,
+          "density": 1410.0,
+          "tensileStrength": 0.83,
+          "mechanicalIndex": 1.088,
+          "cumulativeDepth": 158.29
+        },
+        {
+          "order": 5,
+          "name": "砂质泥岩",
+          "thickness": 2.21,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 15.8457,
+          "cumulativeDepth": 160.5
+        },
+        {
+          "order": 4,
+          "name": "5煤",
+          "thickness": 4.22,
+          "elasticModulus": 2.72,
+          "density": 1410.0,
+          "tensileStrength": 0.83,
+          "mechanicalIndex": 11.4784,
+          "cumulativeDepth": 164.72
+        },
+        {
+          "order": 3,
+          "name": "砂质泥岩",
+          "thickness": 3.73,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 26.7441,
+          "cumulativeDepth": 168.45
+        },
+        {
+          "order": 2,
+          "name": "粗粒砂岩",
+          "thickness": 17.21,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 3.075,
+          "mechanicalIndex": 197.7429,
+          "cumulativeDepth": 185.66
+        },
+        {
+          "order": 1,
+          "name": "炭质泥岩",
+          "thickness": 1.88,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 13.4796,
+          "cumulativeDepth": 187.54
+        },
+        {
+          "order": 0,
+          "name": "6-1煤",
+          "thickness": 7.78,
+          "elasticModulus": 2.72,
+          "density": 1410.0,
+          "tensileStrength": 0.83,
+          "mechanicalIndex": 21.1616,
+          "cumulativeDepth": 195.32
+        }
+      ],
+      "keyStrataCandidates": [
+        {
+          "order": 19,
+          "name": "中粒砂岩",
+          "thickness": 12.88,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 257.6,
+          "cumulativeDepth": 100.0
+        },
+        {
+          "order": 2,
+          "name": "粗粒砂岩",
+          "thickness": 17.21,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 3.075,
+          "mechanicalIndex": 197.7429,
+          "cumulativeDepth": 185.66
+        },
+        {
+          "order": 15,
+          "name": "中粒砂岩",
+          "thickness": 8.95,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 179.0,
+          "cumulativeDepth": 127.65
+        },
+        {
+          "order": 8,
+          "name": "含砾粗砂岩",
+          "thickness": 9.84,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 1.44,
+          "mechanicalIndex": 113.0616,
+          "cumulativeDepth": 152.96
+        },
+        {
+          "order": 18,
+          "name": "砂质泥岩",
+          "thickness": 12.63,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 90.5571,
+          "cumulativeDepth": 112.63
+        }
+      ]
+    },
+    {
+      "id": "BK-31",
+      "coordinate": {
+        "x": 523981.45,
+        "y": 4371057.38
+      },
+      "totalThickness": 171.74,
+      "coalLayerCount": 1,
+      "coalThickness": 14.34,
+      "layers": [
+        {
+          "order": 8,
+          "name": "黄土",
+          "thickness": 101.19,
+          "elasticModulus": 0.54,
+          "density": 1800.0,
+          "tensileStrength": 0.0,
+          "mechanicalIndex": 54.6426,
+          "cumulativeDepth": 101.19
+        },
+        {
+          "order": 7,
+          "name": "砂质泥岩",
+          "thickness": 3.8,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 27.246,
+          "cumulativeDepth": 104.99
+        },
+        {
+          "order": 6,
+          "name": "高岭质泥岩",
+          "thickness": 4.46,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.04,
+          "mechanicalIndex": 31.9782,
+          "cumulativeDepth": 109.45
+        },
+        {
+          "order": 5,
+          "name": "粗粒砂岩",
+          "thickness": 11.72,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 3.075,
+          "mechanicalIndex": 134.6628,
+          "cumulativeDepth": 121.17
+        },
+        {
+          "order": 4,
+          "name": "砾岩",
+          "thickness": 10.93,
+          "elasticModulus": 3.04,
+          "density": 2520.0,
+          "tensileStrength": 1.0,
+          "mechanicalIndex": 33.2272,
+          "cumulativeDepth": 132.1
+        },
+        {
+          "order": 3,
+          "name": "砂质泥岩",
+          "thickness": 3.64,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 26.0988,
+          "cumulativeDepth": 135.74
+        },
+        {
+          "order": 2,
+          "name": "粗粒砂岩",
+          "thickness": 18.26,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 3.075,
+          "mechanicalIndex": 209.8074,
+          "cumulativeDepth": 154.0
+        },
+        {
+          "order": 1,
+          "name": "砂质泥岩",
+          "thickness": 3.4,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 24.378,
+          "cumulativeDepth": 157.4
+        },
+        {
+          "order": 0,
+          "name": "6煤",
+          "thickness": 14.34,
+          "elasticModulus": 2.72,
+          "density": 1410.0,
+          "tensileStrength": 0.83,
+          "mechanicalIndex": 39.0048,
+          "cumulativeDepth": 171.74
+        }
+      ],
+      "keyStrataCandidates": [
+        {
+          "order": 2,
+          "name": "粗粒砂岩",
+          "thickness": 18.26,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 3.075,
+          "mechanicalIndex": 209.8074,
+          "cumulativeDepth": 154.0
+        },
+        {
+          "order": 5,
+          "name": "粗粒砂岩",
+          "thickness": 11.72,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 3.075,
+          "mechanicalIndex": 134.6628,
+          "cumulativeDepth": 121.17
+        },
+        {
+          "order": 8,
+          "name": "黄土",
+          "thickness": 101.19,
+          "elasticModulus": 0.54,
+          "density": 1800.0,
+          "tensileStrength": 0.0,
+          "mechanicalIndex": 54.6426,
+          "cumulativeDepth": 101.19
+        },
+        {
+          "order": 0,
+          "name": "6煤",
+          "thickness": 14.34,
+          "elasticModulus": 2.72,
+          "density": 1410.0,
+          "tensileStrength": 0.83,
+          "mechanicalIndex": 39.0048,
+          "cumulativeDepth": 171.74
+        },
+        {
+          "order": 4,
+          "name": "砾岩",
+          "thickness": 10.93,
+          "elasticModulus": 3.04,
+          "density": 2520.0,
+          "tensileStrength": 1.0,
+          "mechanicalIndex": 33.2272,
+          "cumulativeDepth": 132.1
+        }
+      ]
+    },
+    {
+      "id": "BK-32",
+      "coordinate": {
+        "x": 523766.89,
+        "y": 4371123.03
+      },
+      "totalThickness": 179.95,
+      "coalLayerCount": 1,
+      "coalThickness": 8.77,
+      "layers": [
+        {
+          "order": 7,
+          "name": "黄土",
+          "thickness": 98.17,
+          "elasticModulus": 0.54,
+          "density": 1800.0,
+          "tensileStrength": 0.0,
+          "mechanicalIndex": 53.0118,
+          "cumulativeDepth": 98.17
+        },
+        {
+          "order": 6,
+          "name": "砂质泥岩",
+          "thickness": 22.07,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 158.2419,
+          "cumulativeDepth": 120.24
+        },
+        {
+          "order": 5,
+          "name": "粗粒砂岩",
+          "thickness": 5.02,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 3.075,
+          "mechanicalIndex": 57.6798,
+          "cumulativeDepth": 125.26
+        },
+        {
+          "order": 4,
+          "name": "含砾粗粒砂岩",
+          "thickness": 17.72,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 1.44,
+          "mechanicalIndex": 203.6028,
+          "cumulativeDepth": 142.98
+        },
+        {
+          "order": 3,
+          "name": "高岭质泥岩",
+          "thickness": 7.84,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.04,
+          "mechanicalIndex": 56.2128,
+          "cumulativeDepth": 150.82
+        },
+        {
+          "order": 2,
+          "name": "中粒砂岩",
+          "thickness": 19.56,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 391.2,
+          "cumulativeDepth": 170.38
+        },
+        {
+          "order": 1,
+          "name": "高岭质泥岩",
+          "thickness": 0.8,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.04,
+          "mechanicalIndex": 5.736,
+          "cumulativeDepth": 171.18
+        },
+        {
+          "order": 0,
+          "name": "6-1煤",
+          "thickness": 8.77,
+          "elasticModulus": 2.72,
+          "density": 1410.0,
+          "tensileStrength": 0.83,
+          "mechanicalIndex": 23.8544,
+          "cumulativeDepth": 179.95
+        }
+      ],
+      "keyStrataCandidates": [
+        {
+          "order": 2,
+          "name": "中粒砂岩",
+          "thickness": 19.56,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 391.2,
+          "cumulativeDepth": 170.38
+        },
+        {
+          "order": 4,
+          "name": "含砾粗粒砂岩",
+          "thickness": 17.72,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 1.44,
+          "mechanicalIndex": 203.6028,
+          "cumulativeDepth": 142.98
+        },
+        {
+          "order": 6,
+          "name": "砂质泥岩",
+          "thickness": 22.07,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 158.2419,
+          "cumulativeDepth": 120.24
+        },
+        {
+          "order": 5,
+          "name": "粗粒砂岩",
+          "thickness": 5.02,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 3.075,
+          "mechanicalIndex": 57.6798,
+          "cumulativeDepth": 125.26
+        },
+        {
+          "order": 3,
+          "name": "高岭质泥岩",
+          "thickness": 7.84,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.04,
+          "mechanicalIndex": 56.2128,
+          "cumulativeDepth": 150.82
+        }
+      ]
+    },
+    {
+      "id": "BK-35",
+      "coordinate": {
+        "x": 523518.23,
+        "y": 4371564.17
+      },
+      "totalThickness": 234.11,
+      "coalLayerCount": 3,
+      "coalThickness": 23.02,
+      "layers": [
+        {
+          "order": 20,
+          "name": "黄土",
+          "thickness": 114.75,
+          "elasticModulus": 0.54,
+          "density": 1800.0,
+          "tensileStrength": 0.0,
+          "mechanicalIndex": 61.965,
+          "cumulativeDepth": 114.75
+        },
+        {
+          "order": 19,
+          "name": "砂质泥岩",
+          "thickness": 6.75,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 48.3975,
+          "cumulativeDepth": 121.5
+        },
+        {
+          "order": 18,
+          "name": "细粒砂岩",
+          "thickness": 4.15,
+          "elasticModulus": 9.54,
+          "density": 2830.0,
+          "tensileStrength": 2.05,
+          "mechanicalIndex": 39.591,
+          "cumulativeDepth": 125.65
+        },
+        {
+          "order": 17,
+          "name": "高岭质泥岩",
+          "thickness": 1.13,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.04,
+          "mechanicalIndex": 8.1021,
+          "cumulativeDepth": 126.78
+        },
+        {
+          "order": 16,
+          "name": "中粒砂岩",
+          "thickness": 5.73,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 114.6,
+          "cumulativeDepth": 132.51
+        },
+        {
+          "order": 15,
+          "name": "砂质泥岩",
+          "thickness": 5.97,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 42.8049,
+          "cumulativeDepth": 138.48
+        },
+        {
+          "order": 14,
+          "name": "粉砂岩",
+          "thickness": 2.01,
+          "elasticModulus": 10.2,
+          "density": 2590.0,
+          "tensileStrength": 2.6,
+          "mechanicalIndex": 20.502,
+          "cumulativeDepth": 140.49
+        },
+        {
+          "order": 13,
+          "name": "砂质泥岩",
+          "thickness": 12.03,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 86.2551,
+          "cumulativeDepth": 152.52
+        },
+        {
+          "order": 12,
+          "name": "炭质泥岩",
+          "thickness": 1.53,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 10.9701,
+          "cumulativeDepth": 154.05
+        },
+        {
+          "order": 11,
+          "name": "粉砂岩",
+          "thickness": 0.42,
+          "elasticModulus": 10.2,
+          "density": 2590.0,
+          "tensileStrength": 2.6,
+          "mechanicalIndex": 4.284,
+          "cumulativeDepth": 154.47
+        },
+        {
+          "order": 10,
+          "name": "4煤",
+          "thickness": 3.81,
+          "elasticModulus": 2.72,
+          "density": 1410.0,
+          "tensileStrength": 0.83,
+          "mechanicalIndex": 10.3632,
+          "cumulativeDepth": 158.28
+        },
+        {
+          "order": 9,
+          "name": "砂质泥岩",
+          "thickness": 3.82,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 27.3894,
+          "cumulativeDepth": 162.1
+        },
+        {
+          "order": 8,
+          "name": "砾岩",
+          "thickness": 3.73,
+          "elasticModulus": 3.04,
+          "density": 2520.0,
+          "tensileStrength": 1.0,
+          "mechanicalIndex": 11.3392,
+          "cumulativeDepth": 165.83
+        },
+        {
+          "order": 7,
+          "name": "砂质泥岩",
+          "thickness": 9.08,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 65.1036,
+          "cumulativeDepth": 174.91
+        },
+        {
+          "order": 6,
+          "name": "粗粒砂岩",
+          "thickness": 14.66,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 3.075,
+          "mechanicalIndex": 168.4434,
+          "cumulativeDepth": 189.57
+        },
+        {
+          "order": 5,
+          "name": "风化煤",
+          "thickness": 1.62,
+          "elasticModulus": 2.72,
+          "density": 1410.0,
+          "tensileStrength": 0.83,
+          "mechanicalIndex": 4.4064,
+          "cumulativeDepth": 191.19
+        },
+        {
+          "order": 4,
+          "name": "砂质泥岩",
+          "thickness": 4.35,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 31.1895,
+          "cumulativeDepth": 195.54
+        },
+        {
+          "order": 3,
+          "name": "粗粒砂岩",
+          "thickness": 18.92,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 3.075,
+          "mechanicalIndex": 217.3908,
+          "cumulativeDepth": 214.46
+        },
+        {
+          "order": 2,
+          "name": "粉砂岩",
+          "thickness": 1.46,
+          "elasticModulus": 10.2,
+          "density": 2590.0,
+          "tensileStrength": 2.6,
+          "mechanicalIndex": 14.892,
+          "cumulativeDepth": 215.92
+        },
+        {
+          "order": 1,
+          "name": "炭质泥岩",
+          "thickness": 0.6,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 4.302,
+          "cumulativeDepth": 216.52
+        },
+        {
+          "order": 0,
+          "name": "6煤",
+          "thickness": 17.59,
+          "elasticModulus": 2.72,
+          "density": 1410.0,
+          "tensileStrength": 0.83,
+          "mechanicalIndex": 47.8448,
+          "cumulativeDepth": 234.11
+        }
+      ],
+      "keyStrataCandidates": [
+        {
+          "order": 3,
+          "name": "粗粒砂岩",
+          "thickness": 18.92,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 3.075,
+          "mechanicalIndex": 217.3908,
+          "cumulativeDepth": 214.46
+        },
+        {
+          "order": 6,
+          "name": "粗粒砂岩",
+          "thickness": 14.66,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 3.075,
+          "mechanicalIndex": 168.4434,
+          "cumulativeDepth": 189.57
+        },
+        {
+          "order": 16,
+          "name": "中粒砂岩",
+          "thickness": 5.73,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 114.6,
+          "cumulativeDepth": 132.51
+        },
+        {
+          "order": 13,
+          "name": "砂质泥岩",
+          "thickness": 12.03,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 86.2551,
+          "cumulativeDepth": 152.52
+        },
+        {
+          "order": 7,
+          "name": "砂质泥岩",
+          "thickness": 9.08,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 65.1036,
+          "cumulativeDepth": 174.91
+        }
+      ]
+    },
+    {
+      "id": "BK-4",
+      "coordinate": {
+        "x": 523975.24,
+        "y": 4371159.01
+      },
+      "totalThickness": 179.24,
+      "coalLayerCount": 1,
+      "coalThickness": 14.82,
+      "layers": [
+        {
+          "order": 11,
+          "name": "黄土",
+          "thickness": 102.15,
+          "elasticModulus": 0.54,
+          "density": 1800.0,
+          "tensileStrength": 0.0,
+          "mechanicalIndex": 55.161,
+          "cumulativeDepth": 102.15
+        },
+        {
+          "order": 10,
+          "name": "中粒砂岩",
+          "thickness": 3.69,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 73.8,
+          "cumulativeDepth": 105.84
+        },
+        {
+          "order": 9,
+          "name": "高岭质泥岩",
+          "thickness": 5.23,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.04,
+          "mechanicalIndex": 37.4991,
+          "cumulativeDepth": 111.07
+        },
+        {
+          "order": 8,
+          "name": "泥岩",
+          "thickness": 1.32,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 9.4644,
+          "cumulativeDepth": 112.39
+        },
+        {
+          "order": 7,
+          "name": "砂质泥岩",
+          "thickness": 2.56,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 18.3552,
+          "cumulativeDepth": 114.95
+        },
+        {
+          "order": 6,
+          "name": "高岭质泥岩",
+          "thickness": 3.51,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.04,
+          "mechanicalIndex": 25.1667,
+          "cumulativeDepth": 118.46
+        },
+        {
+          "order": 5,
+          "name": "中粒砂岩",
+          "thickness": 20.92,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 418.4,
+          "cumulativeDepth": 139.38
+        },
+        {
+          "order": 4,
+          "name": "泥岩",
+          "thickness": 3.32,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 23.8044,
+          "cumulativeDepth": 142.7
+        },
+        {
+          "order": 3,
+          "name": "砂质泥岩",
+          "thickness": 2.74,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 19.6458,
+          "cumulativeDepth": 145.44
+        },
+        {
+          "order": 2,
+          "name": "粗粒砂岩",
+          "thickness": 17.02,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 3.075,
+          "mechanicalIndex": 195.5598,
+          "cumulativeDepth": 162.46
+        },
+        {
+          "order": 1,
+          "name": "砂质泥岩",
+          "thickness": 1.96,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 14.0532,
+          "cumulativeDepth": 164.42
+        },
+        {
+          "order": 0,
+          "name": "6煤",
+          "thickness": 14.82,
+          "elasticModulus": 2.72,
+          "density": 1410.0,
+          "tensileStrength": 0.83,
+          "mechanicalIndex": 40.3104,
+          "cumulativeDepth": 179.24
+        }
+      ],
+      "keyStrataCandidates": [
+        {
+          "order": 5,
+          "name": "中粒砂岩",
+          "thickness": 20.92,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 418.4,
+          "cumulativeDepth": 139.38
+        },
+        {
+          "order": 2,
+          "name": "粗粒砂岩",
+          "thickness": 17.02,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 3.075,
+          "mechanicalIndex": 195.5598,
+          "cumulativeDepth": 162.46
+        },
+        {
+          "order": 10,
+          "name": "中粒砂岩",
+          "thickness": 3.69,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 73.8,
+          "cumulativeDepth": 105.84
+        },
+        {
+          "order": 11,
+          "name": "黄土",
+          "thickness": 102.15,
+          "elasticModulus": 0.54,
+          "density": 1800.0,
+          "tensileStrength": 0.0,
+          "mechanicalIndex": 55.161,
+          "cumulativeDepth": 102.15
+        },
+        {
+          "order": 0,
+          "name": "6煤",
+          "thickness": 14.82,
+          "elasticModulus": 2.72,
+          "density": 1410.0,
+          "tensileStrength": 0.83,
+          "mechanicalIndex": 40.3104,
+          "cumulativeDepth": 179.24
+        }
+      ]
+    },
+    {
+      "id": "BK-42",
+      "coordinate": {
+        "x": 523531.75,
+        "y": 4370958.11
+      },
+      "totalThickness": 123.49,
+      "coalLayerCount": 1,
+      "coalThickness": 5.35,
+      "layers": [
+        {
+          "order": 6,
+          "name": "黄土",
+          "thickness": 74.88,
+          "elasticModulus": 0.54,
+          "density": 1800.0,
+          "tensileStrength": 0.0,
+          "mechanicalIndex": 40.4352,
+          "cumulativeDepth": 74.88
+        },
+        {
+          "order": 5,
+          "name": "含砾中砂岩",
+          "thickness": 12.42,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 248.4,
+          "cumulativeDepth": 87.3
+        },
+        {
+          "order": 4,
+          "name": "高岭质泥岩",
+          "thickness": 11.35,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.04,
+          "mechanicalIndex": 81.3795,
+          "cumulativeDepth": 98.65
+        },
+        {
+          "order": 3,
+          "name": "中粒砂岩",
+          "thickness": 11.15,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 223.0,
+          "cumulativeDepth": 109.8
+        },
+        {
+          "order": 2,
+          "name": "含砾中砂岩",
+          "thickness": 2.3,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 46.0,
+          "cumulativeDepth": 112.1
+        },
+        {
+          "order": 1,
+          "name": "砂质泥岩",
+          "thickness": 6.04,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 43.3068,
+          "cumulativeDepth": 118.14
+        },
+        {
+          "order": 0,
+          "name": "6-1煤",
+          "thickness": 5.35,
+          "elasticModulus": 2.72,
+          "density": 1410.0,
+          "tensileStrength": 0.83,
+          "mechanicalIndex": 14.552,
+          "cumulativeDepth": 123.49
+        }
+      ],
+      "keyStrataCandidates": [
+        {
+          "order": 5,
+          "name": "含砾中砂岩",
+          "thickness": 12.42,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 248.4,
+          "cumulativeDepth": 87.3
+        },
+        {
+          "order": 3,
+          "name": "中粒砂岩",
+          "thickness": 11.15,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 223.0,
+          "cumulativeDepth": 109.8
+        },
+        {
+          "order": 4,
+          "name": "高岭质泥岩",
+          "thickness": 11.35,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.04,
+          "mechanicalIndex": 81.3795,
+          "cumulativeDepth": 98.65
+        },
+        {
+          "order": 2,
+          "name": "含砾中砂岩",
+          "thickness": 2.3,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 46.0,
+          "cumulativeDepth": 112.1
+        },
+        {
+          "order": 1,
+          "name": "砂质泥岩",
+          "thickness": 6.04,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 43.3068,
+          "cumulativeDepth": 118.14
+        }
+      ]
+    },
+    {
+      "id": "BK-43",
+      "coordinate": {
+        "x": 523802.0,
+        "y": 4370926.0
+      },
+      "totalThickness": 152.42,
+      "coalLayerCount": 1,
+      "coalThickness": 8.88,
+      "layers": [
+        {
+          "order": 7,
+          "name": "黄土",
+          "thickness": 94.5,
+          "elasticModulus": 0.54,
+          "density": 1800.0,
+          "tensileStrength": 0.0,
+          "mechanicalIndex": 51.03,
+          "cumulativeDepth": 94.5
+        },
+        {
+          "order": 6,
+          "name": "含砾中砂岩",
+          "thickness": 14.2,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 284.0,
+          "cumulativeDepth": 108.7
+        },
+        {
+          "order": 5,
+          "name": "中粒砂岩",
+          "thickness": 4.03,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 80.6,
+          "cumulativeDepth": 112.73
+        },
+        {
+          "order": 4,
+          "name": "高岭质泥岩",
+          "thickness": 6.68,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.04,
+          "mechanicalIndex": 47.8956,
+          "cumulativeDepth": 119.41
+        },
+        {
+          "order": 3,
+          "name": "中粒砂岩",
+          "thickness": 16.53,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 330.6,
+          "cumulativeDepth": 135.94
+        },
+        {
+          "order": 2,
+          "name": "细粒砂岩",
+          "thickness": 4.28,
+          "elasticModulus": 9.54,
+          "density": 2830.0,
+          "tensileStrength": 2.05,
+          "mechanicalIndex": 40.8312,
+          "cumulativeDepth": 140.22
+        },
+        {
+          "order": 1,
+          "name": "砂质泥岩",
+          "thickness": 3.32,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 23.8044,
+          "cumulativeDepth": 143.54
+        },
+        {
+          "order": 0,
+          "name": "6-1煤",
+          "thickness": 8.88,
+          "elasticModulus": 2.72,
+          "density": 1410.0,
+          "tensileStrength": 0.83,
+          "mechanicalIndex": 24.1536,
+          "cumulativeDepth": 152.42
+        }
+      ],
+      "keyStrataCandidates": [
+        {
+          "order": 3,
+          "name": "中粒砂岩",
+          "thickness": 16.53,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 330.6,
+          "cumulativeDepth": 135.94
+        },
+        {
+          "order": 6,
+          "name": "含砾中砂岩",
+          "thickness": 14.2,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 284.0,
+          "cumulativeDepth": 108.7
+        },
+        {
+          "order": 5,
+          "name": "中粒砂岩",
+          "thickness": 4.03,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 80.6,
+          "cumulativeDepth": 112.73
+        },
+        {
+          "order": 7,
+          "name": "黄土",
+          "thickness": 94.5,
+          "elasticModulus": 0.54,
+          "density": 1800.0,
+          "tensileStrength": 0.0,
+          "mechanicalIndex": 51.03,
+          "cumulativeDepth": 94.5
+        },
+        {
+          "order": 4,
+          "name": "高岭质泥岩",
+          "thickness": 6.68,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.04,
+          "mechanicalIndex": 47.8956,
+          "cumulativeDepth": 119.41
+        }
+      ]
+    },
+    {
+      "id": "BK-5",
+      "coordinate": {
+        "x": 524311.42,
+        "y": 4371281.15
+      },
+      "totalThickness": 204.05,
+      "coalLayerCount": 3,
+      "coalThickness": 17.68,
+      "layers": [
+        {
+          "order": 17,
+          "name": "黄土",
+          "thickness": 116.99,
+          "elasticModulus": 0.54,
+          "density": 1800.0,
+          "tensileStrength": 0.0,
+          "mechanicalIndex": 63.1746,
+          "cumulativeDepth": 116.99
+        },
+        {
+          "order": 16,
+          "name": "高岭岩",
+          "thickness": 5.38,
+          "elasticModulus": 2.95,
+          "density": 2550.0,
+          "tensileStrength": 1.05,
+          "mechanicalIndex": 15.871,
+          "cumulativeDepth": 122.37
+        },
+        {
+          "order": 15,
+          "name": "细粒砂岩",
+          "thickness": 3.04,
+          "elasticModulus": 9.54,
+          "density": 2830.0,
+          "tensileStrength": 2.05,
+          "mechanicalIndex": 29.0016,
+          "cumulativeDepth": 125.41
+        },
+        {
+          "order": 14,
+          "name": "含砾粗砂岩",
+          "thickness": 1.74,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 1.44,
+          "mechanicalIndex": 19.9926,
+          "cumulativeDepth": 127.15
+        },
+        {
+          "order": 13,
+          "name": "高岭岩",
+          "thickness": 5.36,
+          "elasticModulus": 2.95,
+          "density": 2550.0,
+          "tensileStrength": 1.05,
+          "mechanicalIndex": 15.812,
+          "cumulativeDepth": 132.51
+        },
+        {
+          "order": 12,
+          "name": "中粒砂岩",
+          "thickness": 1.24,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 24.8,
+          "cumulativeDepth": 133.75
+        },
+        {
+          "order": 11,
+          "name": "高岭岩",
+          "thickness": 3.77,
+          "elasticModulus": 2.95,
+          "density": 2550.0,
+          "tensileStrength": 1.05,
+          "mechanicalIndex": 11.1215,
+          "cumulativeDepth": 137.52
+        },
+        {
+          "order": 10,
+          "name": "粗粒砂岩",
+          "thickness": 4.81,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 3.075,
+          "mechanicalIndex": 55.2669,
+          "cumulativeDepth": 142.33
+        },
+        {
+          "order": 9,
+          "name": "风化煤",
+          "thickness": 6.82,
+          "elasticModulus": 2.72,
+          "density": 1410.0,
+          "tensileStrength": 0.83,
+          "mechanicalIndex": 18.5504,
+          "cumulativeDepth": 149.15
+        },
+        {
+          "order": 8,
+          "name": "粉砂岩",
+          "thickness": 3.73,
+          "elasticModulus": 10.2,
+          "density": 2590.0,
+          "tensileStrength": 2.6,
+          "mechanicalIndex": 38.046,
+          "cumulativeDepth": 152.88
+        },
+        {
+          "order": 7,
+          "name": "粗粒砂岩",
+          "thickness": 7.87,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 3.075,
+          "mechanicalIndex": 90.4263,
+          "cumulativeDepth": 160.75
+        },
+        {
+          "order": 6,
+          "name": "含砾粗砂岩",
+          "thickness": 15.15,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 1.44,
+          "mechanicalIndex": 174.0735,
+          "cumulativeDepth": 175.9
+        },
+        {
+          "order": 5,
+          "name": "5煤",
+          "thickness": 3.55,
+          "elasticModulus": 2.72,
+          "density": 1410.0,
+          "tensileStrength": 0.83,
+          "mechanicalIndex": 9.656,
+          "cumulativeDepth": 179.45
+        },
+        {
+          "order": 4,
+          "name": "高岭岩",
+          "thickness": 3.14,
+          "elasticModulus": 2.95,
+          "density": 2550.0,
+          "tensileStrength": 1.05,
+          "mechanicalIndex": 9.263,
+          "cumulativeDepth": 182.59
+        },
+        {
+          "order": 3,
+          "name": "中粒砂岩",
+          "thickness": 8.66,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 173.2,
+          "cumulativeDepth": 191.25
+        },
+        {
+          "order": 2,
+          "name": "粗粒砂岩",
+          "thickness": 3.25,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 3.075,
+          "mechanicalIndex": 37.3425,
+          "cumulativeDepth": 194.5
+        },
+        {
+          "order": 1,
+          "name": "砂质泥岩",
+          "thickness": 2.24,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 16.0608,
+          "cumulativeDepth": 196.74
+        },
+        {
+          "order": 0,
+          "name": "6-1煤",
+          "thickness": 7.31,
+          "elasticModulus": 2.72,
+          "density": 1410.0,
+          "tensileStrength": 0.83,
+          "mechanicalIndex": 19.8832,
+          "cumulativeDepth": 204.05
+        }
+      ],
+      "keyStrataCandidates": [
+        {
+          "order": 6,
+          "name": "含砾粗砂岩",
+          "thickness": 15.15,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 1.44,
+          "mechanicalIndex": 174.0735,
+          "cumulativeDepth": 175.9
+        },
+        {
+          "order": 3,
+          "name": "中粒砂岩",
+          "thickness": 8.66,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 173.2,
+          "cumulativeDepth": 191.25
+        },
+        {
+          "order": 7,
+          "name": "粗粒砂岩",
+          "thickness": 7.87,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 3.075,
+          "mechanicalIndex": 90.4263,
+          "cumulativeDepth": 160.75
+        },
+        {
+          "order": 17,
+          "name": "黄土",
+          "thickness": 116.99,
+          "elasticModulus": 0.54,
+          "density": 1800.0,
+          "tensileStrength": 0.0,
+          "mechanicalIndex": 63.1746,
+          "cumulativeDepth": 116.99
+        },
+        {
+          "order": 10,
+          "name": "粗粒砂岩",
+          "thickness": 4.81,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 3.075,
+          "mechanicalIndex": 55.2669,
+          "cumulativeDepth": 142.33
+        }
+      ]
+    },
+    {
+      "id": "BK-60",
+      "coordinate": {
+        "x": 523253.25,
+        "y": 4371251.74
+      },
+      "totalThickness": 180.06,
+      "coalLayerCount": 1,
+      "coalThickness": 13.16,
+      "layers": [
+        {
+          "order": 7,
+          "name": "黄土",
+          "thickness": 103.0,
+          "elasticModulus": 0.54,
+          "density": 1800.0,
+          "tensileStrength": 0.0,
+          "mechanicalIndex": 55.62,
+          "cumulativeDepth": 103.0
+        },
+        {
+          "order": 6,
+          "name": "砂质泥岩",
+          "thickness": 13.56,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 97.2252,
+          "cumulativeDepth": 116.56
+        },
+        {
+          "order": 5,
+          "name": "砂质泥岩",
+          "thickness": 4.73,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 33.9141,
+          "cumulativeDepth": 121.29
+        },
+        {
+          "order": 4,
+          "name": "细粒砂岩",
+          "thickness": 18.15,
+          "elasticModulus": 9.54,
+          "density": 2830.0,
+          "tensileStrength": 2.05,
+          "mechanicalIndex": 173.151,
+          "cumulativeDepth": 139.44
+        },
+        {
+          "order": 3,
+          "name": "砂质泥岩",
+          "thickness": 4.7,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 33.699,
+          "cumulativeDepth": 144.14
+        },
+        {
+          "order": 2,
+          "name": "中粒砂岩",
+          "thickness": 18.72,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 374.4,
+          "cumulativeDepth": 162.86
+        },
+        {
+          "order": 1,
+          "name": "砂质泥岩",
+          "thickness": 4.04,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 28.9668,
+          "cumulativeDepth": 166.9
+        },
+        {
+          "order": 0,
+          "name": "6煤",
+          "thickness": 13.16,
+          "elasticModulus": 2.72,
+          "density": 1410.0,
+          "tensileStrength": 0.83,
+          "mechanicalIndex": 35.7952,
+          "cumulativeDepth": 180.06
+        }
+      ],
+      "keyStrataCandidates": [
+        {
+          "order": 2,
+          "name": "中粒砂岩",
+          "thickness": 18.72,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 374.4,
+          "cumulativeDepth": 162.86
+        },
+        {
+          "order": 4,
+          "name": "细粒砂岩",
+          "thickness": 18.15,
+          "elasticModulus": 9.54,
+          "density": 2830.0,
+          "tensileStrength": 2.05,
+          "mechanicalIndex": 173.151,
+          "cumulativeDepth": 139.44
+        },
+        {
+          "order": 6,
+          "name": "砂质泥岩",
+          "thickness": 13.56,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 97.2252,
+          "cumulativeDepth": 116.56
+        },
+        {
+          "order": 7,
+          "name": "黄土",
+          "thickness": 103.0,
+          "elasticModulus": 0.54,
+          "density": 1800.0,
+          "tensileStrength": 0.0,
+          "mechanicalIndex": 55.62,
+          "cumulativeDepth": 103.0
+        },
+        {
+          "order": 0,
+          "name": "6煤",
+          "thickness": 13.16,
+          "elasticModulus": 2.72,
+          "density": 1410.0,
+          "tensileStrength": 0.83,
+          "mechanicalIndex": 35.7952,
+          "cumulativeDepth": 180.06
+        }
+      ]
+    },
+    {
+      "id": "BK-61",
+      "coordinate": {
+        "x": 523543.62,
+        "y": 4371270.06
+      },
+      "totalThickness": 210.0,
+      "coalLayerCount": 3,
+      "coalThickness": 16.82,
+      "layers": [
+        {
+          "order": 11,
+          "name": "黄土",
+          "thickness": 112.17,
+          "elasticModulus": 0.54,
+          "density": 1800.0,
+          "tensileStrength": 0.0,
+          "mechanicalIndex": 60.5718,
+          "cumulativeDepth": 112.17
+        },
+        {
+          "order": 10,
+          "name": "砂质泥岩",
+          "thickness": 7.52,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 53.9184,
+          "cumulativeDepth": 119.69
+        },
+        {
+          "order": 9,
+          "name": "砂质泥岩",
+          "thickness": 13.01,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 93.2817,
+          "cumulativeDepth": 132.7
+        },
+        {
+          "order": 8,
+          "name": "粉砂岩",
+          "thickness": 3.21,
+          "elasticModulus": 10.2,
+          "density": 2590.0,
+          "tensileStrength": 2.6,
+          "mechanicalIndex": 32.742,
+          "cumulativeDepth": 135.91
+        },
+        {
+          "order": 7,
+          "name": "粗粒砂岩",
+          "thickness": 6.7,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 3.075,
+          "mechanicalIndex": 76.983,
+          "cumulativeDepth": 142.61
+        },
+        {
+          "order": 6,
+          "name": "含砾粗砂岩",
+          "thickness": 12.09,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 1.44,
+          "mechanicalIndex": 138.9141,
+          "cumulativeDepth": 154.7
+        },
+        {
+          "order": 5,
+          "name": "泥岩",
+          "thickness": 1.8,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 12.906,
+          "cumulativeDepth": 156.5
+        },
+        {
+          "order": 4,
+          "name": "中粒砂岩",
+          "thickness": 29.02,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 580.4,
+          "cumulativeDepth": 185.52
+        },
+        {
+          "order": 3,
+          "name": "5煤",
+          "thickness": 9.4,
+          "elasticModulus": 2.72,
+          "density": 1410.0,
+          "tensileStrength": 0.83,
+          "mechanicalIndex": 25.568,
+          "cumulativeDepth": 194.92
+        },
+        {
+          "order": 2,
+          "name": "砂质泥岩",
+          "thickness": 7.66,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 54.9222,
+          "cumulativeDepth": 202.58
+        },
+        {
+          "order": 1,
+          "name": "风化煤",
+          "thickness": 1.89,
+          "elasticModulus": 2.72,
+          "density": 1410.0,
+          "tensileStrength": 0.83,
+          "mechanicalIndex": 5.1408,
+          "cumulativeDepth": 204.47
+        },
+        {
+          "order": 0,
+          "name": "6煤",
+          "thickness": 5.53,
+          "elasticModulus": 2.72,
+          "density": 1410.0,
+          "tensileStrength": 0.83,
+          "mechanicalIndex": 15.0416,
+          "cumulativeDepth": 210.0
+        }
+      ],
+      "keyStrataCandidates": [
+        {
+          "order": 4,
+          "name": "中粒砂岩",
+          "thickness": 29.02,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 580.4,
+          "cumulativeDepth": 185.52
+        },
+        {
+          "order": 6,
+          "name": "含砾粗砂岩",
+          "thickness": 12.09,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 1.44,
+          "mechanicalIndex": 138.9141,
+          "cumulativeDepth": 154.7
+        },
+        {
+          "order": 9,
+          "name": "砂质泥岩",
+          "thickness": 13.01,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 93.2817,
+          "cumulativeDepth": 132.7
+        },
+        {
+          "order": 7,
+          "name": "粗粒砂岩",
+          "thickness": 6.7,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 3.075,
+          "mechanicalIndex": 76.983,
+          "cumulativeDepth": 142.61
+        },
+        {
+          "order": 11,
+          "name": "黄土",
+          "thickness": 112.17,
+          "elasticModulus": 0.54,
+          "density": 1800.0,
+          "tensileStrength": 0.0,
+          "mechanicalIndex": 60.5718,
+          "cumulativeDepth": 112.17
+        }
+      ]
+    },
+    {
+      "id": "BK-62",
+      "coordinate": {
+        "x": 523051.371,
+        "y": 4371304.118
+      },
+      "totalThickness": 164.61,
+      "coalLayerCount": 1,
+      "coalThickness": 16.09,
+      "layers": [
+        {
+          "order": 12,
+          "name": "黄土",
+          "thickness": 83.0,
+          "elasticModulus": 0.54,
+          "density": 1800.0,
+          "tensileStrength": 0.0,
+          "mechanicalIndex": 44.82,
+          "cumulativeDepth": 83.0
+        },
+        {
+          "order": 11,
+          "name": "砂质泥岩",
+          "thickness": 1.15,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 8.2455,
+          "cumulativeDepth": 84.15
+        },
+        {
+          "order": 10,
+          "name": "中粒砂岩",
+          "thickness": 3.28,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 65.6,
+          "cumulativeDepth": 87.43
+        },
+        {
+          "order": 9,
+          "name": "砂质泥岩",
+          "thickness": 4.7,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 33.699,
+          "cumulativeDepth": 92.13
+        },
+        {
+          "order": 8,
+          "name": "粗粒砂岩",
+          "thickness": 5.37,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 3.075,
+          "mechanicalIndex": 61.7013,
+          "cumulativeDepth": 97.5
+        },
+        {
+          "order": 7,
+          "name": "粉砂岩",
+          "thickness": 3.98,
+          "elasticModulus": 10.2,
+          "density": 2590.0,
+          "tensileStrength": 2.6,
+          "mechanicalIndex": 40.596,
+          "cumulativeDepth": 101.48
+        },
+        {
+          "order": 6,
+          "name": "粗粒砂岩",
+          "thickness": 18.65,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 3.075,
+          "mechanicalIndex": 214.2885,
+          "cumulativeDepth": 120.13
+        },
+        {
+          "order": 5,
+          "name": "砂质泥岩",
+          "thickness": 9.64,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 69.1188,
+          "cumulativeDepth": 129.77
+        },
+        {
+          "order": 4,
+          "name": "中粒砂岩",
+          "thickness": 5.25,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 105.0,
+          "cumulativeDepth": 135.02
+        },
+        {
+          "order": 3,
+          "name": "粉砂岩",
+          "thickness": 4.44,
+          "elasticModulus": 10.2,
+          "density": 2590.0,
+          "tensileStrength": 2.6,
+          "mechanicalIndex": 45.288,
+          "cumulativeDepth": 139.46
+        },
+        {
+          "order": 2,
+          "name": "细粒砂岩",
+          "thickness": 5.34,
+          "elasticModulus": 9.54,
+          "density": 2830.0,
+          "tensileStrength": 2.05,
+          "mechanicalIndex": 50.9436,
+          "cumulativeDepth": 144.8
+        },
+        {
+          "order": 1,
+          "name": "砂质泥岩",
+          "thickness": 3.72,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 26.6724,
+          "cumulativeDepth": 148.52
+        },
+        {
+          "order": 0,
+          "name": "6煤",
+          "thickness": 16.09,
+          "elasticModulus": 2.72,
+          "density": 1410.0,
+          "tensileStrength": 0.83,
+          "mechanicalIndex": 43.7648,
+          "cumulativeDepth": 164.61
+        }
+      ],
+      "keyStrataCandidates": [
+        {
+          "order": 6,
+          "name": "粗粒砂岩",
+          "thickness": 18.65,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 3.075,
+          "mechanicalIndex": 214.2885,
+          "cumulativeDepth": 120.13
+        },
+        {
+          "order": 4,
+          "name": "中粒砂岩",
+          "thickness": 5.25,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 105.0,
+          "cumulativeDepth": 135.02
+        },
+        {
+          "order": 5,
+          "name": "砂质泥岩",
+          "thickness": 9.64,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 69.1188,
+          "cumulativeDepth": 129.77
+        },
+        {
+          "order": 10,
+          "name": "中粒砂岩",
+          "thickness": 3.28,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 65.6,
+          "cumulativeDepth": 87.43
+        },
+        {
+          "order": 8,
+          "name": "粗粒砂岩",
+          "thickness": 5.37,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 3.075,
+          "mechanicalIndex": 61.7013,
+          "cumulativeDepth": 97.5
+        }
+      ]
+    },
+    {
+      "id": "BK-63",
+      "coordinate": {
+        "x": 523430.13,
+        "y": 4371287.14
+      },
+      "totalThickness": 169.3,
+      "coalLayerCount": 1,
+      "coalThickness": 14.8,
+      "layers": [
+        {
+          "order": 7,
+          "name": "黄土",
+          "thickness": 91.5,
+          "elasticModulus": 0.54,
+          "density": 1800.0,
+          "tensileStrength": 0.0,
+          "mechanicalIndex": 49.41,
+          "cumulativeDepth": 91.5
+        },
+        {
+          "order": 6,
+          "name": "砂质泥岩",
+          "thickness": 9.71,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 69.6207,
+          "cumulativeDepth": 101.21
+        },
+        {
+          "order": 5,
+          "name": "砂质泥岩",
+          "thickness": 12.09,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 86.6853,
+          "cumulativeDepth": 113.3
+        },
+        {
+          "order": 4,
+          "name": "细粒砂岩",
+          "thickness": 11.32,
+          "elasticModulus": 9.54,
+          "density": 2830.0,
+          "tensileStrength": 2.05,
+          "mechanicalIndex": 107.9928,
+          "cumulativeDepth": 124.62
+        },
+        {
+          "order": 3,
+          "name": "砂质泥岩",
+          "thickness": 9.31,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 66.7527,
+          "cumulativeDepth": 133.93
+        },
+        {
+          "order": 2,
+          "name": "中粒砂岩",
+          "thickness": 16.27,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 325.4,
+          "cumulativeDepth": 150.2
+        },
+        {
+          "order": 1,
+          "name": "砂质泥岩",
+          "thickness": 4.3,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 30.831,
+          "cumulativeDepth": 154.5
+        },
+        {
+          "order": 0,
+          "name": "6煤",
+          "thickness": 14.8,
+          "elasticModulus": 2.72,
+          "density": 1410.0,
+          "tensileStrength": 0.83,
+          "mechanicalIndex": 40.256,
+          "cumulativeDepth": 169.3
+        }
+      ],
+      "keyStrataCandidates": [
+        {
+          "order": 2,
+          "name": "中粒砂岩",
+          "thickness": 16.27,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 325.4,
+          "cumulativeDepth": 150.2
+        },
+        {
+          "order": 4,
+          "name": "细粒砂岩",
+          "thickness": 11.32,
+          "elasticModulus": 9.54,
+          "density": 2830.0,
+          "tensileStrength": 2.05,
+          "mechanicalIndex": 107.9928,
+          "cumulativeDepth": 124.62
+        },
+        {
+          "order": 5,
+          "name": "砂质泥岩",
+          "thickness": 12.09,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 86.6853,
+          "cumulativeDepth": 113.3
+        },
+        {
+          "order": 6,
+          "name": "砂质泥岩",
+          "thickness": 9.71,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 69.6207,
+          "cumulativeDepth": 101.21
+        },
+        {
+          "order": 3,
+          "name": "砂质泥岩",
+          "thickness": 9.31,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 66.7527,
+          "cumulativeDepth": 133.93
+        }
+      ]
+    },
+    {
+      "id": "BK-7",
+      "coordinate": {
+        "x": 523130.55,
+        "y": 4371061.01
+      },
+      "totalThickness": 219.35,
+      "coalLayerCount": 3,
+      "coalThickness": 18.49,
+      "layers": [
+        {
+          "order": 24,
+          "name": "黄土",
+          "thickness": 95.79,
+          "elasticModulus": 0.54,
+          "density": 1800.0,
+          "tensileStrength": 0.0,
+          "mechanicalIndex": 51.7266,
+          "cumulativeDepth": 95.79
+        },
+        {
+          "order": 23,
+          "name": "粗粒砂岩",
+          "thickness": 10.2,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 3.075,
+          "mechanicalIndex": 117.198,
+          "cumulativeDepth": 105.99
+        },
+        {
+          "order": 22,
+          "name": "砂质泥岩",
+          "thickness": 7.65,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 54.8505,
+          "cumulativeDepth": 113.64
+        },
+        {
+          "order": 21,
+          "name": "中粒砂岩",
+          "thickness": 4.37,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 87.4,
+          "cumulativeDepth": 118.01
+        },
+        {
+          "order": 20,
+          "name": "砂质泥岩",
+          "thickness": 3.42,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 24.5214,
+          "cumulativeDepth": 121.43
+        },
+        {
+          "order": 19,
+          "name": "粗粒砂岩",
+          "thickness": 4.36,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 3.075,
+          "mechanicalIndex": 50.0964,
+          "cumulativeDepth": 125.79
+        },
+        {
+          "order": 18,
+          "name": "砂质泥岩",
+          "thickness": 1.41,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 10.1097,
+          "cumulativeDepth": 127.2
+        },
+        {
+          "order": 17,
+          "name": "中粒砂岩",
+          "thickness": 3.72,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 74.4,
+          "cumulativeDepth": 130.92
+        },
+        {
+          "order": 16,
+          "name": "粉砂岩",
+          "thickness": 3.1,
+          "elasticModulus": 10.2,
+          "density": 2590.0,
+          "tensileStrength": 2.6,
+          "mechanicalIndex": 31.62,
+          "cumulativeDepth": 134.02
+        },
+        {
+          "order": 15,
+          "name": "粗粒砂岩",
+          "thickness": 8.92,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 3.075,
+          "mechanicalIndex": 102.4908,
+          "cumulativeDepth": 142.94
+        },
+        {
+          "order": 14,
+          "name": "砂质泥岩",
+          "thickness": 4.26,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 30.5442,
+          "cumulativeDepth": 147.2
+        },
+        {
+          "order": 13,
+          "name": "粉砂岩",
+          "thickness": 0.91,
+          "elasticModulus": 10.2,
+          "density": 2590.0,
+          "tensileStrength": 2.6,
+          "mechanicalIndex": 9.282,
+          "cumulativeDepth": 148.11
+        },
+        {
+          "order": 12,
+          "name": "含砾粗粒砂岩",
+          "thickness": 6.24,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 1.44,
+          "mechanicalIndex": 71.6976,
+          "cumulativeDepth": 154.35
+        },
+        {
+          "order": 11,
+          "name": "粉砂岩",
+          "thickness": 3.54,
+          "elasticModulus": 10.2,
+          "density": 2590.0,
+          "tensileStrength": 2.6,
+          "mechanicalIndex": 36.108,
+          "cumulativeDepth": 157.89
+        },
+        {
+          "order": 10,
+          "name": "4煤",
+          "thickness": 7.82,
+          "elasticModulus": 2.72,
+          "density": 1410.0,
+          "tensileStrength": 0.83,
+          "mechanicalIndex": 21.2704,
+          "cumulativeDepth": 165.71
+        },
+        {
+          "order": 9,
+          "name": "粉砂岩",
+          "thickness": 1.27,
+          "elasticModulus": 10.2,
+          "density": 2590.0,
+          "tensileStrength": 2.6,
+          "mechanicalIndex": 12.954,
+          "cumulativeDepth": 166.98
+        },
+        {
+          "order": 8,
+          "name": "含砾粗粒砂岩",
+          "thickness": 11.48,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 1.44,
+          "mechanicalIndex": 131.9052,
+          "cumulativeDepth": 178.46
+        },
+        {
+          "order": 7,
+          "name": "砂质泥岩",
+          "thickness": 5.94,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 42.5898,
+          "cumulativeDepth": 184.4
+        },
+        {
+          "order": 6,
+          "name": "粉砂岩",
+          "thickness": 4.1,
+          "elasticModulus": 10.2,
+          "density": 2590.0,
+          "tensileStrength": 2.6,
+          "mechanicalIndex": 41.82,
+          "cumulativeDepth": 188.5
+        },
+        {
+          "order": 5,
+          "name": "5煤",
+          "thickness": 3.77,
+          "elasticModulus": 2.72,
+          "density": 1410.0,
+          "tensileStrength": 0.83,
+          "mechanicalIndex": 10.2544,
+          "cumulativeDepth": 192.27
+        },
+        {
+          "order": 4,
+          "name": "砂质泥岩",
+          "thickness": 1.34,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 9.6078,
+          "cumulativeDepth": 193.61
+        },
+        {
+          "order": 3,
+          "name": "粗粒砂岩",
+          "thickness": 14.1,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 3.075,
+          "mechanicalIndex": 162.009,
+          "cumulativeDepth": 207.71
+        },
+        {
+          "order": 2,
+          "name": "含砾粗粒砂岩",
+          "thickness": 2.92,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 1.44,
+          "mechanicalIndex": 33.5508,
+          "cumulativeDepth": 210.63
+        },
+        {
+          "order": 1,
+          "name": "砂质泥岩",
+          "thickness": 1.82,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 13.0494,
+          "cumulativeDepth": 212.45
+        },
+        {
+          "order": 0,
+          "name": "6-1煤",
+          "thickness": 6.9,
+          "elasticModulus": 2.72,
+          "density": 1410.0,
+          "tensileStrength": 0.83,
+          "mechanicalIndex": 18.768,
+          "cumulativeDepth": 219.35
+        }
+      ],
+      "keyStrataCandidates": [
+        {
+          "order": 3,
+          "name": "粗粒砂岩",
+          "thickness": 14.1,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 3.075,
+          "mechanicalIndex": 162.009,
+          "cumulativeDepth": 207.71
+        },
+        {
+          "order": 8,
+          "name": "含砾粗粒砂岩",
+          "thickness": 11.48,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 1.44,
+          "mechanicalIndex": 131.9052,
+          "cumulativeDepth": 178.46
+        },
+        {
+          "order": 23,
+          "name": "粗粒砂岩",
+          "thickness": 10.2,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 3.075,
+          "mechanicalIndex": 117.198,
+          "cumulativeDepth": 105.99
+        },
+        {
+          "order": 15,
+          "name": "粗粒砂岩",
+          "thickness": 8.92,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 3.075,
+          "mechanicalIndex": 102.4908,
+          "cumulativeDepth": 142.94
+        },
+        {
+          "order": 21,
+          "name": "中粒砂岩",
+          "thickness": 4.37,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 87.4,
+          "cumulativeDepth": 118.01
+        }
+      ]
+    },
+    {
+      "id": "BK-9",
+      "coordinate": {
+        "x": 523156.19,
+        "y": 4371080.11
+      },
+      "totalThickness": 166.56,
+      "coalLayerCount": 2,
+      "coalThickness": 14.44,
+      "layers": [
+        {
+          "order": 15,
+          "name": "黄土",
+          "thickness": 84.37,
+          "elasticModulus": 0.54,
+          "density": 1800.0,
+          "tensileStrength": 0.0,
+          "mechanicalIndex": 45.5598,
+          "cumulativeDepth": 84.37
+        },
+        {
+          "order": 14,
+          "name": "砂质泥岩",
+          "thickness": 2.34,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 16.7778,
+          "cumulativeDepth": 86.71
+        },
+        {
+          "order": 13,
+          "name": "粗粒砂岩",
+          "thickness": 6.81,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 3.075,
+          "mechanicalIndex": 78.2469,
+          "cumulativeDepth": 93.52
+        },
+        {
+          "order": 12,
+          "name": "砂质泥岩",
+          "thickness": 4.75,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 34.0575,
+          "cumulativeDepth": 98.27
+        },
+        {
+          "order": 11,
+          "name": "中粒砂岩",
+          "thickness": 2.9,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 58.0,
+          "cumulativeDepth": 101.17
+        },
+        {
+          "order": 10,
+          "name": "含砾粗砂岩",
+          "thickness": 5.93,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 1.44,
+          "mechanicalIndex": 68.1357,
+          "cumulativeDepth": 107.1
+        },
+        {
+          "order": 9,
+          "name": "粗粒砂岩",
+          "thickness": 10.73,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 3.075,
+          "mechanicalIndex": 123.2877,
+          "cumulativeDepth": 117.83
+        },
+        {
+          "order": 8,
+          "name": "中粒砂岩",
+          "thickness": 2.94,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 58.8,
+          "cumulativeDepth": 120.77
+        },
+        {
+          "order": 7,
+          "name": "砂质泥岩",
+          "thickness": 4.05,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 29.0385,
+          "cumulativeDepth": 124.82
+        },
+        {
+          "order": 6,
+          "name": "中粒砂岩",
+          "thickness": 8.78,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 175.6,
+          "cumulativeDepth": 133.6
+        },
+        {
+          "order": 5,
+          "name": "粗粒砂岩",
+          "thickness": 12.2,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 3.075,
+          "mechanicalIndex": 140.178,
+          "cumulativeDepth": 145.8
+        },
+        {
+          "order": 4,
+          "name": "中粒砂岩",
+          "thickness": 3.69,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 73.8,
+          "cumulativeDepth": 149.49
+        },
+        {
+          "order": 3,
+          "name": "砂质泥岩",
+          "thickness": 1.0,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 7.17,
+          "cumulativeDepth": 150.49
+        },
+        {
+          "order": 2,
+          "name": "泥岩",
+          "thickness": 1.63,
+          "elasticModulus": 7.17,
+          "density": 2680.0,
+          "tensileStrength": 1.32,
+          "mechanicalIndex": 11.6871,
+          "cumulativeDepth": 152.12
+        },
+        {
+          "order": 1,
+          "name": "风化煤",
+          "thickness": 2.29,
+          "elasticModulus": 2.72,
+          "density": 1410.0,
+          "tensileStrength": 0.83,
+          "mechanicalIndex": 6.2288,
+          "cumulativeDepth": 154.41
+        },
+        {
+          "order": 0,
+          "name": "6煤",
+          "thickness": 12.15,
+          "elasticModulus": 2.72,
+          "density": 1410.0,
+          "tensileStrength": 0.83,
+          "mechanicalIndex": 33.048,
+          "cumulativeDepth": 166.56
+        }
+      ],
+      "keyStrataCandidates": [
+        {
+          "order": 6,
+          "name": "中粒砂岩",
+          "thickness": 8.78,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 175.6,
+          "cumulativeDepth": 133.6
+        },
+        {
+          "order": 5,
+          "name": "粗粒砂岩",
+          "thickness": 12.2,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 3.075,
+          "mechanicalIndex": 140.178,
+          "cumulativeDepth": 145.8
+        },
+        {
+          "order": 9,
+          "name": "粗粒砂岩",
+          "thickness": 10.73,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 3.075,
+          "mechanicalIndex": 123.2877,
+          "cumulativeDepth": 117.83
+        },
+        {
+          "order": 13,
+          "name": "粗粒砂岩",
+          "thickness": 6.81,
+          "elasticModulus": 11.49,
+          "density": 2780.0,
+          "tensileStrength": 3.075,
+          "mechanicalIndex": 78.2469,
+          "cumulativeDepth": 93.52
+        },
+        {
+          "order": 4,
+          "name": "中粒砂岩",
+          "thickness": 3.69,
+          "elasticModulus": 20.0,
+          "density": 2570.0,
+          "tensileStrength": 2.72,
+          "mechanicalIndex": 73.8,
+          "cumulativeDepth": 149.49
+        }
+      ]
+    }
+  ]
+}

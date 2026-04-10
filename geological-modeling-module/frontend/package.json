@@ -1,0 +1,20 @@
+{
+  "name": "geological-modeling-frontend",
+  "version": "1.0.0",
+  "description": "地质建模功能前端模块",
+  "dependencies": {
+    "vue": "^3.3.0",
+    "pinia": "^2.1.0",
+    "element-plus": "^2.4.0",
+    "echarts": "^5.4.0",
+    "echarts-gl": "^2.0.9",
+    "@element-plus/icons-vue": "^2.3.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^4.4.0",
+    "vite": "^4.5.0"
+  },
+  "peerDependencies": {
+    "vue": "^3.0.0"
+  }
+}
