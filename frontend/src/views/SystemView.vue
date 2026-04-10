@@ -1,370 +1,305 @@
 <template>
-  <div class="app-container bg-aurora">
-    <el-container style="height: 100%; background: transparent;">
-      <el-aside width="260px" class="sidebar">
-        <!-- Logo removed as per request -->
+  <div class="app-container">
+    <!-- Mobile Overlay -->
+    <div v-if="drawerVisible" class="mobile-overlay" @click="drawerVisible = false"></div>
 
-        <el-menu
-          :default-active="$route.path"
-          router
-          class="main-menu"
-          :collapse="isCollapsed"
-          background-color="transparent"
-          text-color="#475569"
-          active-text-color="#fff"
-        >
-          <div class="menu-section">
-            <div class="menu-section-title">
-              <el-icon><Menu /></el-icon>
-              <span>主要功能</span>
-            </div>
+    <!-- Sidebar (desktop: always visible, mobile: drawer) -->
+    <aside :class="['sidebar', { 'sidebar--open': drawerVisible, 'sidebar--mobile': isMobile }]">
+      <div class="sidebar-header">
+        <span class="logo-text">⛏️ 采矿工具箱</span>
+        <button v-if="isMobile" class="close-btn" @click="drawerVisible = false">✕</button>
+      </div>
 
-            <el-menu-item index="/tools">
-              <el-icon><House /></el-icon>
-              <template #title>工作台</template>
-            </el-menu-item>
+      <nav class="menu">
+        <router-link to="/tools" class="menu-item" @click="closeDrawer">
+          <span class="icon">🏠</span> 工作台
+        </router-link>
 
-            <el-sub-menu index="/tools/data">
-              <template #title>
-                <el-icon><DataLine /></el-icon>
-                <span>数据与参数</span>
-              </template>
-              <el-menu-item index="/tools/database-viewer">
-                <el-icon><Document /></el-icon>
-                <template #title>数据库管理</template>
-              </el-menu-item>
-              <el-menu-item index="/tools/csv-formatter">
-                <el-icon><Operation /></el-icon>
-                <template #title>CSV 格式化</template>
-              </el-menu-item>
-              <el-menu-item index="/tools/data-management">
-                <el-icon><Grid /></el-icon>
-                <template #title>数据管理中心</template>
-              </el-menu-item>
-            </el-sub-menu>
+        <div class="menu-group">
+          <div class="group-title">数据与参数</div>
+          <router-link to="/tools/database-viewer" class="menu-item sub" @click="closeDrawer">📂 数据库管理</router-link>
+          <router-link to="/tools/csv-formatter" class="menu-item sub" @click="closeDrawer">📋 CSV 格式化</router-link>
+          <router-link to="/tools/data-management" class="menu-item sub" @click="closeDrawer">📊 数据管理中心</router-link>
+        </div>
 
-            <el-sub-menu index="/tools/analysis">
-              <template #title>
-                <el-icon><Odometer /></el-icon>
-                <span>分析计算</span>
-              </template>
-              <el-menu-item index="/tools/key-stratum">
-                <el-icon><TrendCharts /></el-icon>
-                <template #title>关键层计算</template>
-              </el-menu-item>
-              <el-menu-item index="/tools/tunnel-support">
-                <el-icon><Odometer /></el-icon>
-                <template #title>巷道支护计算</template>
-              </el-menu-item>
-              <el-menu-item index="/tools/roof-pressure">
-                <el-icon><Platform /></el-icon>
-                <template #title>支架阻力计算</template>
-              </el-menu-item>
-              <el-menu-item index="/tools/borehole-analysis">
-                <el-icon><Location /></el-icon>
-                <template #title>钻孔数据分析</template>
-              </el-menu-item>
-              <el-menu-item index="/tools/upward-mining-feasibility">
-                <el-icon><Location /></el-icon>
-                <template #title>上行开采可行性</template>
-              </el-menu-item>
-            </el-sub-menu>
+        <div class="menu-group">
+          <div class="group-title">分析计算</div>
+          <router-link to="/tools/key-stratum" class="menu-item sub" @click="closeDrawer">🔑 关键层计算</router-link>
+          <router-link to="/tools/tunnel-support" class="menu-item sub" @click="closeDrawer">🛡️ 巷道支护计算</router-link>
+          <router-link to="/tools/roof-pressure" class="menu-item sub" @click="closeDrawer">⚙️ 支架阻力计算</router-link>
+          <router-link to="/tools/borehole-analysis" class="menu-item sub" @click="closeDrawer">📍 钻孔数据分析</router-link>
+          <router-link to="/tools/upward-mining-feasibility" class="menu-item sub" @click="closeDrawer">⬆️ 上行开采可行性</router-link>
+        </div>
 
-            <el-sub-menu index="/tools/design">
-              <template #title>
-                <el-icon><Edit /></el-icon>
-                <span>工程设计</span>
-              </template>
-              <el-menu-item index="/tools/mining-design">
-                <el-icon><Edit /></el-icon>
-                <template #title>采掘设计功能</template>
-              </el-menu-item>
-            </el-sub-menu>
+        <div class="menu-group">
+          <div class="group-title">工程设计</div>
+          <router-link to="/tools/mining-design" class="menu-item sub" @click="closeDrawer">✏️ 采掘设计功能</router-link>
+        </div>
 
-            <el-sub-menu index="/tools/modeling">
-              <template #title>
-                <el-icon><Histogram /></el-icon>
-                <span>地质与建模</span>
-              </template>
-              <el-menu-item index="/tools/geological-modeling">
-                <el-icon><Box /></el-icon>
-                <template #title>三维地质建模</template>
-              </el-menu-item>
-            </el-sub-menu>
+        <div class="menu-group">
+          <div class="group-title">地质与建模</div>
+          <router-link to="/tools/geological-modeling" class="menu-item sub" @click="closeDrawer">🌐 三维地质建模</router-link>
+        </div>
 
-            <el-sub-menu index="/tools/visualization">
-              <template #title>
-                <el-icon><TrendCharts /></el-icon>
-                <span>科研绘图</span>
-              </template>
-              <el-menu-item index="/tools/visualization/scatter">
-                <el-icon><TrendCharts /></el-icon>
-                <template #title>散点图</template>
-              </el-menu-item>
-              <el-menu-item index="/tools/visualization/line">
-                <el-icon><DataLine /></el-icon>
-                <template #title>折线图</template>
-              </el-menu-item>
-              <el-menu-item index="/tools/visualization/bar">
-                <el-icon><Histogram /></el-icon>
-                <template #title>柱状图</template>
-              </el-menu-item>
-              <el-menu-item index="/tools/visualization/heatmap">
-                <el-icon><Grid /></el-icon>
-                <template #title>热力图</template>
-              </el-menu-item>
-              <el-menu-item index="/tools/visualization/surface">
-                <el-icon><Box /></el-icon>
-                <template #title>3D曲面图</template>
-              </el-menu-item>
-              <el-menu-item index="/tools/visualization/box">
-                <el-icon><Box /></el-icon>
-                <template #title>箱线图</template>
-              </el-menu-item>
-              <el-menu-item index="/tools/visualization/histogram">
-                <el-icon><Histogram /></el-icon>
-                <template #title>直方图</template>
-              </el-menu-item>
-              <el-menu-item index="/tools/visualization/statistics">
-                <el-icon><DataAnalysis /></el-icon>
-                <template #title>统计分析</template>
-              </el-menu-item>
-            </el-sub-menu>
-          </div>
-        </el-menu>
-      </el-aside>
+        <div class="menu-group">
+          <div class="group-title">科研绘图</div>
+          <router-link to="/tools/visualization/scatter" class="menu-item sub" @click="closeDrawer">· 散点图</router-link>
+          <router-link to="/tools/visualization/line" class="menu-item sub" @click="closeDrawer">· 折线图</router-link>
+          <router-link to="/tools/visualization/bar" class="menu-item sub" @click="closeDrawer">· 柱状图</router-link>
+          <router-link to="/tools/visualization/heatmap" class="menu-item sub" @click="closeDrawer">· 热力图</router-link>
+          <router-link to="/tools/visualization/surface" class="menu-item sub" @click="closeDrawer">· 3D曲面图</router-link>
+          <router-link to="/tools/visualization/box" class="menu-item sub" @click="closeDrawer">· 箱线图</router-link>
+          <router-link to="/tools/visualization/histogram" class="menu-item sub" @click="closeDrawer">· 直方图</router-link>
+          <router-link to="/tools/visualization/statistics" class="menu-item sub" @click="closeDrawer">· 统计分析</router-link>
+        </div>
+      </nav>
+    </aside>
 
-      <el-container>
-        <el-header class="main-header">
-          <div class="header-left">
-            <el-button
-              type="text"
-              @click="toggleSidebar"
-              class="collapse-btn"
-            >
-              <el-icon><Expand v-if="isCollapsed" /><Fold v-else /></el-icon>
-            </el-button>
-            <h2>{{ currentRouteName }}</h2>
-          </div>
+    <!-- Main Content -->
+    <main class="main-area">
+      <!-- Mobile Top Bar with Hamburger -->
+      <header v-if="isMobile" class="mobile-header">
+        <button class="hamburger" @click="drawerVisible = true">
+          <span></span><span></span><span></span>
+        </button>
+        <h1>{{ currentTitle }}</h1>
+        <div style="width:32px"></div>
+      </header>
 
-          <div class="header-right">
-            <div class="header-actions">
-              <el-button type="text" class="action-btn" @click="toggleTheme" :title="isDarkMode ? '切换到浅色模式' : '切换到深色模式'">
-                <el-icon><Sunny v-if="isDarkMode" /><Moon v-else /></el-icon>
-              </el-button>
-            </div>
-          </div>
-        </el-header>
+      <!-- Desktop Header (minimal) -->
+      <header v-else class="desktop-header">
+        <h1>{{ currentTitle }}</h1>
+      </header>
 
-        <el-main class="main-content">
-          <router-view />
-        </el-main>
-      </el-container>
-    </el-container>
+      <div class="content-body">
+        <router-view />
+      </div>
+    </main>
   </div>
 </template>
 
 <script setup>
-import { computed, ref } from 'vue';
-import { useRoute } from 'vue-router';
-import {
-  House, DataLine, Document, Operation, Grid,
-  TrendCharts, Location, Menu, Odometer,
-  Histogram, Box, Expand, Fold, Sunny, Moon, Edit, Platform
-} from '@element-plus/icons-vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useRoute } from 'vue-router'
 
-const route = useRoute();
-const currentRouteName = computed(() => route.meta.title || '工作台');
+const route = useRoute()
+const drawerVisible = ref(false)
+const isMobile = ref(window.innerWidth <= 768)
 
-// 响应式数据
-const isCollapsed = ref(false);
-const isDarkMode = ref(false); // Default to light mode for Helios
+const currentTitle = computed(() => route.meta.title || '工作台')
 
-// 方法
-const toggleSidebar = () => {
-  isCollapsed.value = !isCollapsed.value;
-};
+const closeDrawer = () => {
+  if (isMobile.value) drawerVisible.value = false
+}
 
-const toggleTheme = () => {
-  isDarkMode.value = !isDarkMode.value;
-  // Theme logic can be expanded later if dark mode is needed for Helios
-};
+const handleResize = () => {
+  isMobile.value = window.innerWidth <= 768
+  if (!isMobile.value) drawerVisible.value = false
+}
+
+onMounted(() => window.addEventListener('resize', handleResize))
+onUnmounted(() => window.removeEventListener('resize', handleResize))
 </script>
 
 <style scoped>
-/* Helios Style Overrides */
 .app-container {
-  height: calc(100vh - 80px);
-  position: relative;
+  display: flex;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  background: #f0f4f8;
 }
 
-/* Sidebar Glassmorphism */
+/* ===== SIDEBAR ===== */
 .sidebar {
-  background: rgba(255, 255, 255, 0.5);
-  backdrop-filter: blur(16px);
-  border-right: 1px solid rgba(255, 255, 255, 0.6);
-  box-shadow: 2px 0 20px rgba(0,0,0,0.02);
+  width: 240px;
+  min-width: 240px;
+  background: #fff;
+  border-right: 1px solid #e2e8f0;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
-  transition: width 0.3s ease;
-  overflow: hidden;
+  transition: transform 0.3s ease;
+  z-index: 100;
 }
 
-/* Menu Styles */
-.main-menu {
-  flex: 1;
-  border: none !important;
-  overflow-y: auto;
-  background: transparent !important;
+.sidebar--mobile {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  transform: translateX(-100%);
+  box-shadow: 4px 0 20px rgba(0,0,0,0.15);
 }
 
-.menu-section {
-  padding: 10px 0;
+.sidebar--open {
+  transform: translateX(0);
 }
 
-.menu-section-title {
-  padding: 0 20px 10px;
+.mobile-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 99;
+}
+
+.sidebar-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #e2e8f0;
   display: flex;
   align-items: center;
+  justify-content: space-between;
+}
+
+.logo-text {
+  font-size: 16px;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
   color: #94a3b8;
+  padding: 4px 8px;
+}
+
+/* ===== MENU ===== */
+.menu {
+  padding: 12px 0;
+  flex: 1;
+}
+
+.menu-group {
+  margin-bottom: 4px;
+}
+
+.group-title {
+  padding: 10px 20px 6px;
   font-size: 11px;
   font-weight: 700;
+  color: #94a3b8;
   text-transform: uppercase;
   letter-spacing: 1px;
 }
 
-.menu-section-title .el-icon {
-  margin-right: 8px;
-}
-
-/* Element Plus Menu Overrides */
-:deep(.el-menu) {
-  background: transparent !important;
-  border: none !important;
-}
-
-:deep(.el-menu-item), :deep(.el-sub-menu__title) {
-  color: #475569 !important;
-  margin: 4px 12px;
-  border-radius: 12px !important;
-  height: 46px;
-  line-height: 46px;
-  font-weight: 600;
+.menu-item {
+  display: block;
+  padding: 10px 20px;
+  color: #475569;
+  text-decoration: none;
   font-size: 14px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1px solid transparent;
+  font-weight: 500;
+  transition: all 0.15s ease;
+  border-left: 3px solid transparent;
 }
 
-:deep(.el-menu-item:hover), :deep(.el-sub-menu__title:hover) {
-  background: rgba(255, 255, 255, 0.6) !important;
-  color: #7c3aed !important; /* Violet-600 */
-  border-color: rgba(139, 92, 246, 0.2);
+.menu-item:hover {
+  background: #f1f5f9;
+  color: #7c3aed;
 }
 
-:deep(.el-menu-item.is-active) {
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #06b6d4 100%) !important;
-  color: #fff !important;
-  box-shadow: 0 8px 20px -4px rgba(99, 102, 241, 0.3);
-  border: none;
+.menu-item.router-link-active {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #fff;
+  border-left-color: #4f46e5;
+  font-weight: 600;
 }
 
-:deep(.el-sub-menu.is-active > .el-sub-menu__title) {
-  color: #7c3aed !important;
+.menu-item.sub {
+  padding-left: 32px;
+  font-size: 13px;
+}
+
+/* ===== MAIN AREA ===== */
+.main-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* Desktop Header */
+.desktop-header {
+  height: 56px;
+  min-height: 56px;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #e2e8f0;
+  background: rgba(255,255,255,0.7);
+  backdrop-filter: blur(8px);
+}
+
+.desktop-header h1 {
+  font-size: 18px;
   font-weight: 700;
+  color: #1e293b;
 }
 
-/* Header Styles */
-.main-header {
-  background: rgba(255, 255, 255, 0.4);
-  backdrop-filter: blur(12px);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
+/* Mobile Header */
+.mobile-header {
+  height: 52px;
+  min-height: 52px;
+  padding: 0 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 30px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.6);
-  height: 70px;
+  border-bottom: 1px solid #e2e8f0;
+  background: #fff;
 }
 
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.collapse-btn {
-  color: #64748b;
-  font-size: 18px;
-  background: rgba(255, 255, 255, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  border-radius: 10px;
-  padding: 8px;
-  transition: all 0.3s ease;
+.hamburger {
   width: 36px;
   height: 36px;
+  background: none;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  cursor: pointer;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 4px;
+  padding: 8px;
 }
 
-.collapse-btn:hover {
-  background: white;
-  color: #7c3aed;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-  transform: translateY(-1px);
+.hamburger span {
+  display: block;
+  width: 18px;
+  height: 2px;
+  background: #475569;
+  border-radius: 1px;
+  transition: all 0.2s;
 }
 
-.main-header h2 {
-  margin: 0;
-  font-size: 20px;
+.mobile-header h1 {
+  font-size: 16px;
+  font-weight: 700;
   color: #1e293b;
-  font-weight: 800;
-  letter-spacing: -0.5px;
 }
 
-.action-btn {
-  color: #64748b;
-  background: rgba(255, 255, 255, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  border-radius: 12px;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-}
-
-.action-btn:hover {
-  background: white;
-  color: #f59e0b; /* Amber for sun */
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-  transform: translateY(-1px);
-}
-
-.main-content {
-  padding: 30px;
-  background: transparent;
+/* Content Body */
+.content-body {
+  flex: 1;
   overflow-y: auto;
-  min-height: calc(100vh - 150px);
+  padding: 16px;
+  background: #f0f4f8;
 }
 
 /* Scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.5);
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(99, 102, 241, 0.6);
+/* ===== MOBILE ADJUSTMENTS ===== */
+@media (max-width: 768px) {
+  .content-body {
+    padding: 12px;
+  }
 }
 </style>

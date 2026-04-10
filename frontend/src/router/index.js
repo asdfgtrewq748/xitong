@@ -1,15 +1,10 @@
-// frontend/src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
 
-// New Views
-import HomeView from '../views/HomeView.vue'
-import DownloadsView from '../views/DownloadsView.vue'
+// Views
 import SystemView from '../views/SystemView.vue'
 
-// 性能优化：首页立即加载，其他组件懒加载
-import EnhancedDashboardView from '../components/enhanced/EnhancedDashboardView.vue'
-
-// 懒加载组件
+// 性能优化：懒加载组件
+const EnhancedDashboardView = () => import('../components/enhanced/EnhancedDashboardView.vue')
 const KeyStratumView = () => import(/* webpackChunkName: "key-stratum" */ '../components/KeyStratumView.vue')
 const BoreholeAnalysisView = () => import(/* webpackChunkName: "borehole" */ '../components/BoreholeAnalysisView.vue')
 const CsvFormatterView = () => import(/* webpackChunkName: "csv-formatter" */ '../components/CsvFormatterView.vue')
@@ -19,7 +14,7 @@ const UpwardMiningFeasibilityView = () => import(/* webpackChunkName: "upward-mi
 const DataManagementView = () => import(/* webpackChunkName: "data-management" */ '../components/DataManagementView.vue')
 const MiningDesignView = () => import(/* webpackChunkName: "mining-design" */ '../components/MiningDesignView.vue')
 
-// 科研绘图模块 - 导航页和独立图表页面
+// 科研绘图模块
 const VisualizationHome = () => import(/* webpackChunkName: "visualization-home" */ '../components/visualization/VisualizationHome.vue')
 const ScatterPlotPage = () => import(/* webpackChunkName: "scatter" */ '../components/visualization/pages/ScatterPlotPage.vue')
 const LineChartPage = () => import(/* webpackChunkName: "line" */ '../components/visualization/pages/LineChartPage.vue')
@@ -35,15 +30,7 @@ const RoofPressureView = () => import(/* webpackChunkName: "roof-pressure" */ '.
 const routes = [
   {
     path: '/',
-    name: 'Home',
-    component: HomeView,
-    meta: { title: '首页' }
-  },
-  {
-    path: '/downloads',
-    name: 'Downloads',
-    component: DownloadsView,
-    meta: { title: '下载中心' }
+    redirect: '/tools'
   },
   {
     path: '/tools',

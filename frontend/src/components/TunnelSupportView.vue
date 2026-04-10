@@ -319,7 +319,7 @@ async function calculateMaterialMatch() {
 }
 function resetMatchForm() { matchForm.value = { rodDiameter: 20, rodGrade: 'BHRB400', rodYieldStrength: 400, plateCapacityRod: 200, anchorNt: 349.3, plateCapacityAnchor: 600 }; matchResult.value = null }
 
-onMounted(async () => { await loadConstants(); try { const saved = localStorage.getItem('tunnel_support_constants'); if (saved) constants.value = normalizeConstants({ ...constants.value, ...JSON.parse(saved) }) } catch {} })
+onMounted(async () => { await loadConstants(); try { const saved = localStorage.getItem('tunnel_support_constants'); if (saved) constants.value = normalizeConstants({ ...constants.value, ...JSON.parse(saved) }) } catch { /* ignore */ } })
 </script>
 
 <style scoped>
