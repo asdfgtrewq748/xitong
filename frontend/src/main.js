@@ -11,11 +11,14 @@ import 'element-plus/dist/index.css'
 // 引入 Tailwind CSS
 import './assets/tailwind.css'
 
-// 引入全局样式
+// 引入全局样式（Design System）
 import './assets/styles/global.css'
 
-// 性能优化：按需加载ECharts GL
-// import 'echarts-gl'  // 注释掉全局加载，改为按需加载
+// Load fonts before mounting
+const fontLink = document.createElement('link')
+fontLink.href = 'https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap'
+fontLink.rel = 'stylesheet'
+document.head.appendChild(fontLink)
 
 // 性能优化初始化
 import { initPerformanceOptimization } from './utils/performance'
