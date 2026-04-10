@@ -1205,4 +1205,16 @@ const getCellClass = ({ column, row }) => {
 .cell-flag-empty {
   color: #94a3b8;
 }
+
+@media (max-width: 768px) {
+  .container { padding: 12px !important; }
+  .form-grid { grid-template-columns: 1fr !important; gap: 10px !important; }
+  .result-panel { margin-top: 16px; }
+  .result-grid { grid-template-columns: 1fr !important; }
+  h1 { font-size: 18px !important; }
+  h2 { font-size: 15px !important; }
+  .card { padding: 14px !important; margin-bottom: 12px !important; }
+  input, select, .el-input { width: 100% !important; max-width: none !important; }
+  button.btn-calc { width: 100% !important; }
+}
 </style>

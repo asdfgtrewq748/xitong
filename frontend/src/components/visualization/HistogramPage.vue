@@ -23,4 +23,10 @@ onMounted(() => {
   height: 100vh;
   overflow: hidden;
 }
+
+@media (max-width: 768px) {
+  .histogram-page { padding: 12px !important; }
+  .histogram-chart { height: 320px !important; }
+  .hist-options { flex-wrap: wrap !important; }
+}
 </style>

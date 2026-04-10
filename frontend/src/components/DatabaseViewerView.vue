@@ -112,4 +112,14 @@ const clearProvinceFilter = () => {
 :deep(.el-tab-pane) {
   height: 100%;
 }
+
+@media (max-width: 768px) {
+  .db-container { padding: 12px !important; }
+  .db-layout { flex-direction: column !important; }
+  .db-sidebar { width: 100% !important; max-height: 200px; }
+  .db-table-wrapper { overflow-x: auto !important; }
+  .db-toolbar { flex-wrap: wrap !important; gap: 6px !important; }
+  .db-toolbar > * { flex: 1 1 auto !important; min-width: 120px !important; }
+  h1 { font-size: 18px !important; }
+}
 </style>

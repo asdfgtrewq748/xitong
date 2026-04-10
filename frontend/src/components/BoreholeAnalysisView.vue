@@ -274,4 +274,15 @@ const filteredData = computed(() => {
 .summary-section ul li {
   margin: 4px 0;
 }
+
+@media (max-width: 768px) {
+  .borehole-container { padding: 12px !important; }
+  .analysis-layout { grid-template-columns: 1fr !important; }
+  .sidebar-panel { display: none; }
+  .chart-wrapper { height: 300px !important; }
+  .controls-row { flex-direction: column !important; gap: 8px !important; }
+  .controls-row > * { width: 100% !important; }
+  h1 { font-size: 18px !important; }
+  table { font-size: 12px !important; }
+}
 </style>

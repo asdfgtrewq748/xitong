@@ -466,4 +466,14 @@ const handleGenerate = () => {
 .animate-fadeIn {
   animation: fadeIn 0.5s ease forwards;
 }
+
+@media (max-width: 768px) {
+  .design-container { padding: 12px !important; }
+  .design-grid { grid-template-columns: 1fr !important; gap: 10px !important; }
+  .design-tabs { overflow-x: auto !important; }
+  .panel-content { padding: 14px !important; }
+  h1 { font-size: 18px !important; }
+  .input-row { flex-direction: column !important; }
+  .input-row > * { width: 100% !important; margin-bottom: 6px !important; }
+}
 </style>

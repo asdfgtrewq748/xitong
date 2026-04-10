@@ -559,4 +559,13 @@ onMounted(() => {
 .animate-shake {
   animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
 }
+
+@media (max-width: 768px) {
+  .pressure-container { padding: 12px !important; }
+  .input-group { flex-direction: column !important; }
+  .input-group > * { width: 100% !important; margin-bottom: 8px !important; }
+  .result-area { margin-top: 16px !important; padding: 14px !important; }
+  .chart-area { height: 280px !important; }
+  h1 { font-size: 18px !important; }
+}
 </style>

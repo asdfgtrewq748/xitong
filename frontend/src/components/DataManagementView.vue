@@ -18,16 +18,6 @@
             type="primary" 
             size="large" 
             round 
-            @click="startOnboarding"
-            aria-label="开始新手指南"
-          >
-            <el-icon style="margin-right: 8px;"><Guide /></el-icon>
-            新手指南
-          </el-button>
-          <el-button 
-            type="success" 
-            size="large" 
-            round 
             plain 
             @click="showConceptDialog = true"
             aria-label="了解什么是全局数据"
@@ -475,7 +465,6 @@
       
       <template #footer>
         <el-button type="primary" @click="showConceptDialog = false">我知道了</el-button>
-        <el-button @click="showConceptDialog = false; startOnboarding()">开始新手引导</el-button>
       </template>
     </el-dialog>
 
@@ -802,27 +791,14 @@
       </template>
     </el-dialog>
 
-    <!-- 新手引导覆盖层 -->
-    <div v-if="showOnboarding" class="onboarding-overlay">
-      <div class="spotlight-box" :style="spotlightStyle"></div>
-      <div class="onboarding-card" :style="cardStyle">
-        <h3>{{ onboardingSteps[onboardingStep].title }}</h3>
-        <p>{{ onboardingSteps[onboardingStep].desc }}</p>
-        <div class="onboarding-controls">
-          <el-button size="small" @click="prevOnboarding" :disabled="onboardingStep===0">上一步</el-button>
-          <el-button size="small" type="primary" @click="nextOnboarding">{{ onboardingStep < onboardingSteps.length-1 ? '下一步' : '完成' }}</el-button>
-          <el-button size="small" type="text" @click="skipOnboarding">跳过</el-button>
-        </div>
-      </div>
     </div>
-  </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, nextTick, watch } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { 
-  UploadFilled, Guide, QuestionFilled, DataLine, Collection, 
+  UploadFilled, QuestionFilled, DataLine, Collection, 
   OfficeBuilding, Files, Download, VideoPlay, Upload, 
   Document, Check, Loading, List, Delete, DataAnalysis, 
   Setting, Search, Refresh, Timer, RefreshLeft, RefreshRight, View
@@ -842,7 +818,7 @@ const selectedLithology = ref('')
 const detailDialogVisible = ref(false)
 const currentRow = ref({})
 const uploadRef = ref(null)
-const statsRef = ref(null)
+// const statsRef = ref(null)
 const tableRef = ref(null)
 const historyRef = ref(null)
 const fileList = ref([])
@@ -876,101 +852,14 @@ const visibleColumns = ref({
 const selectedRows = ref([])
 const showColumnManager = ref(false)
 const showStatsChart = ref(false)
-const firstVisit = ref(true)
 const showHistoryDetail = ref(false)
 const currentHistoryItem = ref(null)
 
-// 新手引导 & 示例数据
-const showOnboarding = ref(false)
-const onboardingStep = ref(0)
-const spotlightStyle = ref({ top: '50%', left: '50%', width: '0', height: '0', opacity: 0 })
-const cardStyle = ref({})
+// ── 目标字段与自动映射 ──
+// const targetFields = ['钻孔名', '岩层', '厚度/m', '弹性模量/GPa', '容重/kN·m-3', '抗拉强度/MPa', '泊松比', '数据来源']
 
-const onboardingSteps = [
-  { title: '欢迎来到数据管理中心', desc: '这里可以导入、预览和管理全局钻孔与关键层数据。我们将带你快速熟悉常用操作。', target: null },
-  { title: '数据统计概览', desc: '这里展示了当前系统中钻孔、煤层和矿井的统计信息，让你对数据规模一目了然。', target: 'statsRef' },
-  { title: '数据导入区域', desc: '支持拖拽上传CSV文件，或点击“导入示例数据”快速体验。支持批量上传多个文件。', target: 'uploadRef' },
-  { title: '导入历史管理', desc: '每次导入都会生成一条历史记录。如果数据有问题，可以随时回滚到之前的版本。', target: 'historyRef' },
-  { title: '数据预览与筛选', desc: '在这里查看详细数据表格。使用顶部的搜索框和岩性筛选器快速查找特定数据。', target: 'tableRef' }
-]
-
-const updateSpotlight = async () => {
-  if (!showOnboarding.value) return
-  await nextTick()
-  
-  const step = onboardingSteps[onboardingStep.value]
-  const targetName = step.target
-  
-  // 默认居中样式 (无目标时)
-  if (!targetName) {
-    spotlightStyle.value = {
-      top: '50%',
-      left: '50%',
-      width: '0',
-      height: '0',
-      opacity: 0,
-      boxShadow: '0 0 0 9999px rgba(0,0,0,0.7)'
-    }
-    cardStyle.value = {
-      position: 'fixed',
-      top: '50%',
-      left: '50%',
-      transform: 'translate(-50%, -50%)',
-      margin: 0
-    }
-    return
-  }
-
-  // 获取目标元素
-  let el = null
-  if (targetName === 'statsRef') el = statsRef.value?.$el || statsRef.value
-  else if (targetName === 'uploadRef') el = uploadRef.value?.$el || uploadRef.value
-  else if (targetName === 'historyRef') el = historyRef.value?.$el || historyRef.value
-  else if (targetName === 'tableRef') el = tableRef.value?.$el || tableRef.value
-
-  if (el && el.getBoundingClientRect) {
-    const rect = el.getBoundingClientRect()
-    const padding = 10
-    
-    spotlightStyle.value = {
-      top: `${rect.top - padding}px`,
-      left: `${rect.left - padding}px`,
-      width: `${rect.width + padding * 2}px`,
-      height: `${rect.height + padding * 2}px`,
-      opacity: 1,
-      borderRadius: '8px',
-      boxShadow: '0 0 0 9999px rgba(0,0,0,0.7), 0 0 15px rgba(255,255,255,0.3)'
-    }
-    
-    // 计算卡片位置 (优先在下方，如果不够则在上方)
-    const cardHeight = 200 // 预估高度
-    const spaceBelow = window.innerHeight - rect.bottom
-    const showBelow = spaceBelow > cardHeight + 20
-    
-    cardStyle.value = {
-      position: 'fixed',
-      left: `${Math.max(20, Math.min(window.innerWidth - 380, rect.left))}px`,
-      top: showBelow ? `${rect.bottom + 20}px` : `${rect.top - cardHeight - 20}px`,
-      transform: 'none',
-      margin: 0
-    }
-  }
-}
-
-watch(onboardingStep, updateSpotlight)
-watch(showOnboarding, (val) => {
-  if (val) {
-    // 禁用滚动
-    document.body.style.overflow = 'hidden'
-    updateSpotlight()
-  } else {
-    document.body.style.overflow = ''
-  }
-})
-
-// 标准字段定义
 const STANDARD_FIELDS = [
-  { key: '钻孔名', label: '钻孔名', aliases: ['钻孔', '孔号', 'borehole', 'hole'], required: false }, // 自动从文件名提取
+  { key: '钻孔名', label: '钻孔名', aliases: ['钻孔', '孔号', 'borehole', 'hole'], required: false },
   { key: '岩层', label: '岩层', aliases: ['岩性', 'lithology', 'rock', '名称', 'name'], required: true },
   { key: '厚度/m', label: '厚度/m', aliases: ['厚度', 'thickness', 'h'], required: true },
   { key: '弹性模量/GPa', label: '弹性模量/GPa', aliases: ['弹性模量', 'E', 'modulus'], required: false },
@@ -980,33 +869,18 @@ const STANDARD_FIELDS = [
   { key: '数据来源', label: '数据来源', aliases: ['来源', 'source'], required: false }
 ]
 
-// 智能字段映射：自动识别列名
 const autoMapFields = (headers) => {
   const mapping = {}
-  
   headers.forEach(header => {
     const normalized = header.toLowerCase().trim()
-    
     for (const field of STANDARD_FIELDS) {
-      // 完全匹配
-      if (header === field.key || header === field.label) {
-        mapping[header] = field.key
-        return
-      }
-      
-      // 别名匹配
+      if (header === field.key || header === field.label) { mapping[header] = field.key; return }
       for (const alias of field.aliases) {
-        if (normalized.includes(alias.toLowerCase())) {
-          mapping[header] = field.key
-          return
-        }
+        if (normalized.includes(alias.toLowerCase())) { mapping[header] = field.key; return }
       }
     }
-    
-    // 未匹配字段保持原样
     mapping[header] = header
   })
-  
   return mapping
 }
 
@@ -1150,23 +1024,9 @@ const loadExampleData = async () => {
   }
 }
 
-const startOnboarding = () => {
-  onboardingStep.value = 0
-  showOnboarding.value = true
-}
 
-const nextOnboarding = () => {
-  if (onboardingStep.value < onboardingSteps.length - 1) onboardingStep.value++
-  else showOnboarding.value = false
-}
 
-const prevOnboarding = () => {
-  if (onboardingStep.value > 0) onboardingStep.value--
-}
 
-const skipOnboarding = () => {
-  showOnboarding.value = false
-}
 
 // 重置字段映射为智能识别结果
 const resetFieldMapping = () => {
@@ -1750,30 +1610,6 @@ const handleCurrentChange = (val) => {
 onMounted(() => {
   refreshData()
   
-  // 首次访问检测
-  const hasVisited = localStorage.getItem('dataManagementVisited')
-  if (!hasVisited) {
-    firstVisit.value = true
-    // 延迟显示欢迎向导
-    setTimeout(() => {
-      ElMessageBox.confirm(
-        '欢迎使用全局数据管理中心！是否需要观看新手引导？',
-        '👋 首次访问',
-        {
-          confirmButtonText: '开始引导',
-          cancelButtonText: '跳过',
-          type: 'info'
-        }
-      ).then(() => {
-        startOnboarding()
-      }).catch(() => {
-        // 用户选择跳过
-      }).finally(() => {
-        localStorage.setItem('dataManagementVisited', 'true')
-      })
-    }, 1000)
-  }
-  
   // 快捷键支持
   document.addEventListener('keydown', handleKeydown)
 })
@@ -2294,51 +2130,6 @@ const handleKeydown = (e) => {
 }
 
 /* ========== 新手引导覆盖层 ========== */
-.onboarding-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 2000;
-  pointer-events: auto;
-}
-
-.spotlight-box {
-  position: absolute;
-  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-  pointer-events: none;
-  z-index: 2001;
-  border: 2px solid rgba(255, 255, 255, 0.5);
-}
-
-.onboarding-card {
-  position: fixed;
-  z-index: 2002;
-  width: 360px;
-  background: linear-gradient(180deg, #fff, #fbfdff);
-  padding: 24px;
-  border-radius: 12px;
-  box-shadow: 0 18px 60px rgba(2, 6, 23, 0.3);
-  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-
-.onboarding-card h3 {
-  margin: 0 0 8px 0;
-  color: #1f2937;
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.onboarding-card p {
-  margin: 0 0 16px 0;
-  color: #4b5563;
-  line-height: 1.5;
-}
-
-.onboarding-controls {
-  display: flex;
-  gap: 10px;
-  justify-content: flex-end;
-}
-
 /* ========== 动画效果 ========== */
 .fade-enter-active,
 .fade-leave-active {
@@ -2550,12 +2341,6 @@ const handleKeydown = (e) => {
   .welcome-banner,
   .upload-card,
   .operations-card,
-  .onboarding-overlay,
-  .el-button,
-  .header-right {
-    display: none !important;
-  }
-  
   .data-management-container {
     background: white;
   }

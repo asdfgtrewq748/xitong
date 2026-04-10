@@ -76,6 +76,69 @@
       </nav>
     </aside>
 
+    <!-- Help Dialog -->
+    <teleport to="body">
+      <div v-if="showHelp" class="help-overlay" @click.self="showHelp = false">
+        <div class="help-dialog">
+          <div class="help-dialog__header">
+            <h2>📖 采矿工具箱 · 使用说明</h2>
+            <button class="help-dialog__close" @click="showHelp = false">✕</button>
+          </div>
+          <div class="help-dialog__body">
+            <section class="help-section">
+              <h3>🚀 快速开始</h3>
+              <ol>
+                <li><b>数据导入</b> → 进入「数据管理中心」上传 CSV 文件（钻孔数据、煤层参数等）</li>
+                <li><b>选择功能</b> → 根据需求在左侧导航选择对应计算或分析工具</li>
+                <li><b>输入参数</b> → 填写工程参数（部分页面可自动读取已导入的数据）</li>
+                <li><b>查看结果</b> → 获取计算结果、图表和导出报告</li>
+              </ol>
+            </section>
+
+            <section class="help-section">
+              <h3>📂 模块说明</h3>
+              <div class="help-grid">
+                <div class="help-item"><b>关键层计算</b><span>识别岩层中的关键层位，判断覆岩结构</span></div>
+                <div class="help-item"><b>巷道支护</b><span>计算塑性区半径、支护参数建议</span></div>
+                <div class="help-item"><b>支架阻力</b><span>分析顶板压力与支架工作阻力</span></div>
+                <div class="help-item"><b>钻孔分析</b><span>可视化钻孔柱状图与地质剖面</span></div>
+                <div class="help-item"><b>上行开采</b><span>评估近距离煤层上行开采可行性</span></div>
+                <div class="help-item"><b>采掘设计</b><span>辅助进行开采工艺设计与规划</span></div>
+                <div class="help-item"><b>地质建模</b><span>构建三维地质体模型</span></div>
+                <div class="help-item"><b>科研绘图</b><span>生成散点/折线/热力/三维曲面等图表</span></div>
+              </div>
+            </section>
+
+            <section class="help-section">
+              <h3>💡 使用技巧</h3>
+              <ul>
+                <li>所有计算页面的参数均可手动修改，也可从已导入的数据中自动填充</li>
+                <li>图表支持导出为 PNG/SVG 格式，可直接用于论文和报告</li>
+                <li>数据管理中心的 CSV 模板可在「下载模板」获取标准格式</li>
+                <li>移动端支持完整功能，点击左上角菜单按钮展开导航</li>
+                <li>支持键盘快捷键：<kbd>Ctrl+F</kbd> 搜索 / <kbd>Ctrl+E</kbd> 导出</li>
+              </ul>
+            </section>
+
+            <section class="help-section">
+              <h3>⚙️ 数据格式要求</h3>
+              <p>CSV 文件需包含以下字段（不区分顺序）：</p>
+              <div class="help-fields">
+                <code>钻孔名</code> <code>岩层</code> <code>厚度/m</code> <code>弹性模量/GPa</code>
+                <code>容重/kN·m⁻³</code> <code>抗拉强度/MPa</code> <code>泊松比</code> <code>数据来源</code>
+              </div>
+            </section>
+
+            <section class="help-section">
+              <h3>🔧 技术信息</h3>
+              <p>版本 v2.0 · 基于 Vue 3 + Element Plus + ECharts 构建<br>
+              支持现代浏览器（Chrome/Firefox/Edge/Safari 最新版）</p>
+            </section>
+          </div>
+        </div>
+      </div>
+    </teleport>
+
     <!-- Main Content -->
     <main class="main-area">
       <!-- Mobile Top Bar with Hamburger -->
@@ -84,7 +147,9 @@
           <span></span><span></span><span></span>
         </button>
         <h1 class="topbar-title">{{ currentTitle }}</h1>
-        <div style="width:32px"></div>
+        <button class="help-btn" @click="showHelp = true" aria-label="使用帮助">
+          ❓
+        </button>
       </header>
 
       <!-- Desktop Header (minimal) -->
@@ -95,6 +160,7 @@
           <span class="breadcrumb-sep">/</span>
           <span class="breadcrumb-item breadcrumb-current">{{ currentTitle }}</span>
         </div>
+        <button class="help-btn help-btn--desktop" @click="showHelp = true" aria-label="使用帮助">❓ 使用说明</button>
       </header>
 
       <div class="content-body">
@@ -110,6 +176,7 @@ import { useRoute } from 'vue-router'
 
 const route = useRoute()
 const drawerVisible = ref(false)
+const showHelp = ref(false)
 const isMobile = ref(window.innerWidth <= 768)
 
 const currentTitle = computed(() => route.meta.title || '工作台')
@@ -396,6 +463,112 @@ onUnmounted(() => window.removeEventListener('resize', handleResize))
   .content-body {
     padding: 16px;
   }
+}
+
+/* ============================================
+   Help Dialog
+   ============================================ */
+.help-overlay {
+  position: fixed; inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px;
+}
+.help-dialog {
+  background: #ffffff;
+  border-radius: 14px;
+  max-width: 640px; width: 100%;
+  max-height: 85vh;
+  display: flex; flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  animation: helpIn 250ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes helpIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.help-dialog__header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 22px; border-bottom: 1px solid #f1f5f9;
+  flex-shrink: 0;
+}
+.help-dialog__header h2 {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 17px; font-weight: 700; color: #0f172a; margin: 0;
+}
+.help-dialog__close {
+  background: none; border: none; font-size: 18px; cursor: pointer;
+  color: #94a3b8; padding: 4px 8px; border-radius: 6px;
+  transition: all 150ms ease;
+}
+.help-dialog__close:hover { background: #f1f5f9; color: #475569; }
+.help-dialog__body {
+  padding: 20px 22px; overflow-y: auto; flex: 1;
+}
+.help-section { margin-bottom: 22px; }
+.help-section:last-child { margin-bottom: 0; }
+.help-section h3 {
+  font-size: 14px; font-weight: 700; color: #0f172a; margin: 0 0 10px;
+  padding-bottom: 8px; border-bottom: 1px solid #f1f5f9;
+}
+.help-section ol, .help-section ul {
+  padding-left: 18px; margin: 0;
+}
+.help-section li {
+  font-size: 13px; color: #475569; line-height: 1.8;
+}
+.help-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;
+}
+.help-item {
+  background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;
+  padding: 10px 12px;
+}
+.help-item b { display: block; font-size: 13px; color: #059669; margin-bottom: 2px; }
+.help-item span { font-size: 12px; color: #64748b; }
+.help-fields {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;
+}
+.help-fields code {
+  background: #f1f5f9; border: 1px solid #e2e8f0;
+  padding: 3px 8px; border-radius: 4px;
+  font-size: 11px; font-family: 'JetBrains Mono', monospace;
+  color: #059669;
+}
+.help-section p { font-size: 13px; color: #475569; line-height: 1.7; margin: 4px 0; }
+.help-section kbd {
+  display: inline-block; padding: 1px 5px; background: #f1f5f9;
+  border: 1px solid #e2e8f0; border-radius: 4px;
+  font-size: 11px; font-family: 'JetBrains Mono', monospace;
+  color: #475569;
+}
+
+/* Help button */
+.help-btn {
+  background: none; border: 1px solid #e2e8f0;
+  border-radius: 8px; cursor: pointer;
+  font-size: 15px; width: 34px; height: 34px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: all 150ms ease;
+}
+.help-btn:hover { background: #ecfdf5; border-color: #059669; }
+.help-btn--desktop {
+  width: auto; padding: 6px 14px; font-size: 13px; font-weight: 600;
+  color: #475569; gap: 4px;
+  font-family: 'DM Sans', sans-serif;
+}
+.help-btn--desktop:hover { color: #059669; }
+
+/* Help dialog responsive */
+@media (max-width: 640px) {
+  .help-dialog { max-height: 90vh; border-radius: 12px; }
+  .help-dialog__header { padding: 14px 16px; }
+  .help-dialog__body { padding: 14px 16px; }
+  .help-grid { grid-template-columns: 1fr; }
+  .help-section h3 { font-size: 13px; }
+  .help-section li { font-size: 12.5px; }
 }
 
 /* Scrollbar for sidebar */

@@ -182,4 +182,13 @@ function navigateTo(route) {
   background: white;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
 }
+
+@media (max-width: 768px) {
+  .viz-home { padding: 12px !important; }
+  .viz-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 10px !important; }
+  .viz-card { padding: 14px !important; }
+  .viz-card h3 { font-size: 13px !important; }
+  .hero-section { padding: 20px 16px !important; }
+  .hero-section h1 { font-size: 20px !important; }
+}
 </style>

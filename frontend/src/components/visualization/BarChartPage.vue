@@ -23,4 +23,11 @@ onMounted(() => {
   height: 100vh;
   overflow: hidden;
 }
+
+@media (max-width: 768px) {
+  .chart-page { padding: 12px !important; }
+  .chart-container { height: 320px !important; }
+  .chart-controls { flex-wrap: wrap !important; gap: 6px !important; }
+  .chart-controls > * { min-width: 100px !important; }
+}
 </style>

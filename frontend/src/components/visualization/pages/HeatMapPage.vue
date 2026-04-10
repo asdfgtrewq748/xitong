@@ -338,4 +338,10 @@ const totalCells = computed(() => xCategories.value * yCategories.value)
 :deep(.el-collapse-item__header) { font-weight: 500; padding-left: 8px; cursor: pointer; }
 :deep(.el-collapse-item__content) { padding: 12px 8px; }
 :deep(.el-divider__text) { font-size: 12px; color: #94a3b8; }
+
+@media (max-width: 768px) {
+  .heatmap-page { padding: 12px !important; }
+  .heatmap-chart { height: 320px !important; }
+  .heatmap-options { flex-wrap: wrap !important; }
+}
 </style>

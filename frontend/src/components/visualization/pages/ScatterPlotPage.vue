@@ -574,4 +574,10 @@ const groupsCount = computed(() => {
     grid-template-columns: 260px 1fr 280px;
   }
 }
+
+@media (max-width: 768px) {
+  .scatter-page { padding: 12px !important; }
+  .scatter-chart { height: 320px !important; }
+  .control-panel { flex-direction: column !important; }
+}
 </style>

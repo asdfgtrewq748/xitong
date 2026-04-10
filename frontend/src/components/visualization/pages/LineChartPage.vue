@@ -593,4 +593,10 @@ const seriesCount = computed(() => {
     grid-template-columns: 260px 1fr 280px;
   }
 }
+
+@media (max-width: 768px) {
+  .line-chart-page { padding: 12px !important; }
+  .chart-area { height: 320px !important; }
+  .toolbar { flex-wrap: wrap !important; }
+}
 </style>

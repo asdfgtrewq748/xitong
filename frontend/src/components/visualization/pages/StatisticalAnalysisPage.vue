@@ -338,4 +338,11 @@ const handleExport = async () => {
   padding: 20px;
   min-height: 600px;
 }
+
+@media (max-width: 768px) {
+  .stats-page { padding: 12px !important; }
+  .stats-layout { grid-template-columns: 1fr !important; }
+  .stats-panel { padding: 12px !important; }
+  .stats-tabs { overflow-x: auto !important; }
+}
 </style>

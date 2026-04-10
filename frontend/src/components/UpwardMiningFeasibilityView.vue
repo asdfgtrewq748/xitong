@@ -1268,4 +1268,11 @@ export default {
     right: 10px;
   }
 }
+
+@media (max-width: 768px) {
+  .upward-container { padding: 12px !important; }
+  .upward-grid { grid-template-columns: 1fr !important; gap: 10px !important; }
+  .upward-result { margin-top: 16px !important; padding: 14px !important; }
+  .feasibility-indicator { flex-direction: column !important; text-align: center; }
+}
 </style>

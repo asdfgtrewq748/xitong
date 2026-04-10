@@ -386,4 +386,10 @@ const xyzRange = computed(() => {
 :deep(.el-collapse-item__header) { font-weight: 500; padding-left: 8px; cursor: pointer; }
 :deep(.el-collapse-item__content) { padding: 12px 8px; }
 :deep(.el-divider__text) { font-size: 12px; color: #94a3b8; }
+
+@media (max-width: 768px) {
+  .surface-page { padding: 12px !important; }
+  .surface-3d { height: 350px !important; }
+  .surface-controls { grid-template-columns: 1fr !important; }
+}
 </style>

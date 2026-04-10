@@ -324,4 +324,14 @@ onMounted(async () => { await loadConstants(); try { const saved = localStorage.
 
 <style scoped>
 .page .header{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;background:linear-gradient(135deg,#047857,#059669);color:#fff}.header h2{margin:0 0 4px}.header p{margin:0;font-size:13px;opacity:.9}.row{display:flex;align-items:center}.between{justify-content:space-between}.hint{padding:40px 24px;text-align:center;color:#475569}.card-gap{margin-top:16px}.match-result{margin-top:16px}
+
+@media (max-width: 768px) {
+  .tunnel-container { padding: 12px !important; }
+  .param-grid { grid-template-columns: 1fr !important; gap: 10px !important; }
+  .result-section { margin-top: 16px !important; }
+  .result-cards { grid-template-columns: 1fr !important; gap: 10px !important; }
+  h1 { font-size: 18px !important; }
+  .el-form-item { margin-bottom: 12px !important; }
+  .calc-btn { width: 100% !important; }
+}
 </style>

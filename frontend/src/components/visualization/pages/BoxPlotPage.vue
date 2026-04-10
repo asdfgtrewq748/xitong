@@ -215,4 +215,10 @@ const totalRecords = computed(() => previewData.value.length)
 :deep(.el-collapse-item__header) { font-weight: 500; padding-left: 8px; cursor: pointer; }
 :deep(.el-collapse-item__content) { padding: 12px 8px; }
 :deep(.el-divider__text) { font-size: 12px; color: #94a3b8; }
+
+@media (max-width: 768px) {
+  .boxplot-page { padding: 12px !important; }
+  .boxplot-chart { height: 320px !important; }
+  .box-options { flex-direction: column !important; }
+}
 </style>

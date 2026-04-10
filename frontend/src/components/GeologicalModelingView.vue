@@ -4731,4 +4731,13 @@ h5 { margin: 0; font-size: 14px; color: #1f2937; }
   margin-bottom: 0;
 }
 
+
+@media (max-width: 768px) {
+  .geo-container { padding: 12px !important; }
+  .geo-layout { flex-direction: column !important; }
+  .geo-sidebar { width: 100% !important; border-right: none !important; border-bottom: 1px solid #e2e8f0; }
+  .geo-main { height: 350px !important; }
+  .toolbar { flex-wrap: wrap !important; gap: 6px !important; }
+  h1 { font-size: 18px !important; }
+}
 </style>

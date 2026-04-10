@@ -23,4 +23,10 @@ onMounted(() => {
   height: 100vh;
   overflow: hidden;
 }
+
+@media (max-width: 768px) {
+  .boxplot-page { padding: 12px !important; }
+  .boxplot-chart { height: 320px !important; }
+  .box-options { flex-direction: column !important; }
+}
 </style>

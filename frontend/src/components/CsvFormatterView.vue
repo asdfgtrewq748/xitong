@@ -288,4 +288,11 @@ const transformAndSave = async () => {
     flex: 1 1 200px;
   }
 }
+
+@media (max-width: 480px) {
+  .csv-formatter { padding: 10px !important; }
+  .csv-editor { font-size: 12px !important; }
+  .csv-actions { flex-direction: column !important; }
+  .csv-actions button { width: 100% !important; }
+}
 </style>
