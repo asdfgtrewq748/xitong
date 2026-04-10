@@ -314,10 +314,10 @@ onUnmounted(() => {
 .map-card { height: 100%; border-radius: 12px; }
 .sidebar-container { height: 100%; display: flex; flex-direction: column; }
 .stats-card { border-radius: 12px; }
-.card-header { font-weight: 600; color: #303133; }
+.card-header { font-weight: 600; color: #0f172a; }
 .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .stat-item { background-color: #f8f9fa; padding: 16px; border-radius: 8px; text-align: center; border: 1px solid #e9ecef; }
 .stat-value { font-size: 26px; font-weight: 700; color: #1e3a8a; }
-.stat-title { font-size: 13px; color: #606266; margin-top: 4px; }
+.stat-title { font-size: 13px; color: #475569; margin-top: 4px; }
 .province-table { width: 100%; }
 </style>

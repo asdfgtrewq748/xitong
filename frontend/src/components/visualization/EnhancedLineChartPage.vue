@@ -1007,7 +1007,7 @@ onMounted(() => {
   margin: 0;
   font-size: 20px;
   font-weight: 600;
-  color: #303133;
+  color: #0f172a;
 }
 
 .main-content {
@@ -1062,7 +1062,7 @@ onMounted(() => {
   margin: 0;
   font-size: 16px;
   font-weight: 600;
-  color: #303133;
+  color: #0f172a;
 }
 
 .panel-content {
@@ -1085,7 +1085,7 @@ onMounted(() => {
   gap: 8px;
   font-size: 14px;
   font-weight: 600;
-  color: #303133;
+  color: #0f172a;
 }
 
 .chart-toolbar {
@@ -1148,12 +1148,12 @@ onMounted(() => {
 }
 
 .stat-label {
-  color: #606266;
+  color: #475569;
 }
 
 .stat-value {
   font-weight: 600;
-  color: #303133;
+  color: #0f172a;
 }
 
 .stat-value.upward {
@@ -1184,7 +1184,7 @@ onMounted(() => {
 .annotation-text {
   flex: 1;
   font-size: 12px;
-  color: #606266;
+  color: #475569;
 }
 
 .template-grid {
@@ -1204,7 +1204,7 @@ onMounted(() => {
 }
 
 .template-item:hover {
-  border-color: #409eff;
+  border-color: #059669;
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
@@ -1217,20 +1217,20 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #909399;
+  color: #94a3b8;
 }
 
 .template-info h4 {
   margin: 0 0 8px 0;
   font-size: 14px;
   font-weight: 600;
-  color: #303133;
+  color: #0f172a;
 }
 
 .template-info p {
   margin: 0 0 8px 0;
   font-size: 12px;
-  color: #606266;
+  color: #475569;
   line-height: 1.4;
 }
 
@@ -1250,7 +1250,7 @@ onMounted(() => {
 
 :deep(.el-form-item__label) {
   font-weight: 500;
-  color: #303133;
+  color: #0f172a;
 }
 
 /* 响应式设计 */

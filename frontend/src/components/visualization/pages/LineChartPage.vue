@@ -449,7 +449,7 @@ const seriesCount = computed(() => {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: #f5f7fa;
+  background: #f8fafc;
 }
 
 .page-header {
@@ -469,7 +469,7 @@ const seriesCount = computed(() => {
 }
 
 .page-header.modern {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
   color: white;
   padding: 20px 20px 8px 20px;
   border-bottom: none;

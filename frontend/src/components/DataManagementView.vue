@@ -541,7 +541,7 @@
         <el-row :gutter="16">
           <el-col :span="12" v-for="field in detectedFields" :key="field">
             <div style="margin-bottom: 12px;">
-              <label style="display: block; margin-bottom: 6px; color: #606266; font-size: 13px;">
+              <label style="display: block; margin-bottom: 6px; color: #475569; font-size: 13px;">
                 CSV列: <strong>{{ field }}</strong>
               </label>
               <el-select
@@ -1832,7 +1832,7 @@ const handleKeydown = (e) => {
 
 /* ========== 欢迎横幅 ========== */
 .welcome-banner {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #047857 0%, #059669 100%);
   color: white;
   margin-bottom: 20px;
   border: none;
@@ -1910,7 +1910,7 @@ const handleKeydown = (e) => {
 }
 
 .stat-card-primary .stat-icon {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #047857 0%, #059669 100%);
 }
 
 .stat-card-success .stat-icon {
@@ -1938,7 +1938,7 @@ const handleKeydown = (e) => {
 .stat-value {
   font-size: 32px;
   font-weight: 700;
-  color: #303133;
+  color: #0f172a;
   line-height: 1;
   margin-bottom: 2px;
 }
@@ -1968,12 +1968,12 @@ const handleKeydown = (e) => {
 .banner-left h3 {
   margin: 0 0 6px 0;
   font-size: 18px;
-  color: #303133;
+  color: #0f172a;
 }
 
 .banner-left p {
   margin: 0;
-  color: #606266;
+  color: #475569;
   font-size: 14px;
 }
 
@@ -1992,7 +1992,7 @@ const handleKeydown = (e) => {
 .header-title {
   font-size: 16px;
   font-weight: 600;
-  color: #303133;
+  color: #0f172a;
   display: flex;
   align-items: center;
 }
@@ -2030,7 +2030,7 @@ const handleKeydown = (e) => {
 
 .upload-text strong {
   font-size: 16px;
-  color: #303133;
+  color: #0f172a;
 }
 
 .upload-text p {
@@ -2051,13 +2051,13 @@ const handleKeydown = (e) => {
   align-items: center;
   margin-top: 16px;
   padding: 16px;
-  background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf0 100%);
+  background: linear-gradient(135deg, #f8fafc 0%, #e8ecf0 100%);
   border-radius: 8px;
 }
 
 .file-count {
   font-size: 14px;
-  color: #606266;
+  color: #475569;
   font-weight: 500;
   display: flex;
   align-items: center;
@@ -2066,7 +2066,7 @@ const handleKeydown = (e) => {
 .progress-bar-wrapper {
   margin-top: 16px;
   padding: 16px;
-  background: #f5f7fa;
+  background: #f8fafc;
   border-radius: 8px;
 }
 
@@ -2074,7 +2074,7 @@ const handleKeydown = (e) => {
   margin: 12px 0 0 0;
   text-align: center;
   font-size: 13px;
-  color: #606266;
+  color: #475569;
 }
 
 /* ========== 表格卡片 ========== */
@@ -2137,7 +2137,7 @@ const handleKeydown = (e) => {
 
 /* ========== 对话框样式 ========== */
 .concept-dialog :deep(.el-dialog__header) {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #047857 0%, #059669 100%);
   color: white;
   padding: 20px;
 }
@@ -2158,7 +2158,7 @@ const handleKeydown = (e) => {
 .concept-section h4 {
   margin: 0 0 12px 0;
   font-size: 16px;
-  color: #303133;
+  color: #0f172a;
 }
 
 .concept-section ul,
@@ -2170,12 +2170,12 @@ const handleKeydown = (e) => {
 
 .concept-section li {
   margin-bottom: 8px;
-  color: #606266;
+  color: #475569;
 }
 
 /* 字段映射对话框 */
 .field-mapping-dialog :deep(.el-dialog__header) {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #047857 0%, #059669 100%);
   color: white;
   padding: 20px;
 }
@@ -2197,7 +2197,7 @@ const handleKeydown = (e) => {
 }
 
 .field-mapping-dialog :deep(.el-card__header) {
-  background: #f5f7fa;
+  background: #f8fafc;
   padding: 12px 20px;
   border-bottom: 1px solid #e4e7ed;
 }
@@ -2215,7 +2215,7 @@ const handleKeydown = (e) => {
 }
 
 .field-mapping-dialog :deep(.el-table th) {
-  background: #f5f7fa;
+  background: #f8fafc;
   font-weight: 600;
 }
 
@@ -2231,16 +2231,16 @@ const handleKeydown = (e) => {
 /* 统计图表对话框 */
 .stats-chart-dialog :deep(.el-descriptions__label) {
   font-weight: 600;
-  color: #606266;
+  color: #475569;
 }
 
 .stats-chart-dialog :deep(.el-descriptions__content) {
-  color: #303133;
+  color: #0f172a;
 }
 
 /* 历史详情对话框 */
 .history-detail-dialog :deep(.el-dialog__header) {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #047857 0%, #059669 100%);
   color: white;
   padding: 20px;
 }
@@ -2267,7 +2267,7 @@ const handleKeydown = (e) => {
 .progress-bar-wrapper {
   margin-top: 16px;
   padding: 20px;
-  background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf0 100%);
+  background: linear-gradient(135deg, #f8fafc 0%, #e8ecf0 100%);
   border-radius: 12px;
   box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.05);
 }
@@ -2276,7 +2276,7 @@ const handleKeydown = (e) => {
   margin: 16px 0 0 0;
   text-align: center;
   font-size: 14px;
-  color: #606266;
+  color: #475569;
   font-weight: 500;
   display: flex;
   align-items: center;

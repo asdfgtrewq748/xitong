@@ -230,13 +230,13 @@ export default {
 
 /* 图标颜色 */
 .icon-no-data {
-  background: #f5f7fa;
+  background: #f8fafc;
   color: #909399;
 }
 
 .icon-no-search {
   background: #e8f4fd;
-  color: #409eff;
+  color: #059669;
 }
 
 .icon-error {
@@ -255,7 +255,7 @@ export default {
 }
 
 .icon-custom {
-  background: #f5f7fa;
+  background: #f8fafc;
   color: #909399;
 }
 
@@ -269,7 +269,7 @@ export default {
 .empty-title {
   font-size: 18px;
   font-weight: 600;
-  color: #303133;
+  color: #0f172a;
   margin: 0;
 }
 
@@ -292,7 +292,7 @@ export default {
 
 .btn-action {
   padding: 10px 24px;
-  background: #409eff;
+  background: #059669;
   color: white;
   border: none;
   border-radius: 6px;

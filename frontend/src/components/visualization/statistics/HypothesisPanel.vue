@@ -24,6 +24,6 @@
 .panel-header h3 {
   margin: 0 0 40px 0;
   font-size: 16px;
-  color: #303133;
+  color: #0f172a;
 }
 </style>

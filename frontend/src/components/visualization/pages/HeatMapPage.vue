@@ -314,8 +314,8 @@ const totalCells = computed(() => xCategories.value * yCategories.value)
 </script>
 
 <style scoped>
-.chart-page.modern-layout { height: 100%; display: flex; flex-direction: column; background: #f5f7fa; }
-.page-header.modern { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; display: flex; justify-content: space-between; align-items: center; padding: 20px 20px 8px 20px; border-bottom: none; }
+.chart-page.modern-layout { height: 100%; display: flex; flex-direction: column; background: #f8fafc; }
+.page-header.modern { background: linear-gradient(135deg, #059669 0%, #047857 100%); color: white; display: flex; justify-content: space-between; align-items: center; padding: 20px 20px 8px 20px; border-bottom: none; }
 .title-group h2 { font-size: 20px; margin: 0; color: white; }
 .title-group .subtitle { margin: 4px 0 0 0; color: rgba(255, 255, 255, 0.85); font-size: 13px; }
 .header-actions { display: flex; gap: 8px; align-items: center; }
@@ -325,10 +325,10 @@ const totalCells = computed(() => xCategories.value * yCategories.value)
 .summary-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 .summary-card { border-radius: 8px; }
 .card-content { display: flex; align-items: center; gap: 16px; }
-.card-icon { font-size: 32px; color: #667eea; }
+.card-icon { font-size: 32px; color: #059669; }
 .card-info { flex: 1; }
-.card-value { font-size: 24px; font-weight: bold; color: #303133; }
-.card-label { font-size: 13px; color: #909399; margin-top: 4px; }
+.card-value { font-size: 24px; font-weight: bold; color: #0f172a; }
+.card-label { font-size: 13px; color: #94a3b8; margin-top: 4px; }
 .chart-card { flex: 1; border-radius: 8px; display: flex; flex-direction: column; min-height: 0; }
 .chart-header { display: flex; justify-content: space-between; align-items: center; }
 .chart-wrapper { height: 100%; min-height: 500px; }
@@ -337,5 +337,5 @@ const totalCells = computed(() => xCategories.value * yCategories.value)
 .compact-form .el-form-item { margin-bottom: 12px; }
 :deep(.el-collapse-item__header) { font-weight: 500; padding-left: 8px; cursor: pointer; }
 :deep(.el-collapse-item__content) { padding: 12px 8px; }
-:deep(.el-divider__text) { font-size: 12px; color: #909399; }
+:deep(.el-divider__text) { font-size: 12px; color: #94a3b8; }
 </style>

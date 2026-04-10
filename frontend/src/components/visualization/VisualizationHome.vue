@@ -87,7 +87,7 @@ const chartTypes = [
     name: '3D曲面图',
     route: '/visualization/surface',
     icon: markRaw(PieChart),
-    color: '#909399',
+    color: '#94a3b8',
     description: '适用于展示三维数据的空间分布和曲面变化',
     features: ['空间分析', '曲面拟合', '交互旋转']
   },
@@ -119,13 +119,13 @@ function navigateTo(route) {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background-color: #f5f7fa;
+  background-color: #f8fafc;
 }
 
 .page-title {
   font-size: 20px;
   font-weight: bold;
-  color: #303133;
+  color: #0f172a;
 }
 
 .content-area {
@@ -160,12 +160,12 @@ function navigateTo(route) {
 .chart-name {
   font-size: 18px;
   font-weight: 600;
-  color: #303133;
+  color: #0f172a;
 }
 
 .chart-description {
   font-size: 14px;
-  color: #606266;
+  color: #475569;
   line-height: 1.6;
   margin-bottom: 16px;
   min-height: 48px;

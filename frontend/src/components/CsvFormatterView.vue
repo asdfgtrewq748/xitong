@@ -162,7 +162,7 @@ const transformAndSave = async () => {
   display: flex;
   flex-direction: column;
   gap: 24px;
-  background-color: #f5f7fb;
+  background-color: #f8fafc;
   min-height: 100%;
   box-sizing: border-box;
 }
@@ -193,7 +193,7 @@ const transformAndSave = async () => {
 
 .subtitle {
   margin: 0;
-  color: #64748b;
+  color: #475569;
   font-size: 14px;
 }
 
@@ -223,7 +223,7 @@ const transformAndSave = async () => {
   justify-content: space-between;
   align-items: center;
   font-weight: 600;
-  color: #1f2937;
+  color: #0f172a;
 }
 
 .card-hint {
@@ -262,7 +262,7 @@ const transformAndSave = async () => {
 .file-hint {
   margin: 0;
   font-size: 13px;
-  color: #64748b;
+  color: #475569;
 }
 
 .mapping-form :deep(.el-form-item) {

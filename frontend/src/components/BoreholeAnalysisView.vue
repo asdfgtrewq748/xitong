@@ -250,7 +250,7 @@ const filteredData = computed(() => {
 }
 .file-info {
   margin-left: 15px;
-  color: #606266;
+  color: #475569;
 }
 .hidden-input {
   display: none;
@@ -258,7 +258,7 @@ const filteredData = computed(() => {
 .summary-section {
   margin-top: 20px;
   padding: 15px;
-  background-color: #f9fafb;
+  background-color: #f8fafc;
   border-radius: 4px;
 }
 .summary-stats {

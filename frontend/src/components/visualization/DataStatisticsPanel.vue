@@ -394,7 +394,7 @@ const drawMiniHistogram = (fieldName, canvas) => {
   ctx.clearRect(0, 0, width, height)
 
   // 绘制柱状图
-  ctx.fillStyle = '#409eff'
+  ctx.fillStyle = '#059669'
   bins.forEach((count, i) => {
     const barHeight = (count / maxBinHeight) * (height - 10)
     const x = i * barWidth
@@ -444,7 +444,7 @@ onMounted(async () => {
   margin: 0 0 12px 0;
   font-size: 14px;
   font-weight: 600;
-  color: #303133;
+  color: #0f172a;
 }
 
 /* 数据概览 */
@@ -468,13 +468,13 @@ onMounted(async () => {
 .stat-value {
   font-size: 20px;
   font-weight: 600;
-  color: #409eff;
+  color: #059669;
   line-height: 1;
 }
 
 .stat-label {
   font-size: 12px;
-  color: #909399;
+  color: #94a3b8;
   margin-top: 4px;
 }
 
@@ -500,7 +500,7 @@ onMounted(async () => {
 .stat-title {
   font-size: 13px;
   font-weight: 600;
-  color: #303133;
+  color: #0f172a;
   margin-bottom: 8px;
 }
 
@@ -518,11 +518,11 @@ onMounted(async () => {
 }
 
 .stat-value-item .label {
-  color: #909399;
+  color: #94a3b8;
 }
 
 .stat-value-item .value {
-  color: #303133;
+  color: #0f172a;
   font-weight: 500;
 }
 
@@ -564,7 +564,7 @@ onMounted(async () => {
 
 .category-name {
   min-width: 60px;
-  color: #303133;
+  color: #0f172a;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -580,14 +580,14 @@ onMounted(async () => {
 
 .category-fill {
   height: 100%;
-  background: linear-gradient(90deg, #409eff, #66b1ff);
+  background: linear-gradient(90deg, #059669, #66b1ff);
   transition: width 0.3s ease;
 }
 
 .category-count {
   min-width: 30px;
   text-align: right;
-  color: #909399;
+  color: #94a3b8;
   font-weight: 500;
 }
 
@@ -616,7 +616,7 @@ onMounted(async () => {
 .quality-label {
   min-width: 60px;
   font-size: 12px;
-  color: #303133;
+  color: #0f172a;
   font-weight: 500;
 }
 
@@ -628,7 +628,7 @@ onMounted(async () => {
   min-width: 40px;
   text-align: right;
   font-size: 12px;
-  color: #303133;
+  color: #0f172a;
   font-weight: 600;
 }
 
@@ -673,13 +673,13 @@ onMounted(async () => {
 .suggestion-title {
   font-size: 13px;
   font-weight: 500;
-  color: #303133;
+  color: #0f172a;
   margin-bottom: 2px;
 }
 
 .suggestion-description {
   font-size: 12px;
-  color: #909399;
+  color: #94a3b8;
   line-height: 1.4;
 }
 

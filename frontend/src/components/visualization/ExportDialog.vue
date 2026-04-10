@@ -243,13 +243,13 @@ const handleClose = () => {
 .format-hint {
   margin-top: 8px;
   font-size: 12px;
-  color: #909399;
+  color: #94a3b8;
 }
 
 .size-hint {
   margin-top: 8px;
   font-size: 12px;
-  color: #606266;
+  color: #475569;
 }
 
 :deep(.el-radio-button__inner) {

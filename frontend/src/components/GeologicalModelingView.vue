@@ -159,7 +159,7 @@
                   style="margin: 12px 0;"
                   show-stops
                 />
-                <div style="font-size: 12px; color: #909399; line-height: 1.6;">
+                <div style="font-size: 12px; color: #94a3b8; line-height: 1.6;">
                   <div style="margin-bottom: 4px;">
                     网格: <strong>{{ params.resolution }}×{{ params.resolution }}</strong> = <strong>{{ (params.resolution * params.resolution).toLocaleString() }}</strong> 个点
                   </div>
@@ -181,11 +181,11 @@
               </el-form-item>
               <el-form-item label="首层基底高程 (m)">
                 <el-input-number v-model="params.base_level" :step="0.5" style="width: 100%;" />
-                <div style="font-size: 12px; color: #909399; margin-top: 4px;">最底层岩层的底面高程基准值</div>
+                <div style="font-size: 12px; color: #94a3b8; margin-top: 4px;">最底层岩层的底面高程基准值</div>
               </el-form-item>
               <el-form-item label="层间可视化间隔 (m)">
                 <el-input-number v-model="params.gap" :min="0" :step="0.1" style="width: 100%;" />
-                <div style="font-size: 12px; color: #909399; margin-top: 4px;">用于3D可视化时各层之间的间距,不影响实际厚度</div>
+                <div style="font-size: 12px; color: #94a3b8; margin-top: 4px;">用于3D可视化时各层之间的间距,不影响实际厚度</div>
               </el-form-item>
               
               <!-- 建模顺序说明 -->
@@ -199,7 +199,7 @@
                   • 第2层开始：底面 = 上一层顶面 + 间隔，顶面 = 底面 + 厚度<br/>
                   • 如有"序号"列，已自动按序号排序（从小到大）<br/>
                   • <span style="color: #e6a23c;">煤层自动显示为黑色</span><br/>
-                  • <span style="color: #409eff;">相同名称岩层使用相同颜色</span>
+                  • <span style="color: #059669;">相同名称岩层使用相同颜色</span>
                 </div>
               </el-alert>
             </el-form>
@@ -301,7 +301,7 @@
                     启用LOD自动调整
                   </el-checkbox>
                   <el-tooltip content="根据视距自动调整渲染精度，远距离时降低细节以提升性能" placement="right">
-                    <el-icon style="margin-left: 4px; color: #909399;"><QuestionFilled /></el-icon>
+                    <el-icon style="margin-left: 4px; color: #94a3b8;"><QuestionFilled /></el-icon>
                   </el-tooltip>
                 </el-form-item>
                 <el-form-item>
@@ -309,7 +309,7 @@
                     渐进式渲染
                   </el-checkbox>
                   <el-tooltip content="先显示低精度预览，逐步提升细节，避免长时间等待" placement="right">
-                    <el-icon style="margin-left: 4px; color: #909399;"><QuestionFilled /></el-icon>
+                    <el-icon style="margin-left: 4px; color: #94a3b8;"><QuestionFilled /></el-icon>
                   </el-tooltip>
                 </el-form-item>
                 <el-form-item label="当前LOD级别">
@@ -569,13 +569,13 @@
             <el-radio-group v-model="exportOptions.export_as_blocks">
               <el-radio :label="true">
                 <strong>封闭体块模式</strong>
-                <div style="font-size: 12px; color: #909399;">
+                <div style="font-size: 12px; color: #94a3b8;">
                   导出完整的六面体（顶+底+侧），适合FLAC3D数值模拟
                 </div>
               </el-radio>
               <el-radio :label="false">
                 <strong>表面模式</strong>
-                <div style="font-size: 12px; color: #909399;">
+                <div style="font-size: 12px; color: #94a3b8;">
                   仅导出地层顶面，适合CAD/SketchUp可视化
                 </div>
               </el-radio>
@@ -735,7 +735,7 @@
                 :step="0.5"
                 :precision="1"
               />
-              <span style="margin-left: 8px; color: #909399;">若下方未设置绝对高度，则以最上层顶面 + 此厚度作为封顶面</span>
+              <span style="margin-left: 8px; color: #94a3b8;">若下方未设置绝对高度，则以最上层顶面 + 此厚度作为封顶面</span>
             </el-form-item>
 
             <el-form-item label="顶封层绝对高度 (m)">
@@ -745,7 +745,7 @@
                 placeholder="留空则按厚度自动计算"
                 clearable
               />
-              <span style="margin-left: 8px; color: #909399;">若填入，则整个顶封层顶面采用该绝对高度（优先于厚度）</span>
+              <span style="margin-left: 8px; color: #94a3b8;">若填入，则整个顶封层顶面采用该绝对高度（优先于厚度）</span>
             </el-form-item>
 
             <el-form-item label="顶封层名称">
@@ -818,11 +818,11 @@
             <el-radio-group v-model="exportOptions.stl_format">
               <el-radio label="binary">
                 <strong>二进制格式</strong>
-                <span style="font-size: 12px; color: #909399;">（文件小，加载快，推荐）</span>
+                <span style="font-size: 12px; color: #94a3b8;">（文件小，加载快，推荐）</span>
               </el-radio>
               <el-radio label="ascii">
                 <strong>ASCII格式</strong>
-                <span style="font-size: 12px; color: #909399;">（文本格式，易读但文件大）</span>
+                <span style="font-size: 12px; color: #94a3b8;">（文本格式，易读但文件大）</span>
               </el-radio>
             </el-radio-group>
           </el-form-item>
@@ -880,7 +880,7 @@
               :step="5"
               show-input
             />
-            <div style="font-size: 12px; color: #909399; margin-top: 4px;">
+            <div style="font-size: 12px; color: #94a3b8; margin-top: 4px;">
               • 地形起伏大时建议增加厚度<br/>
               • 顶板顶面高程 = 最高点 + 厚度<br/>
               • 推荐值：小型模型5-10m，大型模型20-50m
@@ -975,11 +975,11 @@
             <el-radio-group v-model="exportOptions.obj_y_up">
               <el-radio :label="false">
                 <strong>Z轴朝上</strong>
-                <span style="font-size: 12px; color: #909399;">（Blender默认，推荐）</span>
+                <span style="font-size: 12px; color: #94a3b8;">（Blender默认，推荐）</span>
               </el-radio>
               <el-radio :label="true">
                 <strong>Y轴朝上</strong>
-                <span style="font-size: 12px; color: #909399;">（3ds Max/Maya）</span>
+                <span style="font-size: 12px; color: #94a3b8;">（3ds Max/Maya）</span>
               </el-radio>
             </el-radio-group>
           </el-form-item>
@@ -998,7 +998,7 @@
               active-text="生成MTL材质"
               inactive-text="仅OBJ几何"
             />
-            <div style="font-size: 12px; color: #909399; margin-top: 4px;">
+            <div style="font-size: 12px; color: #94a3b8; margin-top: 4px;">
               MTL文件包含地层颜色定义，导入时自动应用材质
             </div>
           </el-form-item>
@@ -2230,7 +2230,7 @@ async function generate3DModel() {
             },
             subtextStyle: {
               fontSize: 11,
-              color: '#666',
+              color: '#475569',
               fontFamily: 'Arial, SimSun'
             }
           },
@@ -2268,7 +2268,7 @@ async function generate3DModel() {
               return `
                 <div style="padding: 8px; font-family: Arial, SimSun;">
                   <div style="font-weight: bold; font-size: 13px; margin-bottom: 6px; color: #1a1a1a;">${layerName}</div>
-                  <div style="font-size: 11px; line-height: 18px; color: #333;">
+                  <div style="font-size: 11px; line-height: 18px; color: #1e293b;">
                     <span style="display: inline-block; width: 60px;">X坐标:</span><b>${p.value[0].toFixed(2)}</b> m<br/>
                     <span style="display: inline-block; width: 60px;">Y坐标:</span><b>${p.value[1].toFixed(2)}</b> m<br/>
                     <span style="display: inline-block; width: 60px;">高程:</span><b>${p.value[2].toFixed(2)}</b> m
@@ -2283,7 +2283,7 @@ async function generate3DModel() {
           borderWidth: 1,
           padding: 0,
           textStyle: {
-            color: '#333'
+            color: '#1e293b'
           }
         },
         legend: { 
@@ -2337,14 +2337,14 @@ async function generate3DModel() {
           nameTextStyle: {
             fontSize: 12,
             fontWeight: 'bold',
-            color: '#333',
+            color: '#1e293b',
             fontFamily: 'Arial, SimSun'
           },
           min: xMin,
           max: xMax,
           axisLabel: {
             fontSize: 10,
-            color: '#666',
+            color: '#475569',
             formatter: (value) => value !== undefined && value !== null ? value.toFixed(0) : '0'
           },
           splitNumber: 5
@@ -2355,14 +2355,14 @@ async function generate3DModel() {
           nameTextStyle: {
             fontSize: 12,
             fontWeight: 'bold',
-            color: '#333',
+            color: '#1e293b',
             fontFamily: 'Arial, SimSun'
           },
           min: yMin,
           max: yMax,
           axisLabel: {
             fontSize: 10,
-            color: '#666',
+            color: '#475569',
             formatter: (value) => value !== undefined && value !== null ? value.toFixed(0) : '0'
           },
           splitNumber: 5
@@ -2373,14 +2373,14 @@ async function generate3DModel() {
           nameTextStyle: {
             fontSize: 12,
             fontWeight: 'bold',
-            color: '#333',
+            color: '#1e293b',
             fontFamily: 'Arial, SimSun'
           },
           min: zMin,
           max: zMax,
           axisLabel: {
             fontSize: 10,
-            color: '#666',
+            color: '#475569',
             formatter: (value) => value !== undefined && value !== null ? value.toFixed(1) : '0.0'
           },
           splitNumber: 5
@@ -2412,7 +2412,7 @@ async function generate3DModel() {
           axisLine: {
             show: true,
             lineStyle: {
-              color: '#666',
+              color: '#475569',
               width: 1.5
             }
           },
@@ -3817,12 +3817,12 @@ async function generateCrossSection() {
         textStyle: {
           fontSize: 18,
           fontWeight: 'bold',
-          color: '#333'
+          color: '#1e293b'
         },
         subtext: `共 ${models.length} 个岩层 | 相对坐标范围: 0 ~ ${posRange.toFixed(2)} m`,
         subtextStyle: {
           fontSize: 12,
-          color: '#666'
+          color: '#475569'
         }
       },
       tooltip: {
@@ -3837,7 +3837,7 @@ async function generateCrossSection() {
         borderColor: '#ccc',
         borderWidth: 1,
         textStyle: {
-          color: '#333'
+          color: '#1e293b'
         },
         formatter: (params) => {
           if (!params || params.length === 0) return '';
@@ -3848,7 +3848,7 @@ async function generateCrossSection() {
           
           let result = `<div style="padding: 8px;">`;
           result += `<b style="font-size: 14px;">${axisLabel}相对坐标: ${positionRel.toFixed(2)} m</b><br/>`;
-          result += `<b style="font-size: 12px; color: #666;">${axisLabel}绝对坐标: ${positionAbs.toFixed(2)} m</b><br/><br/>`;
+          result += `<b style="font-size: 12px; color: #475569;">${axisLabel}绝对坐标: ${positionAbs.toFixed(2)} m</b><br/><br/>`;
           
           // 只显示主系列（不包括outline）
           params.filter(p => !p.seriesName.includes('_outline')).forEach(p => {
@@ -3898,13 +3898,13 @@ async function generateCrossSection() {
         nameTextStyle: {
           fontSize: 14,
           fontWeight: 'bold',
-          color: '#333'
+          color: '#1e293b'
         },
         min: 0,
         max: posRange,
         axisLine: {
           lineStyle: {
-            color: '#666'
+            color: '#475569'
           }
         },
         axisLabel: {
@@ -3926,11 +3926,11 @@ async function generateCrossSection() {
         nameTextStyle: {
           fontSize: 14,
           fontWeight: 'bold',
-          color: '#333'
+          color: '#1e293b'
         },
         axisLine: {
           lineStyle: {
-            color: '#666'
+            color: '#475569'
           }
         },
         axisLabel: {
@@ -4180,7 +4180,7 @@ function renderZSection(sectionData) {
     largeThreshold: 5000,  // 大于5000个点开启优化
     emphasis: {
       itemStyle: {
-        borderColor: '#333',
+        borderColor: '#1e293b',
         borderWidth: 1
       }
     }

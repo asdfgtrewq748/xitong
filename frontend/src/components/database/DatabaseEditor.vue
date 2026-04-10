@@ -437,7 +437,7 @@ const saveChanges = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #909399;
+  color: #94a3b8;
 }
 .pagination-bar {
   margin-top: 12px;

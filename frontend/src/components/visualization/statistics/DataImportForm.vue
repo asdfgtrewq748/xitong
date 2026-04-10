@@ -218,25 +218,25 @@ const handleCancel = () => {
   align-items: center;
   font-size: 14px;
   font-weight: 600;
-  color: #303133;
+  color: #0f172a;
 }
 
 .data-info {
   font-size: 13px;
-  color: #909399;
+  color: #94a3b8;
   font-weight: normal;
 }
 
 .column-selection {
   padding: 12px;
-  background: #f5f7fa;
+  background: #f8fafc;
   border-radius: 4px;
 }
 
 .selection-header {
   font-size: 13px;
   font-weight: 600;
-  color: #606266;
+  color: #475569;
   margin-bottom: 12px;
 }
 

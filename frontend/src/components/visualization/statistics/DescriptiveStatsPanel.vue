@@ -212,7 +212,7 @@ watch(() => props.selectedVariables, () => {
 .panel-header h3 {
   margin: 0;
   font-size: 16px;
-  color: #303133;
+  color: #0f172a;
 }
 
 .empty-hint {
@@ -241,11 +241,11 @@ watch(() => props.selectedVariables, () => {
 
 :deep(.el-descriptions__label) {
   font-weight: 600;
-  color: #606266;
+  color: #475569;
 }
 
 :deep(.el-descriptions__content) {
-  color: #303133;
+  color: #0f172a;
 }
 
 :deep(.el-collapse-item__header) {

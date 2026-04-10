@@ -50,7 +50,7 @@
                 <el-table-column prop="H" label="H" width="64" />
                 <el-table-column prop="K" label="K" width="64" />
                 <el-table-column label="操作" width="80">
-                  <template #default="{ $index }"><el-button type="danger" text size="small" @click="removeFromQueue($index)">删除</el-button></template>
+                  <template #ecfdf5ult="{ $index }"><el-button type="danger" text size="small" @click="removeFromQueue($index)">删除</el-button></template>
                 </el-table-column>
               </el-table>
             </div>
@@ -123,7 +123,7 @@
                 <el-table-column prop="L_top(m)" label="L顶 (m)" width="100" sortable />
                 <el-table-column prop="L_side(m)" label="L帮 (m)" width="100" sortable />
                 <el-table-column label="操作" width="100" fixed="right">
-                  <template #default="{ row, $index }">
+                  <template #ecfdf5ult="{ row, $index }">
                     <el-button type="primary" text size="small" @click="viewDetail(row)">详情</el-button>
                     <el-button type="danger" text size="small" @click="deleteRow($index)">删除</el-button>
                   </template>
@@ -323,5 +323,5 @@ onMounted(async () => { await loadConstants(); try { const saved = localStorage.
 </script>
 
 <style scoped>
-.page .header{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;background:linear-gradient(135deg,#0f766e,#2563eb);color:#fff}.header h2{margin:0 0 4px}.header p{margin:0;font-size:13px;opacity:.9}.row{display:flex;align-items:center}.between{justify-content:space-between}.hint{padding:40px 24px;text-align:center;color:#64748b}.card-gap{margin-top:16px}.match-result{margin-top:16px}
+.page .header{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;background:linear-gradient(135deg,#047857,#059669);color:#fff}.header h2{margin:0 0 4px}.header p{margin:0;font-size:13px;opacity:.9}.row{display:flex;align-items:center}.between{justify-content:space-between}.hint{padding:40px 24px;text-align:center;color:#475569}.card-gap{margin-top:16px}.match-result{margin-top:16px}
 </style>

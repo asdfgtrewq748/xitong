@@ -165,7 +165,7 @@ const commonActions = ref([
     name: '导入数据',
     description: '导入CSV或JSON数据文件',
     icon: 'Upload',
-    color: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    color: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
     action: 'import'
   },
   {
@@ -467,7 +467,7 @@ watch(drawerVisible, (visible) => {
   margin: 0 0 16px 0;
   font-size: 16px;
   font-weight: 600;
-  color: #303133;
+  color: #0f172a;
 }
 
 /* 常用操作网��� */
@@ -491,7 +491,7 @@ watch(drawerVisible, (visible) => {
 
 .action-item:hover {
   background: #f0f9ff;
-  border-color: #409eff;
+  border-color: #059669;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
@@ -515,13 +515,13 @@ watch(drawerVisible, (visible) => {
 .action-name {
   font-size: 14px;
   font-weight: 600;
-  color: #303133;
+  color: #0f172a;
   margin-bottom: 4px;
 }
 
 .action-description {
   font-size: 12px;
-  color: #909399;
+  color: #94a3b8;
   line-height: 1.4;
 }
 
@@ -546,7 +546,7 @@ watch(drawerVisible, (visible) => {
 
 .template-item:hover {
   background: #f0f9ff;
-  border-color: #409eff;
+  border-color: #059669;
 }
 
 .template-preview {
@@ -571,13 +571,13 @@ watch(drawerVisible, (visible) => {
 .template-name {
   font-size: 14px;
   font-weight: 600;
-  color: #303133;
+  color: #0f172a;
   margin-bottom: 4px;
 }
 
 .template-description {
   font-size: 12px;
-  color: #909399;
+  color: #94a3b8;
   margin-bottom: 6px;
   line-height: 1.4;
 }
@@ -614,13 +614,13 @@ watch(drawerVisible, (visible) => {
 .shortcut-name {
   font-size: 14px;
   font-weight: 500;
-  color: #303133;
+  color: #0f172a;
   margin-bottom: 2px;
 }
 
 .shortcut-description {
   font-size: 12px;
-  color: #909399;
+  color: #94a3b8;
 }
 
 .shortcut-keys {
@@ -636,7 +636,7 @@ watch(drawerVisible, (visible) => {
   border-radius: 4px;
   font-size: 11px;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  color: #606266;
+  color: #475569;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
@@ -666,7 +666,7 @@ watch(drawerVisible, (visible) => {
 }
 
 .recent-icon {
-  color: #409eff;
+  color: #059669;
   font-size: 16px;
 }
 
@@ -677,13 +677,13 @@ watch(drawerVisible, (visible) => {
 .recent-name {
   font-size: 14px;
   font-weight: 500;
-  color: #303133;
+  color: #0f172a;
   margin-bottom: 2px;
 }
 
 .recent-time {
   font-size: 12px;
-  color: #909399;
+  color: #94a3b8;
 }
 
 /* 响应式设计 */
@@ -722,6 +722,6 @@ watch(drawerVisible, (visible) => {
 :deep(.el-drawer__title) {
   font-size: 18px;
   font-weight: 600;
-  color: #303133;
+  color: #0f172a;
 }
 </style>

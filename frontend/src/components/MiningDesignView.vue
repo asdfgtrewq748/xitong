@@ -116,7 +116,7 @@
                 <line x1="0" y1="0" x2="0" y2="4" stroke="#94a3b8" stroke-width="1" />
               </pattern>
               <marker id="arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-                <path d="M0,0 L6,3 L0,6 L0,0" fill="#64748b" />
+                <path d="M0,0 L6,3 L0,6 L0,0" fill="#475569" />
               </marker>
             </defs>
           </svg>
@@ -134,11 +134,11 @@
           <div :class="['relative w-full h-full p-16 transition-all duration-1000', isGenerating ? 'opacity-60 blur-[1px] scale-95' : 'opacity-100 scale-100']">
             <template v-if="showResult">
               <svg class="w-full h-full drop-shadow-lg" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid meet">
-                <line x1="50" y1="300" x2="750" y2="300" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="10,5" />
-                <line x1="400" y1="50" x2="400" y2="550" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="10,5" />
+                <line x1="50" y1="300" x2="750" y2="300" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="10,5" />
+                <line x1="400" y1="50" x2="400" y2="550" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="10,5" />
 
                 <g class="blueprint-line">
-                  <rect x="100" y="150" width="600" height="300" fill="none" stroke="#334155" stroke-width="1.5" />
+                  <rect x="100" y="150" width="600" height="300" fill="none" stroke="#1e293b" stroke-width="1.5" />
 
                   <g transform="translate(150, 300)">
                     <circle r="15" fill="none" stroke="#0f172a" stroke-width="2" />
@@ -154,14 +154,14 @@
                     <text x="20" y="5" class="text-xs fill-slate-700 font-semibold font-mono">副井</text>
                   </g>
 
-                  <path d="M 150 300 L 150 200 L 650 200 L 650 400 L 150 400 L 150 300" fill="none" stroke="#334155" stroke-width="1.5" />
+                  <path d="M 150 300 L 150 200 L 650 200 L 650 400 L 150 400 L 150 300" fill="none" stroke="#1e293b" stroke-width="1.5" />
 
-                  <rect x="350" y="200" width="100" height="200" fill="url(#hatch)" stroke="#334155" stroke-width="1" />
-                  <rect x="500" y="200" width="100" height="200" fill="url(#hatch)" stroke="#334155" stroke-width="1" />
+                  <rect x="350" y="200" width="100" height="200" fill="url(#hatch)" stroke="#1e293b" stroke-width="1" />
+                  <rect x="500" y="200" width="100" height="200" fill="url(#hatch)" stroke="#1e293b" stroke-width="1" />
 
-                  <line x1="350" y1="420" x2="450" y2="420" stroke="#64748b" stroke-width="1" marker-start="url(#arrow)" marker-end="url(#arrow)" />
-                  <line x1="350" y1="415" x2="350" y2="425" stroke="#64748b" stroke-width="1" />
-                  <line x1="450" y1="415" x2="450" y2="425" stroke="#64748b" stroke-width="1" />
+                  <line x1="350" y1="420" x2="450" y2="420" stroke="#475569" stroke-width="1" marker-start="url(#arrow)" marker-end="url(#arrow)" />
+                  <line x1="350" y1="415" x2="350" y2="425" stroke="#475569" stroke-width="1" />
+                  <line x1="450" y1="415" x2="450" y2="425" stroke="#475569" stroke-width="1" />
                   <text x="400" y="435" text-anchor="middle" class="text-xs fill-slate-600 font-mono font-semibold">100m 工作面</text>
 
                   <text x="400" y="300" text-anchor="middle" class="text-sm fill-slate-900 font-bold font-mono bg-white px-1">工作面-101</text>
@@ -435,8 +435,8 @@ const handleGenerate = () => {
 
 .cad-grid {
   background-size: 40px 40px;
-  background-image: linear-gradient(to right, rgba(99, 102, 241, 0.05) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(99, 102, 241, 0.05) 1px, transparent 1px);
+  background-image: linear-gradient(to right, rgba(5, 150, 105, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(5, 150, 105, 0.05) 1px, transparent 1px);
   background-color: #fff;
 }
 
@@ -455,12 +455,12 @@ const handleGenerate = () => {
 }
 
 .custom-scroll::-webkit-scrollbar-thumb {
-  background-color: rgba(99, 102, 241, 0.2);
+  background-color: rgba(5, 150, 105, 0.2);
   border-radius: 20px;
 }
 
 .custom-scroll::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(99, 102, 241, 0.3);
+  background-color: rgba(5, 150, 105, 0.3);
 }
 
 .animate-fadeIn {

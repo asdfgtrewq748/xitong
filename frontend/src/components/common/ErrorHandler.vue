@@ -320,7 +320,7 @@ export default {
 
 .icon-network {
   background: #e8f4fd;
-  color: #409eff;
+  color: #059669;
 }
 
 .icon-validation {
@@ -342,14 +342,14 @@ export default {
 .error-title {
   font-size: 20px;
   font-weight: 600;
-  color: #303133;
+  color: #0f172a;
   margin: 0 0 12px 0;
   text-align: center;
 }
 
 .error-message {
   font-size: 15px;
-  color: #606266;
+  color: #475569;
   line-height: 1.6;
   margin: 0 0 20px 0;
   text-align: center;
@@ -357,8 +357,8 @@ export default {
 
 /* 解决方案 */
 .solutions-section {
-  background: #f5f7fa;
-  border-left: 4px solid #409eff;
+  background: #f8fafc;
+  border-left: 4px solid #059669;
   padding: 16px;
   border-radius: 4px;
   margin-bottom: 20px;
@@ -367,7 +367,7 @@ export default {
 .solutions-title {
   font-size: 14px;
   font-weight: 600;
-  color: #303133;
+  color: #0f172a;
   margin: 0 0 12px 0;
 }
 
@@ -379,7 +379,7 @@ export default {
 
 .solutions-list li {
   font-size: 14px;
-  color: #606266;
+  color: #475569;
   line-height: 1.8;
   padding-left: 20px;
   position: relative;
@@ -394,7 +394,7 @@ export default {
   content: '•';
   position: absolute;
   left: 8px;
-  color: #409eff;
+  color: #059669;
   font-weight: bold;
 }
 
@@ -412,15 +412,15 @@ export default {
   background: transparent;
   border: 1px solid #dcdfe6;
   border-radius: 4px;
-  color: #606266;
+  color: #475569;
   font-size: 13px;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .toggle-details:hover {
-  border-color: #409eff;
-  color: #409eff;
+  border-color: #059669;
+  color: #059669;
 }
 
 .toggle-details svg {
@@ -436,7 +436,7 @@ export default {
 
 .details-content {
   margin-top: 12px;
-  background: #f5f7fa;
+  background: #f8fafc;
   border-radius: 4px;
   padding: 12px;
   overflow-x: auto;
@@ -445,7 +445,7 @@ export default {
 .details-content pre {
   margin: 0;
   font-size: 12px;
-  color: #606266;
+  color: #475569;
   white-space: pre-wrap;
   word-wrap: break-word;
   font-family: 'Courier New', Courier, monospace;
@@ -477,7 +477,7 @@ export default {
 }
 
 .btn-retry {
-  background: #409eff;
+  background: #059669;
   color: white;
 }
 
@@ -487,7 +487,7 @@ export default {
 
 .btn-help {
   background: #e8f4fd;
-  color: #409eff;
+  color: #059669;
 }
 
 .btn-help:hover {
@@ -496,7 +496,7 @@ export default {
 
 .btn-close {
   background: #f4f4f5;
-  color: #606266;
+  color: #475569;
 }
 
 .btn-close:hover {

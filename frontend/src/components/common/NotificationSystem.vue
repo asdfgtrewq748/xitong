@@ -408,15 +408,15 @@ export default {
 }
 
 .notification-info {
-  border-left: 4px solid #409eff;
+  border-left: 4px solid #059669;
 }
 
 .notification-info .notification-icon {
-  color: #409eff;
+  color: #059669;
 }
 
 .notification-info .notification-progress {
-  background: #409eff;
+  background: #059669;
 }
 
 /* 过渡动画 */

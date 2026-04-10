@@ -313,7 +313,7 @@ export default {
 
 .icon-info {
   background: #e8f4fd;
-  color: #409eff;
+  color: #059669;
 }
 
 .icon-success {
@@ -325,14 +325,14 @@ export default {
 .confirm-title {
   font-size: 18px;
   font-weight: 600;
-  color: #303133;
+  color: #0f172a;
   margin: 0 0 12px 0;
   text-align: center;
 }
 
 .confirm-message {
   font-size: 15px;
-  color: #606266;
+  color: #475569;
   line-height: 1.6;
   margin: 0 0 16px 0;
   text-align: center;
@@ -340,7 +340,7 @@ export default {
 
 /* 详细信息 */
 .confirm-details {
-  background: #f5f7fa;
+  background: #f8fafc;
   border-radius: 6px;
   padding: 12px;
   margin-bottom: 16px;
@@ -349,7 +349,7 @@ export default {
 .details-label {
   font-size: 13px;
   font-weight: 600;
-  color: #606266;
+  color: #475569;
   margin-bottom: 6px;
 }
 
@@ -381,7 +381,7 @@ export default {
 
 .confirm-checkbox span {
   font-size: 14px;
-  color: #606266;
+  color: #475569;
 }
 
 /* 操作按钮 */
@@ -413,7 +413,7 @@ export default {
 
 .btn-cancel {
   background: #f4f4f5;
-  color: #606266;
+  color: #475569;
 }
 
 .btn-cancel:not(:disabled):hover {
@@ -441,7 +441,7 @@ export default {
 }
 
 .btn-info {
-  background: #409eff;
+  background: #059669;
 }
 
 .btn-info:not(:disabled):hover {

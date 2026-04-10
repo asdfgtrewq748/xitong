@@ -87,7 +87,7 @@
                 </el-form-item>
                 <el-form-item label="网格分辨率 (每轴点数)">
                   <el-slider v-model="config.resolution" :min="20" :max="200" :step="10" show-input @change="updateChart" />
-                  <div style="font-size:12px;color:#909399;margin-top:6px">设置空为使用原始数据分辨率</div>
+                  <div style="font-size:12px;color:#94a3b8;margin-top:6px">设置空为使用原始数据分辨率</div>
                 </el-form-item>
 
                 <el-divider content-position="left">色条设置</el-divider>
@@ -111,7 +111,7 @@
                 <el-divider content-position="left">导出设置</el-divider>
                 <el-form-item label="导出质量 (pixelRatio)">
                   <el-slider v-model="config.exportPixelRatio" :min="1" :max="4" :step="0.5" show-input />
-                  <div style="font-size:12px;color:#909399;margin-top:6px">2 对应 DPI 150, 4 对应 DPI 300</div>
+                  <div style="font-size:12px;color:#94a3b8;margin-top:6px">2 对应 DPI 150, 4 对应 DPI 300</div>
                 </el-form-item>
 
                 <el-divider content-position="left">字体设置</el-divider>
@@ -362,8 +362,8 @@ const xyzRange = computed(() => {
 </script>
 
 <style scoped>
-.chart-page.modern-layout { height: 100%; display: flex; flex-direction: column; background: #f5f7fa; }
-.page-header.modern { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; display: flex; justify-content: space-between; align-items: center; padding: 20px 20px 8px 20px; border-bottom: none; }
+.chart-page.modern-layout { height: 100%; display: flex; flex-direction: column; background: #f8fafc; }
+.page-header.modern { background: linear-gradient(135deg, #059669 0%, #047857 100%); color: white; display: flex; justify-content: space-between; align-items: center; padding: 20px 20px 8px 20px; border-bottom: none; }
 .title-group h2 { font-size: 20px; margin: 0; color: white; }
 .title-group .subtitle { margin: 4px 0 0 0; color: rgba(255, 255, 255, 0.85); font-size: 13px; }
 .header-actions { display: flex; gap: 8px; align-items: center; }
@@ -373,10 +373,10 @@ const xyzRange = computed(() => {
 .summary-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 .summary-card { border-radius: 8px; }
 .card-content { display: flex; align-items: center; gap: 16px; }
-.card-icon { font-size: 32px; color: #667eea; }
+.card-icon { font-size: 32px; color: #059669; }
 .card-info { flex: 1; }
-.card-value { font-size: 24px; font-weight: bold; color: #303133; }
-.card-label { font-size: 13px; color: #909399; margin-top: 4px; }
+.card-value { font-size: 24px; font-weight: bold; color: #0f172a; }
+.card-label { font-size: 13px; color: #94a3b8; margin-top: 4px; }
 .chart-card { flex: 1; border-radius: 8px; display: flex; flex-direction: column; min-height: 0; }
 .chart-header { display: flex; justify-content: space-between; align-items: center; }
 .chart-wrapper { height: 100%; min-height: 500px; }
@@ -385,5 +385,5 @@ const xyzRange = computed(() => {
 .compact-form .el-form-item { margin-bottom: 12px; }
 :deep(.el-collapse-item__header) { font-weight: 500; padding-left: 8px; cursor: pointer; }
 :deep(.el-collapse-item__content) { padding: 12px 8px; }
-:deep(.el-divider__text) { font-size: 12px; color: #909399; }
+:deep(.el-divider__text) { font-size: 12px; color: #94a3b8; }
 </style>

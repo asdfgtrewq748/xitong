@@ -215,14 +215,14 @@
               >
                 <el-table-column prop="filename" label="文件名" width="150" />
                 <el-table-column prop="feasibility_omega" label="可行度ω" width="100">
-                  <template #default="scope">
+                  <template #ecfdf5ult="scope">
                     <span :class="getFeasibilityClass(scope.row.feasibility_omega)">
                       {{ scope.row.feasibility_omega }}
                     </span>
                   </template>
                 </el-table-column>
                 <el-table-column prop="feasibility_level" label="可行性等级" width="120">
-                  <template #default="scope">
+                  <template #ecfdf5ult="scope">
                     <el-tag :type="getLevelTagType(scope.row.feasibility_level)" size="small">
                       {{ scope.row.feasibility_level }}
                     </el-tag>
@@ -235,7 +235,7 @@
                 <el-table-column prop="middle_layer_count" label="中间层数" width="80" />
                 <el-table-column prop="avg_tensile_strength" label="平均抗拉强度(MPa)" width="120" />
                 <el-table-column label="操作" width="100">
-                  <template #default="scope">
+                  <template #ecfdf5ult="scope">
                     <el-button
                       size="small"
                       @click="showDetails(scope.row)"
@@ -408,7 +408,7 @@
       <div class="levels-content">
         <el-table :data="feasibilityLevels" stripe>
           <el-table-column prop="level" label="等级" width="120">
-            <template #default="scope">
+            <template #ecfdf5ult="scope">
               <el-tag :type="getLevelTagType(scope.row.level)" size="large">
                 {{ scope.row.level }}
               </el-tag>
@@ -564,7 +564,7 @@ export default {
     const getLevelColor = (level) => {
       if (level.includes('I级')) return '#f56c6c'
       if (level.includes('II级')) return '#e6a23c'
-      if (level.includes('III级')) return '#409eff'
+      if (level.includes('III级')) return '#059669'
       if (level.includes('IV级')) return '#67c23a'
       if (level.includes('V级')) return '#909399'
       return '#909399'
@@ -892,7 +892,7 @@ export default {
 }
 
 .header-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
   color: white;
 }
 
@@ -928,7 +928,7 @@ export default {
   align-items: center;
   gap: 8px;
   font-weight: bold;
-  color: #303133;
+  color: #0f172a;
 }
 
 .file-selection {
@@ -938,7 +938,7 @@ export default {
 .file-list {
   max-height: 120px;
   overflow-y: auto;
-  border: 1px solid #e4e7ed;
+  border: 1px solid #e2e8f0;
   border-radius: 4px;
   padding: 8px;
   background: #f9fafb;
@@ -962,7 +962,7 @@ export default {
 .coal-selection h4 {
   margin: 0 0 10px 0;
   font-size: 14px;
-  color: #303133;
+  color: #0f172a;
 }
 
 .coal-group {
@@ -979,7 +979,7 @@ export default {
 
 .coal-item label {
   font-size: 12px;
-  color: #606266;
+  color: #475569;
   font-weight: 500;
 }
 
@@ -1005,7 +1005,7 @@ export default {
 
 .parameter-item label {
   font-size: 12px;
-  color: #606266;
+  color: #475569;
   font-weight: 500;
 }
 
@@ -1019,14 +1019,14 @@ export default {
 }
 
 .output-settings {
-  border-top: 1px solid #e4e7ed;
+  border-top: 1px solid #e2e8f0;
   padding-top: 15px;
 }
 
 .output-settings h4 {
   margin: 0 0 10px 0;
   font-size: 14px;
-  color: #303133;
+  color: #0f172a;
 }
 
 .output-item {
@@ -1037,7 +1037,7 @@ export default {
 
 .output-item label {
   font-size: 12px;
-  color: #606266;
+  color: #475569;
   font-weight: 500;
 }
 
@@ -1080,7 +1080,7 @@ export default {
 }
 
 .level-iii {
-  color: #409eff;
+  color: #059669;
   font-weight: bold;
 }
 
@@ -1108,25 +1108,25 @@ export default {
 .stat-value {
   font-size: 20px;
   font-weight: bold;
-  color: #409eff;
+  color: #059669;
   margin-bottom: 5px;
 }
 
 .stat-label {
   font-size: 12px;
-  color: #606266;
+  color: #475569;
 }
 
 .level-distribution {
   margin-top: 20px;
-  border-top: 1px solid #e4e7ed;
+  border-top: 1px solid #e2e8f0;
   padding-top: 15px;
 }
 
 .level-distribution h4 {
   margin: 0 0 10px 0;
   font-size: 14px;
-  color: #303133;
+  color: #0f172a;
 }
 
 .level-bars {
@@ -1143,14 +1143,14 @@ export default {
 
 .level-bar-label {
   font-size: 12px;
-  color: #606266;
+  color: #475569;
   min-width: 80px;
 }
 
 .level-bar {
   flex: 1;
   height: 20px;
-  background: #e4e7ed;
+  background: #e2e8f0;
   border-radius: 10px;
   overflow: hidden;
 }
@@ -1176,7 +1176,7 @@ export default {
 .layer-details h4 {
   margin: 0 0 10px 0;
   font-size: 14px;
-  color: #303133;
+  color: #0f172a;
 }
 
 .calibrate-content {
@@ -1190,11 +1190,11 @@ export default {
 .calibrate-results h4 {
   margin: 0 0 10px 0;
   font-size: 14px;
-  color: #303133;
+  color: #0f172a;
 }
 
 .highlight-value {
-  color: #409eff;
+  color: #059669;
   font-weight: bold;
   font-size: 16px;
 }

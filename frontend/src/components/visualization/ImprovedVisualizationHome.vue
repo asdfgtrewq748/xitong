@@ -421,7 +421,7 @@ const samplingInfo = ref({ enabled: false, method: 'none', original: 0, sampled:
 
 // 图表类型配置
 const chartTypes = ref([
-  { type: 'scatter', name: '散点图', icon: TrendCharts, color: '#667eea' },
+  { type: 'scatter', name: '散点图', icon: TrendCharts, color: '#059669' },
   { type: 'line', name: '折线图', icon: DataLine, color: '#f093fb' },
   { type: 'bar', name: '柱状图', icon: Histogram, color: '#4facfe' },
   { type: 'heatmap', name: '热力图', icon: Grid, color: '#43e97b' },
@@ -668,7 +668,7 @@ onUnmounted(() => {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background: #f5f7fa;
+  background: #f8fafc;
 }
 
 /* 顶部导航 */
@@ -695,12 +695,12 @@ onUnmounted(() => {
   margin: 0;
   font-size: 20px;
   font-weight: 600;
-  color: #303133;
+  color: #0f172a;
 }
 
 .title-icon {
   font-size: 24px;
-  color: #409eff;
+  color: #059669;
 }
 
 .nav-right {
@@ -764,7 +764,7 @@ onUnmounted(() => {
   margin: 0;
   font-size: 16px;
   font-weight: 600;
-  color: #303133;
+  color: #0f172a;
 }
 
 .collapse-btn {
@@ -793,7 +793,7 @@ onUnmounted(() => {
   gap: 8px;
   font-size: 14px;
   font-weight: 600;
-  color: #303133;
+  color: #0f172a;
 }
 
 /* 数据集列表 */
@@ -815,24 +815,24 @@ onUnmounted(() => {
 }
 
 .dataset-item:hover {
-  background: #f5f7fa;
-  border-color: #409eff;
+  background: #f8fafc;
+  border-color: #059669;
 }
 
 .dataset-item.active {
   background: #ecf5ff;
-  border-color: #409eff;
+  border-color: #059669;
 }
 
 .dataset-name {
   font-weight: 500;
-  color: #303133;
+  color: #0f172a;
   margin-bottom: 4px;
 }
 
 .dataset-meta {
   font-size: 12px;
-  color: #909399;
+  color: #94a3b8;
 }
 
 /* 图表类型选择 */
@@ -858,18 +858,18 @@ onUnmounted(() => {
 }
 
 .chart-type-item:hover {
-  background: #f5f7fa;
-  border-color: #409eff;
+  background: #f8fafc;
+  border-color: #059669;
 }
 
 .chart-type-item.active {
   background: #ecf5ff;
-  border-color: #409eff;
+  border-color: #059669;
 }
 
 .chart-type-item span {
   font-size: 12px;
-  color: #606266;
+  color: #475569;
 }
 
 /* 快速工具栏 */
@@ -888,7 +888,7 @@ onUnmounted(() => {
   margin: 0;
   font-size: 16px;
   font-weight: 600;
-  color: #303133;
+  color: #0f172a;
 }
 
 /* 图表容器 */

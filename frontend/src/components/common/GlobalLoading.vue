@@ -107,7 +107,7 @@ export default {
   width: 100%;
   height: 100%;
   border: 4px solid transparent;
-  border-top-color: #409eff;
+  border-top-color: #059669;
   border-radius: 50%;
   animation: spin 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
 }
@@ -117,7 +117,7 @@ export default {
   height: 70%;
   top: 15%;
   left: 15%;
-  border-top-color: #67c23a;
+  border-top-color: #059669;
   animation-delay: 0.2s;
 }
 
@@ -161,7 +161,7 @@ export default {
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #409eff, #67c23a);
+  background: linear-gradient(90deg, #059669, #059669);
   border-radius: 4px;
   transition: width 0.3s ease;
 }

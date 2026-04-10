@@ -233,11 +233,11 @@ const totalRecords = computed(() => previewData.value.length)
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: #f5f7fa;
+  background: #f8fafc;
 }
 
 .page-header.modern {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
   color: white;
   display: flex;
   justify-content: space-between;
@@ -303,7 +303,7 @@ const totalRecords = computed(() => previewData.value.length)
 
 .card-icon {
   font-size: 32px;
-  color: #667eea;
+  color: #059669;
 }
 
 .card-info {
@@ -313,12 +313,12 @@ const totalRecords = computed(() => previewData.value.length)
 .card-value {
   font-size: 24px;
   font-weight: bold;
-  color: #303133;
+  color: #0f172a;
 }
 
 .card-label {
   font-size: 13px;
-  color: #909399;
+  color: #94a3b8;
   margin-top: 4px;
 }
 
@@ -366,6 +366,6 @@ const totalRecords = computed(() => previewData.value.length)
 
 :deep(.el-divider__text) {
   font-size: 12px;
-  color: #909399;
+  color: #94a3b8;
 }
 </style>

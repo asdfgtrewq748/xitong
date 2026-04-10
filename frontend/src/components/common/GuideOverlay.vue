@@ -375,7 +375,7 @@ export default {
 .step-number {
   font-size: 13px;
   font-weight: 600;
-  color: #409eff;
+  color: #059669;
   background: #e8f4fd;
   padding: 4px 12px;
   border-radius: 12px;
@@ -468,7 +468,7 @@ export default {
 
 .btn-next,
 .btn-finish {
-  background: #409eff;
+  background: #059669;
   color: white;
 }
 
@@ -500,7 +500,7 @@ export default {
 .dot.active {
   width: 24px;
   border-radius: 4px;
-  background: #409eff;
+  background: #059669;
 }
 
 /* 响应式 */

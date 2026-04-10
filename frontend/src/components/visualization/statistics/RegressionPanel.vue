@@ -486,7 +486,7 @@ onBeforeUnmount(() => {
 .panel-header h3 {
   margin: 0;
   font-size: 16px;
-  color: #303133;
+  color: #0f172a;
 }
 
 .config-card {
@@ -509,13 +509,13 @@ onBeforeUnmount(() => {
   justify-content: space-between;
   align-items: center;
   padding: 8px 12px;
-  background: #f5f7fa;
+  background: #f8fafc;
   border-radius: 4px;
 }
 
 .metric-label {
   font-size: 13px;
-  color: #606266;
+  color: #475569;
   font-weight: 600;
 }
 

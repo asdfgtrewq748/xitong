@@ -320,7 +320,7 @@ onMounted(() => {
   margin: 0 0 12px 0;
   font-size: 14px;
   font-weight: 600;
-  color: #303133;
+  color: #0f172a;
   border-bottom: 1px solid #e4e7ed;
   padding-bottom: 8px;
 }
@@ -354,7 +354,7 @@ onMounted(() => {
 }
 
 .trend-card.stable {
-  border-left: 4px solid #909399;
+  border-left: 4px solid #94a3b8;
 }
 
 .trend-icon {
@@ -376,7 +376,7 @@ onMounted(() => {
 }
 
 .trend-card.stable .trend-icon {
-  background: #909399;
+  background: #94a3b8;
 }
 
 .trend-info {
@@ -385,14 +385,14 @@ onMounted(() => {
 
 .trend-label {
   font-size: 12px;
-  color: #909399;
+  color: #94a3b8;
   margin-bottom: 4px;
 }
 
 .trend-value {
   font-size: 16px;
   font-weight: 600;
-  color: #303133;
+  color: #0f172a;
 }
 
 .trend-stat {
@@ -402,13 +402,13 @@ onMounted(() => {
 .stat-number {
   font-size: 20px;
   font-weight: 600;
-  color: #409eff;
+  color: #059669;
   line-height: 1;
 }
 
 .stat-label {
   font-size: 12px;
-  color: #909399;
+  color: #94a3b8;
   margin-top: 4px;
 }
 
@@ -434,13 +434,13 @@ onMounted(() => {
 
 .metric-label {
   font-size: 12px;
-  color: #606266;
+  color: #475569;
 }
 
 .metric-value {
   font-size: 13px;
   font-weight: 500;
-  color: #303133;
+  color: #0f172a;
 }
 
 .periodicity-analysis,
@@ -468,14 +468,14 @@ onMounted(() => {
 .period-label,
 .prediction-label {
   font-size: 12px;
-  color: #606266;
+  color: #475569;
 }
 
 .period-value,
 .prediction-value {
   font-size: 12px;
   font-weight: 500;
-  color: #303133;
+  color: #0f172a;
 }
 
 .outlier-summary {
@@ -499,13 +499,13 @@ onMounted(() => {
 }
 
 .outlier-index {
-  color: #909399;
+  color: #94a3b8;
   min-width: 40px;
 }
 
 .outlier-value {
   font-weight: 500;
-  color: #303133;
+  color: #0f172a;
   flex: 1;
 }
 
@@ -515,7 +515,7 @@ onMounted(() => {
 }
 
 .outlier-more {
-  color: #909399;
+  color: #94a3b8;
   font-size: 11px;
   text-align: center;
   margin-top: 4px;
@@ -541,13 +541,13 @@ onMounted(() => {
 }
 
 .test-name {
-  color: #606266;
+  color: #475569;
   flex: 1;
 }
 
 .test-result {
   font-weight: 500;
-  color: #303133;
+  color: #0f172a;
   text-align: right;
   min-width: 120px;
 }

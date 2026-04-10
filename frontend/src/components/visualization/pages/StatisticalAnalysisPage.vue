@@ -217,11 +217,11 @@ const handleExport = async () => {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: #f5f7fa;
+  background: #f8fafc;
 }
 
 .page-header.modern {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
   color: white;
   display: flex;
   justify-content: space-between;
@@ -270,7 +270,7 @@ const handleExport = async () => {
 .panel-title {
   font-size: 15px;
   font-weight: 600;
-  color: #303133;
+  color: #0f172a;
 }
 
 .empty-state {
@@ -293,12 +293,12 @@ const handleExport = async () => {
 }
 
 .summary-item .label {
-  color: #606266;
+  color: #475569;
 }
 
 .summary-item .value {
   font-weight: 600;
-  color: #303133;
+  color: #0f172a;
 }
 
 .variable-list {
@@ -308,7 +308,7 @@ const handleExport = async () => {
 .list-header {
   font-size: 13px;
   font-weight: 600;
-  color: #606266;
+  color: #475569;
   margin-bottom: 12px;
 }
 

@@ -869,7 +869,7 @@ const getCellClass = ({ column, row }) => {
   margin: 0;
   font-size: 16px;
   font-weight: 600;
-  color: #1f2937;
+  color: #0f172a;
 }
 
 .step-desc {
@@ -882,7 +882,7 @@ const getCellClass = ({ column, row }) => {
   display: flex;
   align-items: center;
   font-weight: 600;
-  color: #1f2937;
+  color: #0f172a;
 }
 
 .card-body {
@@ -991,7 +991,7 @@ const getCellClass = ({ column, row }) => {
 }
 
 .data-source-selector :deep(.el-radio-button__original-radio:checked + .el-radio-button__inner) {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #059669 100%);
   color: #ffffff;
   box-shadow: none;
 }
@@ -1038,13 +1038,13 @@ const getCellClass = ({ column, row }) => {
 
 /* 主按钮样式 */
 .action-button.primary {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+  background: linear-gradient(135deg, #3b82f6 0%, #059669 100%) !important;
   border-color: transparent !important;
   color: #ffffff !important;
 }
 
 .action-button.primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+  background: linear-gradient(135deg, #059669 0%, #1d4ed8 100%) !important;
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
@@ -1171,7 +1171,7 @@ const getCellClass = ({ column, row }) => {
 .snapshot-value {
   font-size: 15px;
   font-weight: 600;
-  color: #1f2937;
+  color: #0f172a;
 }
 
 .result-card {

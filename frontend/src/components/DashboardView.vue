@@ -31,7 +31,7 @@
       <el-col :span="6">
         <el-card shadow="hover" class="stat-card">
           <div class="stat-item">
-            <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"><el-icon><Coin /></el-icon></div>
+            <div class="stat-icon" style="background: linear-gradient(135deg, #059669 0%, #047857 100%);"><el-icon><Coin /></el-icon></div>
             <div class="stat-text">
               <div class="stat-title">岩石数据库</div>
               <div class="stat-value">{{ stats.rock_db_count }}</div>
@@ -828,7 +828,7 @@ const getBarOption = () => {
         name: '数据统计',
         type: 'bar',
         data: [
-          { value: stats.value.rock_db_count, itemStyle: { color: '#667eea' } },
+          { value: stats.value.rock_db_count, itemStyle: { color: '#059669' } },
           { value: stats.value.borehole_file_count, itemStyle: { color: '#f093fb' } },
           { value: stats.value.modeling_record_count, itemStyle: { color: '#4facfe' } },
           { value: uniqueBoreholes.value, itemStyle: { color: '#43e97b' } }
@@ -879,7 +879,7 @@ const getPieOption = () => {
           }
         },
         data: [
-          { value: stats.value.rock_db_count, name: '岩石数据库', itemStyle: { color: '#667eea' } },
+          { value: stats.value.rock_db_count, name: '岩石数据库', itemStyle: { color: '#059669' } },
           { value: stats.value.borehole_file_count, name: '钻孔文件', itemStyle: { color: '#f093fb' } },
           { value: stats.value.modeling_record_count, name: '建模记录', itemStyle: { color: '#4facfe' } },
           { value: uniqueBoreholes.value, name: '全局钻孔', itemStyle: { color: '#43e97b' } }
@@ -921,7 +921,7 @@ onMounted(() => {
 
 /* 欢迎卡片 */
 .welcome-card { 
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
   color: white; 
   margin-bottom: 20px;
   border: none;

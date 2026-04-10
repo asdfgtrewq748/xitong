@@ -214,7 +214,7 @@ watch(() => props.data, () => {
 }
 
 .stat-item span {
-  color: #606266;
+  color: #475569;
 }
 
 .numeric-cell {
